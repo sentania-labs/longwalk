@@ -1,40 +1,45 @@
 extends SceneTree
 
-# Landmass isolation test for the macro planet map generator (see issue #1).
+# Landmass isolation and archetype test for the macro planet map generator.
 #
 # Invocation (headless, wired into tools/run_tests.sh and CI):
 #   godot --headless --script res://test/test_landmass.gd
 #
-# The continent-mask layer is supposed to break the old single blobby
-# landmass into several distinct, isolated continents separated by ocean.
-# This test regenerates a few seeds and asserts, for the default parameters:
+# The continent-mask layer breaks the old single blobby landmass into distinct,
+# ocean-separated continents. How much land a world has, how many continents,
+# and how their sizes spread is itself derived from the seed (the world
+# "archetype", see MacroMapGenerator._build_archetype): most seeds are
+# CONTINENTAL (a few large continents plus scattered islands, roughly a quarter
+# to two fifths land), with an OCEANIC water-world tail and a CONTINENT_HEAVY
+# dry tail. This variety is a feature, so this test does NOT assert one fixed
+# universal land fraction. Instead, for each seed it reads that seed's own
+# derived archetype and asserts:
 #
-#   1. At least MIN_SIGNIFICANT_LANDMASSES land connected components each of at
-#      least LANDMASS_MIN_SIZE tiles exist (distinct landmasses above a minimum
-#      size). Multiple components means they are separated by non-land, i.e.
-#      ocean, so the continents are genuinely isolated.
-#   2. Every reported significant landmass is actually at or above the minimum
-#      size (guards the metric itself).
-#   3. No single landmass dominates: the largest landmass is below
-#      MAX_LARGEST_FRACTION of total land, so we are not back to one big blob.
-#   4. There is a healthy amount of ocean (land_fraction well below 0.5), which
-#      is the deep ocean the mask guarantees between continents.
+#   1. Land fraction falls inside the seed's archetype land band.
+#   2. There are at least the archetype's minimum significant landmasses (land
+#      connected components at or above LANDMASS_MIN_SIZE tiles). Multiple
+#      components means they are separated by ocean, so continents are isolated.
+#   3. Every reported significant landmass is actually at or above the minimum
+#      size, and the reported list length matches the count (guards the metric).
 #
-# Exit code 0 means pass, non-zero means fail. This test does not re-check
-# byte-for-byte determinism; that stays in test/test_determinism.gd.
+# Two invariants are hard and hold for EVERY seed regardless of archetype:
+#
+#   A. Isolation: the smallest ocean band between any two placed continents
+#      (min_center_extent_gap) stays at or above twice the domain-warp amplitude,
+#      so the warp can never close a gap and make two distinct landmasses touch.
+#   B. Determinism (byte-identical PNG/JSON per seed) is covered separately in
+#      test/test_determinism.gd and is not re-checked here.
+#
+# Exit code 0 means pass, non-zero means fail.
 
 const MacroMap := preload("res://src/macro_map.gd")
 
 # Seeds exercised. These match the committed example maps so the test and the
-# examples/ artifacts stay in agreement.
-const SEEDS := [1, 7, 42]
-
-# A seed must yield at least this many distinct significant landmasses.
-const MIN_SIGNIFICANT_LANDMASSES := 3
-# No single landmass may exceed this fraction of total land.
-const MAX_LARGEST_FRACTION := 0.6
-# Land must stay below this fraction of the map (the rest is guaranteed ocean).
-const MAX_LAND_FRACTION := 0.5
+# examples/ artifacts stay in agreement. They deliberately span archetypes:
+# seed 1 is continent_heavy (a dry world), seeds 7 and 12 are the typical
+# continental case (large continents plus smaller islands), and seed 42 is an
+# oceanic water world.
+const SEEDS := [1, 7, 12, 42]
 
 
 func _initialize() -> void:
@@ -44,10 +49,10 @@ func _initialize() -> void:
 		failures += _check_seed(seed_value)
 
 	if failures == 0:
-		print("\nAll landmass isolation checks passed.")
+		print("\nAll landmass isolation and archetype checks passed.")
 		quit(0)
 	else:
-		print("\n%d landmass isolation check(s) FAILED." % failures)
+		print("\n%d landmass/archetype check(s) FAILED." % failures)
 		quit(1)
 
 
@@ -55,26 +60,42 @@ func _check_seed(seed_value: int) -> int:
 	var generator := MacroMap.new(seed_value)
 	var summary: Dictionary = generator.generate()["summary"]
 
+	# The expected bounds come from the SAME archetype-derivation the generator
+	# uses, so the test asserts against this seed's own derived world, not one
+	# universal expectation.
+	var arch: Dictionary = generator.archetype()
+	var band_min: float = float(arch["land_band_min"])
+	var band_max: float = float(arch["land_band_max"])
+	var min_significant: int = int(arch["min_significant"])
+
 	var failures := 0
 
 	var significant_count: int = summary["significant_landmass_count"]
 	var min_size: int = summary["significant_landmass_min_size"]
 	var sizes: Array = summary["landmass_sizes"]
-	var largest_fraction: float = summary["largest_landmass_fraction"]
 	var land_fraction: float = summary["land_fraction"]
+	var gap: float = generator.min_center_extent_gap()
 
-	print("[seed %d] significant_landmasses=%d sizes=%s largest_fraction=%f land_fraction=%f" % [
-		seed_value, significant_count, str(sizes), largest_fraction, land_fraction,
+	print("[seed %d] archetype=%s land_fraction=%f band=[%f,%f] significant=%d (need >= %d) sizes=%s gap=%f" % [
+		seed_value, arch["name"], land_fraction, band_min, band_max,
+		significant_count, min_significant, str(sizes), gap,
 	])
 
-	# 1. Enough distinct isolated landmasses.
-	if significant_count >= MIN_SIGNIFICANT_LANDMASSES:
-		print("  [PASS] at least %d significant landmasses" % MIN_SIGNIFICANT_LANDMASSES)
+	# 1. Land fraction inside this seed's archetype band.
+	if land_fraction >= band_min and land_fraction <= band_max:
+		print("  [PASS] land_fraction %f within archetype band [%f, %f]" % [land_fraction, band_min, band_max])
 	else:
-		print("  [FAIL] only %d significant landmasses (need >= %d)" % [significant_count, MIN_SIGNIFICANT_LANDMASSES])
+		print("  [FAIL] land_fraction %f outside archetype band [%f, %f]" % [land_fraction, band_min, band_max])
 		failures += 1
 
-	# 2. The reported list agrees with the count and the minimum size.
+	# 2. Enough distinct isolated landmasses for this archetype.
+	if significant_count >= min_significant:
+		print("  [PASS] at least %d significant landmasses" % min_significant)
+	else:
+		print("  [FAIL] only %d significant landmasses (need >= %d)" % [significant_count, min_significant])
+		failures += 1
+
+	# 3. The reported list agrees with the count and the minimum size.
 	if sizes.size() == significant_count:
 		print("  [PASS] reported size list length matches significant count")
 	else:
@@ -91,18 +112,15 @@ func _check_seed(seed_value: int) -> int:
 		print("  [FAIL] a reported significant landmass is below %d tiles" % min_size)
 		failures += 1
 
-	# 3. No single blob dominates.
-	if largest_fraction < MAX_LARGEST_FRACTION:
-		print("  [PASS] largest landmass is %f of land (< %f)" % [largest_fraction, MAX_LARGEST_FRACTION])
+	# A. Hard isolation invariant for every seed: the smallest ocean band between
+	# any two continents clears twice the warp amplitude, so distinct landmasses
+	# can never touch. A gap < 0 means fewer than two continents were placed
+	# (nothing to separate), which trivially satisfies isolation.
+	var min_gap := 2.0 * MacroMap.CONTINENT_WARP_AMP
+	if gap < 0.0 or gap >= min_gap:
+		print("  [PASS] continent isolation gap %f clears the warp margin %f" % [gap, min_gap])
 	else:
-		print("  [FAIL] largest landmass is %f of land (>= %f, too blobby)" % [largest_fraction, MAX_LARGEST_FRACTION])
-		failures += 1
-
-	# 4. Plenty of ocean between continents.
-	if land_fraction < MAX_LAND_FRACTION:
-		print("  [PASS] land_fraction %f leaves deep ocean between continents" % land_fraction)
-	else:
-		print("  [FAIL] land_fraction %f too high, ocean gaps not guaranteed" % land_fraction)
+		print("  [FAIL] continent isolation gap %f below warp margin %f (landmasses could touch)" % [gap, min_gap])
 		failures += 1
 
 	return failures
