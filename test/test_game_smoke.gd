@@ -19,6 +19,9 @@ extends SceneTree
 const GameMainScript := preload("res://src/render/game_main.gd")
 const MainScene := preload("res://scenes/main.tscn")
 const PlayerScene := preload("res://scenes/player.tscn")
+const TerrainChunkScript := preload("res://src/render/terrain_chunk.gd")
+const MacroMap := preload("res://src/macro_map.gd")
+const TerrainSamplerC := preload("res://src/sim/terrain_sampler.gd")
 
 const SEED := 424242
 
@@ -48,6 +51,13 @@ func _initialize() -> void:
 	failures += _check(pos_a.is_equal_approx(pos_b), "spawn position is deterministic for a fixed seed")
 	failures += _check(chunks_a == _last_chunks, "streamed chunk count is deterministic (%d vs %d)" % [chunks_a, _last_chunks])
 
+	# A built chunk's surface normals must point UP. When they pointed down the
+	# terrain was lit from underneath and rendered as a dark, featureless expanse
+	# with the biome colors invisible (Scott's "uniform brown" report). Physics
+	# collision does not run in a --script SceneTree, so this geometric check is
+	# the headless guard for that whole visual-legibility class of bug.
+	failures += _check(_terrain_normals_point_up(), "terrain chunk surface normals point up")
+
 	if failures == 0:
 		print("\nAll game smoke checks passed.")
 		quit(0)
@@ -73,6 +83,24 @@ func _boot_and_step(seed_value: int, frames: int) -> Vector3:
 	var pos: Vector3 = game._player.position
 	game.free()
 	return pos
+
+
+# Build one chunk headless and confirm the majority of its mesh normals face up.
+func _terrain_normals_point_up() -> bool:
+	var sampler = TerrainSamplerC.new(MacroMap.new(SEED))
+	var chunk = TerrainChunkScript.new()
+	chunk.build(sampler, Vector2i(0, 0), Vector3.ZERO)
+	var up := 0
+	var total := 0
+	for child in chunk.get_children():
+		if child is MeshInstance3D:
+			var normals = child.mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
+			total = normals.size()
+			for n in normals:
+				if n.y > 0.0:
+					up += 1
+	chunk.free()
+	return total > 0 and up == total
 
 
 func _check(condition: bool, label: String) -> int:

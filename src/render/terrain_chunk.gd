@@ -21,16 +21,19 @@ const TerrainSamplerC := preload("res://src/sim/terrain_sampler.gd")
 const CHUNK_SIZE := 48.0
 const RES := 24
 
-# Biome vertex colors. Kept independent of the macro map's PNG palette so the
-# 3D look can diverge from the 2D map without reaching into generator internals.
+# Biome vertex colors. These deliberately mirror the values in
+# MacroMapGenerator.BIOME_COLORS (duplicated here rather than imported so the
+# render side never reaches into generator internals) so the walkable 3D ground
+# reads as the same biome the 2D macro map shows at that location. Each biome is
+# a visibly distinct hue so terrain is legible while walking.
 const BIOME_COLORS := {
-	"ocean": Color(0.10, 0.22, 0.42),
-	"beach": Color(0.84, 0.78, 0.55),
-	"plains": Color(0.42, 0.62, 0.30),
-	"forest": Color(0.16, 0.40, 0.20),
-	"desert": Color(0.80, 0.71, 0.44),
-	"tundra": Color(0.66, 0.70, 0.68),
-	"mountain": Color(0.48, 0.46, 0.43),
+	"ocean": Color8(30, 62, 120),
+	"beach": Color8(214, 199, 140),
+	"plains": Color8(126, 176, 92),
+	"forest": Color8(52, 110, 58),
+	"desert": Color8(211, 182, 108),
+	"tundra": Color8(168, 178, 172),
+	"mountain": Color8(122, 116, 110),
 }
 
 var chunk_coord: Vector2i
@@ -69,16 +72,20 @@ func build(sampler, coord: Vector2i, render_origin: Vector3) -> void:
 			var biome: String = sampler.biome_at(wx, wz)
 			colors[i] = BIOME_COLORS.get(biome, Color.MAGENTA)
 
-	# Emit two triangles per quad, wound counter-clockwise when viewed from above
-	# so the surface normals point up.
+	# Emit two triangles per quad. Godot treats clockwise-wound triangles (viewed
+	# from the front) as front-facing, so this winding is the one that makes
+	# generate_normals() produce UPWARD normals. The previous winding pointed the
+	# normals down, which lit the terrain from underneath: from above the ground
+	# showed only dim sky ambient and the biome vertex colors never read, so the
+	# world looked like a featureless dark/brown expanse (Scott's report).
 	for gz in range(RES):
 		for gx in range(RES):
 			var i00 := gz * (RES + 1) + gx
 			var i10 := i00 + 1
 			var i01 := i00 + (RES + 1)
 			var i11 := i01 + 1
-			_add_tri(st, verts, colors, i00, i01, i11)
-			_add_tri(st, verts, colors, i00, i11, i10)
+			_add_tri(st, verts, colors, i00, i11, i01)
+			_add_tri(st, verts, colors, i00, i10, i11)
 
 	st.generate_normals()
 
@@ -92,11 +99,29 @@ func build(sampler, coord: Vector2i, render_origin: Vector3) -> void:
 	_mesh_instance.material_override = mat
 	add_child(_mesh_instance)
 
-	# Collision from the same triangles so the player walks on exactly what is
-	# drawn.
-	var shape := mesh.create_trimesh_shape()
+	# Collision from the SAME height grid as the mesh, but as a HeightMapShape3D
+	# rather than a triangle-soup (ConcavePolygonShape3D). A capsule CharacterBody
+	# walking on a trimesh catches on the internal edges between triangles
+	# ("ghost collisions"): the contact normal points sideways, is_on_floor never
+	# latches, and the player wedges in place. A HeightMapShape3D is a dedicated
+	# grid collider immune to that, and it samples exactly the vertex heights so
+	# the player still walks on what is drawn.
+	#
+	# The shape is a unit-spaced grid centered on its origin, so it is scaled by
+	# `step` to match the mesh's vertex spacing and shifted by half a chunk to put
+	# its corner at the chunk's (0,0), lining collision up with the mesh.
+	var hmap := HeightMapShape3D.new()
+	hmap.map_width = RES + 1
+	hmap.map_depth = RES + 1
+	var heights := PackedFloat32Array()
+	heights.resize((RES + 1) * (RES + 1))
+	for i in range((RES + 1) * (RES + 1)):
+		heights[i] = verts[i].y
+	hmap.map_data = heights
 	var collision := CollisionShape3D.new()
-	collision.shape = shape
+	collision.shape = hmap
+	collision.scale = Vector3(step, 1.0, step)
+	collision.position = Vector3(CHUNK_SIZE * 0.5, 0.0, CHUNK_SIZE * 0.5)
 	add_child(collision)
 
 	reposition(render_origin)
