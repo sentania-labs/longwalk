@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  determinism:
+    name: macro map determinism test (headless)
+    # Fork-gated per the sentania-labs CI standard: PR jobs run only for
+    # branches pushed into this repo, never for forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # GitHub-hosted runner (not self-hosted): the pinned Godot binary is
+    # downloaded fresh here, so no runner provisioning is needed. See
+    # ARCHITECTURE.md ("CI runner choice") for the rationale.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned Godot version
+        id: godot
+        run: echo "version=$(cat tools/godot/VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Godot binary
+        uses: actions/cache@v4
+        with:
+          path: tools/godot
+          key: godot-${{ steps.godot.outputs.version }}-${{ runner.os }}
+
+      - name: Fetch Godot and run determinism test
+        run: ./tools/run_tests.sh

@@ -1,0 +1,14 @@
+# Godot engine binary (downloaded reproducibly by tools/fetch_godot.sh).
+# The binary itself is never committed, only the fetch script and VERSION.
+/tools/godot/Godot_*
+/tools/godot/godot
+
+# Godot editor / import caches.
+.godot/
+*.import
+export_presets.cfg
+
+# OS / editor cruft.
+.DS_Store
+Thumbs.db
+*.swp

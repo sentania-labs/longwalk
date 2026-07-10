@@ -1,0 +1,18 @@
+{
+  "biome_distribution_of_land": {
+    "beach": 0.111481,
+    "desert": 0.044896,
+    "forest": 0.181161,
+    "mountain": 0.03515,
+    "plains": 0.379836,
+    "tundra": 0.247476
+  },
+  "height": 256,
+  "land_fraction": 0.566727,
+  "land_tiles": 74282,
+  "ocean_fraction": 0.433273,
+  "ocean_tiles": 56790,
+  "seed": 7,
+  "total_tiles": 131072,
+  "width": 512
+}
