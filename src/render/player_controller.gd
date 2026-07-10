@@ -39,6 +39,10 @@ var _sampler
 var render_origin := Vector3.ZERO
 var swimming := false
 
+# Whether the mouse was captured when the window lost focus, so focus regain can
+# restore capture. See _notification.
+var _was_captured := false
+
 # Untyped so this script also loads in a headless `--script` test (the global
 # class cache that resolves the CameraRig type is only built by the editor).
 @onready var _rig := $CameraRig
@@ -50,10 +54,22 @@ func setup(sampler) -> void:
 
 
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_set_mouse_captured(true)
 	# Default view is first person; hide the placeholder body so it does not
 	# fill the camera. It reappears in third person.
 	_mesh.visible = _rig.third_person
+
+
+# The mouse-capture toggle lives in _input (which sees every event first), NOT
+# _unhandled_input, so releasing the cursor is guaranteed to run even if a UI
+# Control is present and would otherwise swallow the key. During development the
+# editor auto-releases a captured mouse on focus changes, which masked this; an
+# exported build has no such safety net, so the Esc release must be handled
+# unconditionally here or the cursor stays locked to the window (Scott's report).
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("toggle_mouse"):
+		_set_mouse_captured(Input.mouse_mode != Input.MOUSE_MODE_CAPTURED)
+		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -66,12 +82,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		_mesh.visible = _rig.third_person
 	elif event.is_action_pressed("sleep"):
 		sleep_requested.emit()
-	elif event.is_action_pressed("toggle_mouse"):
-		# Free or recapture the mouse (handy for menus / alt-tab).
+
+
+func _set_mouse_captured(captured: bool) -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if captured else Input.MOUSE_MODE_VISIBLE
+
+
+# Never leave the OS with a captured (hidden, window-confined) cursor while the
+# game window is not focused; otherwise alt-tabbing away feels like the whole PC
+# is locked. Release capture on focus out and restore it on focus in.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			_was_captured = true
+			_set_mouse_captured(false)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		if _was_captured:
+			_was_captured = false
+			_set_mouse_captured(true)
 
 
 func _logical_pos() -> Vector3:
