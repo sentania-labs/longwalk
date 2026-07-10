@@ -35,3 +35,57 @@ jobs:
 
       - name: Fetch Godot and run determinism test
         run: ./tools/run_tests.sh
+
+  windows_playtest:
+    name: windows playtest build (export)
+    # Fork-gated the same way as the determinism job: PR jobs run only for
+    # branches pushed into this repo, never for forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned Godot version
+        id: godot
+        run: echo "version=$(cat tools/godot/VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Godot binary
+        uses: actions/cache@v4
+        with:
+          path: tools/godot
+          key: godot-${{ steps.godot.outputs.version }}-${{ runner.os }}
+
+      - name: Cache Godot export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ steps.godot.outputs.version }}-${{ runner.os }}
+
+      - name: Fetch Godot editor binary
+        run: ./tools/fetch_godot.sh
+
+      - name: Fetch Godot export templates
+        run: ./tools/fetch_export_templates.sh
+
+      - name: Import project resources (headless)
+        # A first import pass builds the .godot resource cache so the export is
+        # deterministic and does not race the importer.
+        run: tools/godot/godot --headless --import . || true
+
+      - name: Export Windows build (headless)
+        run: |
+          mkdir -p build/windows
+          tools/godot/godot --headless --export-release "Windows Desktop" build/windows/longwalk.exe
+
+      - name: Verify the exe was produced
+        run: |
+          test -f build/windows/longwalk.exe
+          ls -lh build/windows/longwalk.exe
+
+      - name: Upload Windows playtest build
+        uses: actions/upload-artifact@v4
+        with:
+          name: longwalk-windows-playtest
+          path: build/windows/longwalk.exe
+          if-no-files-found: error
