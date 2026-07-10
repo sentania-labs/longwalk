@@ -79,8 +79,49 @@ a horizontally wrapping world map).
 
 Elevation. Fractal (FBM) simplex-smooth noise, 5 octaves, lacunarity 2.0, gain
 0.5, base frequency 0.011. Sampled on the cylinder and normalized from the
-native -1..1 range to 0..1. This produces continents, coastlines, and mountain
-interiors.
+native -1..1 range to 0..1. This is the raw heightmap (`base_elevation_at`); it
+produces coastlines and mountain interiors but, on its own, one connected
+blobby landmass with fringe islands. The continent-mask layer below shapes it
+into distinct continents. The authoritative `elevation_at` is the raw
+heightmap after the mask is applied.
+
+### 2.3a Continent-mask layer
+
+Raw layered noise alone does not produce truly isolated continents, which
+undermines region diversity and long-term exploration. A continent-mask layer
+sits beneath the heightmap to force distinct, ocean-separated continents.
+
+A small list of continent centers is derived deterministically from the world
+seed. Center positions, per-continent core radii, and the continent count come
+from a 64-bit position hash of `(seed, slot index, attempt)`, not from any
+per-cell RNG or noise sampling, so they honor the pure function of (seed,
+position) rule: the centers are a fixed list recomputed identically on every
+run. The count is a seed-determined value in a tunable range (default 4 to 6).
+
+Each center has a core radius (mask 1.0 inside) and a falloff band of width
+`CONTINENT_FALLOFF_WIDTH` over which the mask ramps from 1.0 down to 0.0 using
+a tunable falloff shape (linear, smoothstep, or quadratic; default smoothstep).
+Beyond core + falloff the mask is exactly 0.0. The per-cell mask is the maximum
+contribution over all centers.
+
+Distances use the cylinder surface metric: the x separation is the shorter way
+around the wrap (`min(dx, width - dx)`), the y separation is linear, and the
+two combine as `sqrt(dx*dx + dy*dy)`. Because the cylinder radius is
+`width / TAU`, one wrapped column equals one unit of distance, matching the
+noise geometry, so the mask has no seam at the east-west wrap.
+
+The mask combines with the raw heightmap as `elevation = clamp(lifted * mask)`
+where `lifted` domes the noise gently toward land in proportion to the mask
+(`CONTINENT_DOME_STRENGTH`). Where the mask is 0.0 the elevation is forced to
+0.0 (guaranteed deep ocean); inside a core the noise (slightly domed) governs
+land and coastline. Continent centers are placed by a deterministic rejection
+loop that keeps each continent's influence extent (core + falloff) at least
+`CONTINENT_MIN_OCEAN_GAP` away from every other continent's extent. Since land
+can only exist inside a continent's extent, non-overlapping extents guarantee a
+band of ocean between every pair of continents, so their landmasses are always
+disconnected. All of these parameters (count range, radii, falloff width and
+shape, min-ocean-gap, dome strength) are pinned constants in `src/macro_map.gd`
+and are part of the determinism contract for M1.
 
 Temperature. Derived from latitude, not from a free noise field, so the poles
 are reliably cold and the equator reliably warm:
@@ -135,11 +176,30 @@ land fraction (0..1) and a biome distribution breakdown. Fields:
 ```
 seed, width, height, total_tiles, land_tiles, ocean_tiles,
 land_fraction, ocean_fraction,
-biome_distribution_of_land  # biome name -> fraction of land tiles (ocean excluded)
+biome_distribution_of_land,  # biome name -> fraction of land tiles (ocean excluded)
+
+# Continent / landmass metrics (from the continent-mask layer).
+continent_center_count,        # number of continent centers placed for this seed
+land_component_count,          # total land connected components (any size)
+significant_landmass_count,    # components at or above significant_landmass_min_size
+significant_landmass_min_size, # the size cutoff for "significant" (cells)
+largest_landmass_tiles,        # cell count of the largest landmass
+largest_landmass_fraction,     # largest landmass as a fraction of total land
+landmass_sizes                 # descending list of significant landmass sizes (cells)
 ```
 
-All fractions are rounded to 6 decimal places and the dictionary keys are built
-in a fixed canonical order, so the JSON text is byte-stable across runs.
+The landmass metrics come from a connected-component analysis of the land
+tiles (4-connectivity, flood fill). The analysis respects the east-west wrap:
+columns 0 and width-1 are neighbors, while the north and south edges are not.
+A land component count above 1 means the map has genuinely separate landmasses
+(they are separated by ocean, since the only non-land tile is ocean). This is
+how the continent-mask layer's isolation is measured, and
+`test/test_landmass.gd` asserts that the default parameters yield several
+distinct landmasses above a minimum size for the sample seeds.
+
+`JSON.stringify` is called with key sorting on, so the keys are emitted in
+alphabetical order regardless of insertion order. All fractions are rounded to
+6 decimal places, so the JSON text is byte-stable across runs.
 
 ### 2.7 CLI invocation
 

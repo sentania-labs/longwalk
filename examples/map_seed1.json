@@ -1,18 +1,30 @@
 {
   "biome_distribution_of_land": {
-    "beach": 0.117007,
-    "desert": 0.041902,
-    "forest": 0.156323,
-    "mountain": 0.045009,
-    "plains": 0.392437,
-    "tundra": 0.247322
+    "beach": 0.036796,
+    "desert": 0.020819,
+    "forest": 0.149537,
+    "mountain": 0.165998,
+    "plains": 0.308203,
+    "tundra": 0.318647
   },
+  "continent_center_count": 4,
   "height": 256,
-  "land_fraction": 0.599037,
-  "land_tiles": 78517,
-  "ocean_fraction": 0.400963,
-  "ocean_tiles": 52555,
+  "land_component_count": 4,
+  "land_fraction": 0.110306,
+  "land_tiles": 14458,
+  "landmass_sizes": [
+    4695,
+    3807,
+    3752,
+    2204
+  ],
+  "largest_landmass_fraction": 0.324734,
+  "largest_landmass_tiles": 4695,
+  "ocean_fraction": 0.889694,
+  "ocean_tiles": 116614,
   "seed": 1,
+  "significant_landmass_count": 4,
+  "significant_landmass_min_size": 200,
   "total_tiles": 131072,
   "width": 512
 }
