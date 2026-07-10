@@ -1,21 +1,24 @@
 ; Engine configuration file for the longwalk project.
 ; Godot 4.3-stable. See tools/godot/VERSION for the pinned engine version.
 ;
-; This file is the standard Godot project descriptor. It is intentionally
-; minimal for M1 (macro map generator only). There is no main scene yet
-; because M1 runs headless as a CLI tool, not as a windowed game.
+; This file is the standard Godot project descriptor. The M1 macro map
+; generator still runs headless as a CLI tool (src/generate_map.gd); M2 adds a
+; walkable world whose entry point is the main scene set below.
 
 config_version=5
 
 [application]
 
 config/name="longwalk"
-config/description="Procedural planet-scale exploration game. M1: macro planet map generator."
+config/description="Procedural planet-scale exploration game. M2: walkable world sourced from the macro planet map."
+run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3")
 run/disable_stdout=false
 
 [rendering]
 
-; Keep rendering config conservative so headless CLI runs stay lightweight.
+; gl_compatibility (OpenGL) rather than Forward+/Vulkan: it keeps headless CLI
+; runs lightweight and maximizes compatibility for the downloadable Windows
+; playtest build across varied GPUs.
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
