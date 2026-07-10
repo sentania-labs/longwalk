@@ -39,6 +39,7 @@ func _initialize() -> void:
 	failures += _test_sampler_determinism()
 	failures += _test_sampler_varies_by_seed()
 	failures += _test_sampler_agrees_with_macro()
+	failures += _test_detail_never_flips_coast()
 	failures += _test_spawn_determinism()
 
 	if failures == 0:
@@ -106,6 +107,35 @@ func _test_sampler_agrees_with_macro() -> int:
 		print("[PASS] sampler base agrees with macro land/ocean at cell centers (%d checked)" % checked)
 		return 0
 	print("[FAIL] sampler base disagreed with macro map at %d of %d cell centers" % [mismatches, checked])
+	return 1
+
+
+# The local-detail layer must never move the surface across sea level: at every
+# position the detailed elevation must land on the same side of sea level as the
+# authoritative macro base. This guards the hierarchical rule (detail refines,
+# never contradicts) that spawn selection and biome lookup rely on.
+func _test_detail_never_flips_coast() -> int:
+	var generator := MacroMap.new(SEED_A)
+	var sampler = TerrainSamplerC.new(generator)
+	var cell_size: float = TerrainSamplerC.MACRO_CELL_SIZE
+	var sea: float = generator.SEA_LEVEL
+	var flips := 0
+	var checked := 0
+	# Sample a fine grid (including off-center points) so near-shore cells and
+	# their interiors are all exercised.
+	for gy in range(0, generator.height * 2, 3):
+		for gx in range(0, generator.width * 2, 5):
+			var wx := float(gx) * cell_size * 0.5
+			var wz := float(gy) * cell_size * 0.5
+			var base_land: bool = sampler.macro_elevation01(wx, wz) >= sea
+			var detailed_land: bool = sampler.elevation01_at(wx, wz) >= sea
+			checked += 1
+			if base_land != detailed_land:
+				flips += 1
+	if flips == 0:
+		print("[PASS] local detail never flips land/ocean across sea level (%d points)" % checked)
+		return 0
+	print("[FAIL] local detail flipped land/ocean at %d of %d points" % [flips, checked])
 	return 1
 
 

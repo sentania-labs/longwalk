@@ -50,10 +50,10 @@ const HEIGHT_SCALE := 140.0
 # staying fully determined by the one world seed.
 const DETAIL_SEED_OFFSET := 5077
 
-# Detail amplitude in elevation-01 units. Kept small so the detail never turns
-# a deep-ocean cell into land or a solid-land cell into ocean: it only wiggles
-# the surface within a fraction of the sea-to-peak range (about 3.5 world units
-# at the current HEIGHT_SCALE). The macro map stays authoritative.
+# Detail amplitude in elevation-01 units. Small (about 3.5 world units at the
+# current HEIGHT_SCALE), and additionally attenuated to zero near the waterline
+# (see elevation01_at) so the detail can NEVER move a cell across sea level. The
+# macro map stays the authority on land vs ocean.
 const DETAIL_AMPLITUDE01 := 0.025
 
 # Detail noise spatial frequency. Chosen so the primary wavelength is roughly
@@ -138,9 +138,20 @@ func _detail_raw(wx: float, wz: float) -> float:
 
 # Final elevation (0..1) at a world position: macro base plus local detail,
 # clamped. Pure function of (seed, position).
+#
+# The detail is attenuated toward zero as the macro base approaches sea level,
+# so it can never move the surface across sea level: on land the result stays at
+# or above sea level, on ocean it stays below. This keeps the macro map
+# authoritative on land vs ocean (the hierarchical rule), matching what spawn
+# selection and biome lookup use, while still giving full detail away from the
+# coast. Because the attenuation reaches full strength exactly one detail
+# amplitude from sea level, the sign of (result - SEA_LEVEL) always matches the
+# sign of (base - SEA_LEVEL).
 func elevation01_at(wx: float, wz: float) -> float:
 	var base := macro_elevation01(wx, wz)
-	var detail := _detail_raw(wx, wz) * DETAIL_AMPLITUDE01
+	var margin := absf(base - MacroMapGen.SEA_LEVEL)
+	var attenuation := clampf(margin / DETAIL_AMPLITUDE01, 0.0, 1.0)
+	var detail := _detail_raw(wx, wz) * DETAIL_AMPLITUDE01 * attenuation
 	return clampf(base + detail, 0.0, 1.0)
 
 
