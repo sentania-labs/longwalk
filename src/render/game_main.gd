@@ -20,6 +20,7 @@ const TerrainStreamerScript := preload("res://src/render/terrain_streamer.gd")
 const TerrainChunkScript := preload("res://src/render/terrain_chunk.gd")
 const WaterScript := preload("res://src/render/water.gd")
 const DayNightScript := preload("res://src/render/day_night.gd")
+const InputActionsScript := preload("res://src/render/input_actions.gd")
 const PlayerScene := preload("res://scenes/player.tscn")
 
 const DEFAULT_SEED := 424242
@@ -192,7 +193,15 @@ func _physics_process(_delta: float) -> void:
 
 	if _hud != null and _day_night != null:
 		var state := "swim" if _player.swimming else "walk"
-		_hud.text = "%s\nseed pos (%.0f, %.0f)\n%s" % [_day_night.time_string(), logical.x, logical.z, state]
+		var vel: Vector3 = _player.velocity
+		var speed := Vector2(vel.x, vel.z).length()
+		# Position and velocity update every frame so a playtester can confirm
+		# movement objectively from the HUD, independent of visual terrain cues.
+		_hud.text = "%s  %s\npos (%.1f, %.1f, %.1f)\nvel %.2f m/s  (%.1f, %.1f, %.1f)" % [
+			_day_night.time_string(), state,
+			logical.x, logical.y, logical.z,
+			speed, vel.x, vel.y, vel.z,
+		]
 
 	if _smoketest_frames >= 0:
 		_frames += 1
@@ -225,26 +234,12 @@ func _maybe_rebase() -> void:
 	print("[game_main] rebased origin by %s, new origin=%s" % [shift, render_origin])
 
 
-# --- Input actions (defined in code so project.godot stays minimal) ---------
+# --- Input actions ----------------------------------------------------------
+# Registered in code (so project.godot stays minimal) from the single binding
+# table in input_actions.gd, which the regression test also reads so the two
+# cannot drift.
 func _setup_input_actions() -> void:
-	_add_key_action("move_forward", KEY_W)
-	_add_key_action("move_back", KEY_S)
-	_add_key_action("move_left", KEY_A)
-	_add_key_action("move_right", KEY_D)
-	_add_key_action("sprint", KEY_SHIFT)
-	_add_key_action("jump", KEY_SPACE)
-	_add_key_action("sleep", KEY_R)
-	_add_key_action("toggle_camera", KEY_C)
-	_add_key_action("toggle_mouse", KEY_ESCAPE)
-
-
-func _add_key_action(action: String, physical_key: int) -> void:
-	if InputMap.has_action(action):
-		return
-	InputMap.add_action(action)
-	var ev := InputEventKey.new()
-	ev.physical_keycode = physical_key
-	InputMap.action_add_event(action, ev)
+	InputActionsScript.register()
 
 
 func _parse_args(raw: PackedStringArray) -> Dictionary:

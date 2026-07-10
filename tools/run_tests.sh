@@ -7,6 +7,9 @@
 #   - test_sim_determinism.gd: M2 sim layers (terrain sampler + spawn finder)
 #                              are a pure function of (seed, position).
 #   - test_game_smoke.gd:      M2 game wiring boots and streams terrain sanely.
+#   - test_input_map.gd:       every input action the controller polls is
+#                              registered, so WASD/Esc can never be silently dead
+#                              in an export.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,5 +28,6 @@ run_test() {
 run_test test_determinism.gd
 run_test test_sim_determinism.gd
 run_test test_game_smoke.gd
+run_test test_input_map.gd
 
 echo "All test suites passed."
