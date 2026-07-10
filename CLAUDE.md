@@ -78,6 +78,19 @@ Three layers, described in full in ARCHITECTURE.md:
 Implementation of persistence is a later milestone (M4). Do not implement it
 before then.
 
+## Simulation/rendering separation (hard rule)
+
+The world simulation and generation core must be strictly separated from
+rendering and input. Generation and simulation code lives in its own module
+tree and has zero dependencies on viewport, camera, or UI nodes. It must be
+runnable headless.
+
+Rationale: local saves are the current persistence model through M4, but a
+lab-hosted server backend (a continuous world simulation that clients connect
+to) is an explicit planned evolution, targeted around the fauna milestone
+(M5+). This separation is what makes lifting the simulation onto a server a
+move, not a rewrite.
+
 ## Style rule: no em-dashes
 
 Do not use em-dashes anywhere. Not in code comments, not in docs, not in commit

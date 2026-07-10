@@ -229,7 +229,29 @@ rendering. Chunk streaming (M3) integrates with this: chunk world positions are
 tracked in the large logical coordinate space and converted to shifted local
 coordinates when instanced.
 
-## 5. CI runner choice
+## 5. Simulation/rendering module boundary
+
+The world simulation and generation core must be strictly separated from
+rendering and input. This is a hard rule, not just a style preference, so it
+is worth naming the module split explicitly: generation and simulation code
+lives under a `sim/` (or `core/`) directory tree, and rendering, camera, and
+UI code lives under a separate `render/` (or `ui/`) directory tree. Code in
+`sim/`/`core/` must have zero imports from `render/`/`ui/`, no dependency on
+`Viewport`, `Camera3D`/`Camera2D`, or any UI node, and must run headless with
+no display server, the same way `src/macro_map.gd` and
+`test/test_determinism.gd` do today.
+
+Rationale: local saves are the current persistence model through M4, but a
+lab-hosted server backend, a continuous world simulation that clients connect
+to over the network, is an explicit planned evolution targeted around the
+fauna milestone (M5+). A server has no viewport, no camera, and no player
+input; it only runs simulation and generation and streams results to clients.
+If simulation code never depended on rendering or input in the first place,
+lifting it onto a headless server process is a move of the `sim/` tree, not a
+rewrite. Rendering and UI code call into `sim/`/`core/` (one-directional
+dependency), never the reverse.
+
+## 6. CI runner choice
 
 The determinism workflow runs on `ubuntu-latest` (a GitHub-hosted runner) rather
 than the sentania-labs self-hosted runners. The self-hosted runners do not have
