@@ -33,16 +33,22 @@ const MOUNTAIN_LEVEL := 0.76
 # --- Continent-mask layer (see issue #1) ------------------------------------
 #
 # Raw layered noise alone produces one connected blobby landmass with fringe
-# islands. To force distinct, isolated continents we place a small set of
-# continent centers (derived deterministically from the world seed, honoring
-# the pure function of (seed, position) rule) and apply a distance falloff
-# around each. The falloff is combined with the noise heightmap so that land
-# only survives near a center and guaranteed deep ocean separates the centers.
+# islands. To force distinct, isolated continents we place a deterministic set of
+# continent lobes (derived from the world seed, honoring the pure function of
+# (seed, position) rule) and apply a distance falloff around each. The falloff is
+# combined with the noise heightmap so that land only survives near a lobe and
+# guaranteed deep ocean separates the continents.
 #
-# The center positions are a short deterministic list computed once from the
-# seed (a position hash, NOT a per-cell RNG sample). Every per-cell mask value
-# is then a pure function of (seed, position): the distance from the cell to
-# the fixed centers. Nothing depends on iteration order.
+# The lobes are grouped: each continent is a chain of several overlapping lobes
+# sharing a `group` id, so a continent reads as one large, elongated, irregular
+# landmass rather than a single compact rounded island. Lobes in the same group
+# merge; different groups keep a guaranteed ocean gap. See the "Lobed continent
+# groups" section below and _build_continent_centers().
+#
+# The lobe list is a short deterministic list computed once from the seed (a
+# position hash, NOT a per-cell RNG sample). Every per-cell mask value is then a
+# pure function of (seed, position): the distance from the cell to the fixed
+# lobes. Nothing depends on iteration order.
 #
 # Distances are measured on the cylinder surface: the x axis wraps east-west,
 # so the x separation is the shorter of the two ways around. Because the
@@ -113,14 +119,57 @@ const CONTINENT_WARP_FREQUENCY := 0.014
 const CONTINENT_ASPECT_MIN := 1.0
 const CONTINENT_ASPECT_MAX := 1.35
 
+# --- Lobed continent groups -------------------------------------------------
+#
+# A single hashed center plus falloff always reads as one compact rounded island,
+# no matter how much the noise ragged-ises its coast. To make continents read as
+# large, elongated, irregular landmasses, each continent is built from a CHAIN of
+# several overlapping lobes (each lobe is a position-hashed center with its own
+# core, falloff, aspect and orientation, the same primitives as before) that
+# share a `group` id. Lobes in the same group are placed close enough to overlap,
+# so their combined mask merges into one landmass rather than a string of visibly
+# separate circles.
+#
+# The isolation guarantee (CONTINENT_MIN_OCEAN_GAP below) now applies BETWEEN
+# groups only: two lobes of the SAME group may sit arbitrarily close (that is how
+# they merge), while any two lobes of DIFFERENT groups keep the guaranteed ocean
+# band. Small scattered single-lobe "archipelago" groups are sprinkled between the
+# continents; being their own group, they too keep the ocean gap, so an
+# archipelago island can never bridge two continents into one component.
+#
+# A chain walks from an anchor lobe: each subsequent lobe is offset from the
+# previous one by a hashed direction (wandering around the group's base axis, so
+# the chain elongates instead of folding into a blob) and a hashed distance of
+# STEP_MIN..STEP_MAX times the lobe's core radius. Because the step is a fraction
+# of the core, consecutive cores overlap and the mask stays at 1.0 across the
+# join, so the lobes fuse. Everything is a pure function of (seed, group, lobe
+# index, attempt): no per-run randomness in the chaining or the archipelagos.
+const LOBE_CHAIN_STEP_MIN_FRAC := 0.45
+const LOBE_CHAIN_STEP_MAX_FRAC := 0.95
+const LOBE_CHAIN_ANGLE_SPREAD := 1.15
+
+# Anchor lobes (the first lobe of a group and every archipelago lobe) keep their
+# center at least this far from the hard north and south poles. This is a small
+# margin, NOT a full-extent clearance: a large continent's extent is deliberately
+# allowed to run past a pole and clip at the map edge, so land reaches high
+# latitude and the map no longer sits inside an enclosing ocean ring. Clipping
+# only ever removes land at the edge, so it cannot affect the (circular, extent
+# based) isolation guarantee between groups. A future polar-cap layer (issue #2)
+# will refine what happens at those high latitudes; here we simply do not hold
+# land away from the poles. Chained (non-anchor) lobes may wander past this margin
+# and clip too.
+const CONTINENT_POLE_MARGIN := 16
+
 # Minimum guaranteed ocean gap (in cells) between the influence extents (core +
-# falloff) of any two continents. Because land can only exist inside a
-# continent's influence extent (the mask is 0.0 outside it), forcing the extents
-# to stay this far apart guarantees a band of deep ocean between every pair of
-# continents. This must exceed twice the warp amplitude so that even when the
-# domain warp pushes two neighboring coasts toward each other by up to WARP_AMP
-# each, a band of ocean always survives and the landmasses can never touch. This
-# is the load-bearing isolation guarantee. See min_center_extent_gap().
+# falloff) of any two continents from DIFFERENT groups. Because land can only
+# exist inside a lobe's influence extent (the mask is 0.0 outside it), forcing the
+# extents of different groups to stay this far apart guarantees a band of deep
+# ocean between every pair of continents (and around every archipelago island).
+# This must exceed twice the warp amplitude so that even when the domain warp
+# pushes two neighboring coasts toward each other by up to WARP_AMP each, a band
+# of ocean always survives and the landmasses can never touch. This is the load
+# bearing isolation guarantee, now scoped between groups. See
+# min_center_extent_gap().
 const CONTINENT_MIN_OCEAN_GAP := 28
 
 # Safety cap on placement attempts. Placement is a deterministic rejection loop
@@ -157,14 +206,20 @@ var _warp_noise_y: FastNoiseLite
 # _build_archetype() for the fields.
 var _archetype: Dictionary = {}
 
-# Deterministic list of continent centers, computed once from the seed in
-# _init. Each entry is {"x": int, "y": int, "core": int, "falloff": int,
-# "extent": int, "aspect": float, "orient": float} where `core` is the
-# full-mask radius, `falloff` is the ramp band width, `extent` is core + falloff
-# (the anisotropic radius beyond which the mask is exactly 0), `aspect` is the
-# elongation and `orient` is the long-axis angle in radians. See
-# _build_continent_centers().
+# Deterministic list of continent lobes, computed once from the seed in _init.
+# Each entry is {"x": float, "y": float, "core": int, "falloff": int,
+# "extent": int, "aspect": float, "orient": float, "group": int} where `core` is
+# the full-mask radius, `falloff` is the ramp band width, `extent` is core +
+# falloff (the anisotropic radius beyond which the mask is exactly 0), `aspect` is
+# the elongation, `orient` is the long-axis angle in radians, and `group` ties the
+# lobe to its continent (lobes sharing a group merge into one landmass; different
+# groups keep the ocean gap). See _build_continent_centers(). The name keeps
+# "centers" for continuity; every entry is one lobe center.
 var _continent_centers: Array = []
+
+# Number of distinct continent groups (continents plus archipelago islands),
+# computed once in _init from the lobe list. Reported in the JSON summary.
+var _continent_group_count: int = 0
 
 # The ordered starter biome set. Order here is the canonical order used for
 # color lookup and for the JSON distribution breakdown, so it stays stable.
@@ -263,6 +318,11 @@ func _init(p_seed: int, p_width: int = DEFAULT_WIDTH, p_height: int = DEFAULT_HE
 	_archetype = _build_archetype()
 	_continent_centers = _build_continent_centers()
 
+	var groups := {}
+	for c in _continent_centers:
+		groups[int(c["group"])] = true
+	_continent_group_count = groups.size()
+
 
 # --- Deterministic integer hashing -----------------------------------------
 #
@@ -292,13 +352,18 @@ func _hash2(a: int, b: int) -> int:
 
 # Derive the world archetype parameters for this seed. A latent selector in
 # 0..1 (hashed from the seed) buckets the world into OCEANIC, CONTINENTAL, or
-# CONTINENT_HEAVY, and each bucket fixes the count, radius, lift, and size-spread
-# knobs plus the expected land-fraction band and minimum significant landmass
-# count that the landmass test asserts against. Every value is a pure function
-# of the seed (position hashes, no per-cell RNG), so it is byte-reproducible.
+# CONTINENT_HEAVY, and each bucket fixes the group tiers (how many continent
+# groups of each size class, how many lobes each, and the lobe radii), the
+# sea-level lift, the archipelago sprinkle, plus the expected land-fraction band
+# and minimum significant landmass count the landmass test asserts against. Every
+# value is a pure function of the seed (position hashes, no per-cell RNG), so it
+# is byte-reproducible.
 #
-# The count and radius fields are read by _build_continent_centers(); the
-# `land_band_*` and `min_significant` fields are the per-seed expectations the
+# Dramatic size variance within one world comes from the tier structure: a "super"
+# tier group (many lobes, larger cores) reads as a near-supercontinent, a "mid"
+# tier group or two as mid-size continents, and a "small" tier plus the
+# archipelago dots as the tail. The tiers are read by _build_continent_centers();
+# the `land_band_*` and `min_significant` fields are the per-seed expectations the
 # test derives from this same function rather than one fixed universal number.
 func _build_archetype() -> Dictionary:
 	var t := float(_hash2(seed_value, 4200) % 1000000) / 1000000.0
@@ -312,65 +377,79 @@ func _build_archetype() -> Dictionary:
 
 	match kind:
 		Archetype.OCEANIC:
-			# A water world: at most one modest primary, a handful of small
-			# islands, no sea-level lift so only the noise peaks surface. Little land.
+			# A water world: no supercontinent, at most a small mid group, a couple
+			# of small groups, and a scatter of archipelago dots. No sea-level lift,
+			# so only the noise peaks surface. Little land.
 			return {
 				"kind": kind,
 				"name": "oceanic",
-				"primary_count": int(_hash2(seed_value, 51) % 2),          # 0..1
-				"secondary_count": 3 + int(_hash2(seed_value, 52) % 4),    # 3..6
-				"primary_core_min": 26, "primary_core_max": 40,
-				"secondary_core_min": 10, "secondary_core_max": 22,
-				"primary_falloff": 34, "secondary_falloff": 26,
+				"tiers": [
+					{"tag": "mid", "groups": int(_hash2(seed_value, 5001) % 2),        # 0..1
+						"lobes_min": 1, "lobes_max": 2, "core_min": 16, "core_max": 24, "falloff": 22},
+					{"tag": "small", "groups": 1 + int(_hash2(seed_value, 5002) % 2),  # 1..2
+						"lobes_min": 1, "lobes_max": 2, "core_min": 10, "core_max": 18, "falloff": 18},
+				],
+				"archipelago": {"count": 4 + int(_hash2(seed_value, 5003) % 4),        # 4..7
+					"core_min": 7, "core_max": 12, "falloff": 15},
 				"lift": 0.0,
-				"land_band_min": 0.005, "land_band_max": 0.20,
+				"land_band_min": 0.002, "land_band_max": 0.20,
 				"min_significant": 1,
+				# A water world is scattered small islands with no dominant mass, so no
+				# size-hierarchy floor is asserted (0.0 disables the check).
+				"min_largest_fraction": 0.0,
 			}
 		Archetype.CONTINENT_HEAVY:
-			# A dry world: two or three big continents, a few islands, a strong
-			# sea-level lift so most of each plateau surfaces. Large land fraction.
+			# A dry world: a big multi-lobe supercontinent, two mid continents, a
+			# small one or two, and a few islands, with a strong sea-level lift so
+			# most of each plateau surfaces. Large land fraction.
 			return {
 				"kind": kind,
 				"name": "continent_heavy",
-				"primary_count": 2 + int(_hash2(seed_value, 61) % 2),      # 2..3
-				"secondary_count": 2 + int(_hash2(seed_value, 62) % 3),    # 2..4
-				"primary_core_min": 72, "primary_core_max": 80,
-				"secondary_core_min": 18, "secondary_core_max": 30,
-				"primary_falloff": 32, "secondary_falloff": 30,
-				"lift": 0.20,
-				"land_band_min": 0.22, "land_band_max": 0.72,
+				"tiers": [
+					{"tag": "super", "groups": 1,
+						"lobes_min": 5, "lobes_max": 6, "core_min": 40, "core_max": 52, "falloff": 30},
+					{"tag": "mid", "groups": 2,
+						"lobes_min": 2, "lobes_max": 4, "core_min": 30, "core_max": 42, "falloff": 28},
+					{"tag": "small", "groups": 1 + int(_hash2(seed_value, 6003) % 2), # 1..2
+						"lobes_min": 1, "lobes_max": 2, "core_min": 18, "core_max": 28, "falloff": 24},
+				],
+				"archipelago": {"count": 2 + int(_hash2(seed_value, 6004) % 3),       # 2..4
+					"core_min": 8, "core_max": 14, "falloff": 16},
+				"lift": 0.30,
+				"land_band_min": 0.22, "land_band_max": 0.82,
 				"min_significant": 2,
+				# Size hierarchy: the supercontinent dominates, so the largest landmass
+				# holds a clear share of all land (observed min 0.33 across a 120-seed
+				# sweep; the floor is set below that so it is a real but non-brittle
+				# invariant, proving the world is not N equal-size masses).
+				"min_largest_fraction": 0.20,
 			}
 		_:
-			# The typical continental world: a couple of large primaries plus
-			# scattered smaller islands, roughly a quarter to two fifths land.
+			# The typical continental world: one multi-lobe near-supercontinent, a
+			# mid continent or two, a small one or two, and scattered islands,
+			# roughly a quarter to two fifths land.
 			return {
 				"kind": Archetype.CONTINENTAL,
 				"name": "continental",
-				"primary_count": 2 + int(_hash2(seed_value, 71) % 2),      # 2..3
-				"secondary_count": 3 + int(_hash2(seed_value, 72) % 4),    # 3..6
-				"primary_core_min": 64, "primary_core_max": 78,
-				"secondary_core_min": 13, "secondary_core_max": 27,
-				"primary_falloff": 36, "secondary_falloff": 32,
-				"lift": 0.13,
+				"tiers": [
+					{"tag": "super", "groups": 1,
+						"lobes_min": 4, "lobes_max": 5, "core_min": 34, "core_max": 48, "falloff": 28},
+					{"tag": "mid", "groups": 1 + int(_hash2(seed_value, 7002) % 2),   # 1..2
+						"lobes_min": 2, "lobes_max": 3, "core_min": 26, "core_max": 36, "falloff": 26},
+					{"tag": "small", "groups": 1 + int(_hash2(seed_value, 7003) % 2), # 1..2
+						"lobes_min": 1, "lobes_max": 2, "core_min": 17, "core_max": 26, "falloff": 22},
+				],
+				"archipelago": {"count": 4 + int(_hash2(seed_value, 7004) % 4),       # 4..7
+					"core_min": 8, "core_max": 13, "falloff": 16},
+				"lift": 0.21,
 				"land_band_min": 0.12, "land_band_max": 0.46,
 				"min_significant": 2,
+				# Size hierarchy: the near-supercontinent dominates, so the largest
+				# landmass holds a clear share of all land (observed min 0.24 across a
+				# 120-seed sweep; the floor is set below that so it is a real but non
+				# brittle invariant, proving the world is not N equal-size masses).
+				"min_largest_fraction": 0.20,
 			}
-
-
-# Draw a deterministic integer in the inclusive range [lo, hi] from the seed and
-# a fixed tag. Pure function of (seed, tag): no RNG stream, no order dependence.
-func _draw_range(tag: int, lo: int, hi: int) -> int:
-	if hi <= lo:
-		return lo
-	return lo + int(_hash2(seed_value, tag) % (hi - lo + 1))
-
-
-# Draw a deterministic float in [lo, hi) from the seed and a fixed tag. Uses a
-# 16-bit slice of the hash so the value is stable and reproducible.
-func _draw_rangef(tag: int, lo: float, hi: float) -> float:
-	var u := float(_hash2(seed_value, tag) % 65536) / 65536.0
-	return lo + u * (hi - lo)
 
 
 # Signed shortest separation a - b along the wrapping x axis, in (-width/2,
@@ -413,107 +492,183 @@ func _surface_distance(ax: float, ay: float, bx: float, by: float) -> float:
 	return sqrt(dx * dx + dy * dy)
 
 
-# Build the deterministic list of continent centers for this seed from the
-# archetype. Each center's core radius and falloff width come from the archetype
-# ranges; candidate positions come from the seed hash. Larger continents are
-# placed first so they claim room before the small islands. A candidate is
-# accepted only if its influence extent stays CONTINENT_MIN_OCEAN_GAP away from
-# every already accepted continent's extent, and its whole warped extent stays
-# clear of the hard north and south poles (the y axis does not wrap). Because
-# land can only exist inside a continent's extent, non-overlapping extents
-# guarantee the continents are separated by ocean and form distinct landmasses.
+# A deterministic unit float in [0, 1) from a hash value and a sub-key. Used to
+# turn the 64-bit lobe/chain hashes into angles, step fractions, aspects and
+# orientations without a per-cell RNG.
+func _unit_from_hash(h: int, k: int) -> float:
+	return float(_hash2(h, k) % 65536) / 65536.0
+
+
+# Build the deterministic list of continent lobes for this seed from the
+# archetype tiers. Each tier contributes some number of continent GROUPS; each
+# group is a chain of overlapping lobes (see _place_group) that fuse into one
+# landmass. Groups are placed largest first so the big continents claim room. A
+# whole group is accepted only if EVERY one of its lobes keeps its extent
+# CONTINENT_MIN_OCEAN_GAP away from every already-placed lobe of a DIFFERENT
+# group; lobes within the same group are never checked against each other (that is
+# how they merge). Finally, small single-lobe archipelago groups are sprinkled
+# between the continents, each still isolated so it cannot bridge two continents.
+# Because land can only exist inside a lobe's extent, isolated groups guarantee
+# distinct, ocean-separated landmasses.
 func _build_continent_centers() -> Array:
-	# Assemble the desired continents (core radius, falloff, elongation) from the
-	# archetype, then sort largest-extent first so big landmasses win the
-	# placement race.
-	var specs: Array = []
-	for i in range(int(_archetype["primary_count"])):
-		var pcore := _draw_range(1000 + i, int(_archetype["primary_core_min"]), int(_archetype["primary_core_max"]))
-		specs.append({
-			"core": pcore, "falloff": int(_archetype["primary_falloff"]),
-			"aspect": _draw_rangef(1100 + i, CONTINENT_ASPECT_MIN, CONTINENT_ASPECT_MAX),
-			"orient": _draw_rangef(1200 + i, 0.0, PI),
-		})
-	for i in range(int(_archetype["secondary_count"])):
-		var score := _draw_range(2000 + i, int(_archetype["secondary_core_min"]), int(_archetype["secondary_core_max"]))
-		specs.append({
-			"core": score, "falloff": int(_archetype["secondary_falloff"]),
-			"aspect": _draw_rangef(2100 + i, CONTINENT_ASPECT_MIN, CONTINENT_ASPECT_MAX),
-			"orient": _draw_rangef(2200 + i, 0.0, PI),
-		})
-	specs.sort_custom(func(a, b): return (a["core"] + a["falloff"]) > (b["core"] + b["falloff"]))
+	# Flatten the archetype tiers into one group-spec per group to place, then sort
+	# largest expected first so the big continents win the placement race.
+	var group_specs: Array = []
+	var tiers: Array = _archetype["tiers"]
+	for ti in range(tiers.size()):
+		var tier: Dictionary = tiers[ti]
+		for gi in range(int(tier["groups"])):
+			group_specs.append({
+				"tier": ti, "gi": gi,
+				"lobes_min": int(tier["lobes_min"]), "lobes_max": int(tier["lobes_max"]),
+				"core_min": int(tier["core_min"]), "core_max": int(tier["core_max"]),
+				"falloff": int(tier["falloff"]),
+			})
+	group_specs.sort_custom(func(a, b):
+		return (a["core_max"] + a["falloff"]) * a["lobes_max"] > (b["core_max"] + b["falloff"]) * b["lobes_max"])
 
-	# The warp can push a coastline outward by up to WARP_AMP cells, so keep the
-	# whole extent this much further from the poles. (The extra separation for
-	# the warp between two continents is already folded into MIN_OCEAN_GAP.)
-	var warp_margin := CONTINENT_WARP_AMP
+	var lobes: Array = []
+	var group_id := 0
+	for gs in group_specs:
+		var chain := _place_group(gs, group_id, lobes)
+		if not chain.is_empty():
+			lobes.append_array(chain)
+			group_id += 1
 
-	var centers: Array = []
-	for si in range(specs.size()):
-		var core: int = specs[si]["core"]
-		var falloff: int = specs[si]["falloff"]
-		var aspect: float = specs[si]["aspect"]
-		var orient: float = specs[si]["orient"]
+	# Archipelago: scattered single-lobe groups between the continents. Each is its
+	# own group and is isolated from every other group, so it stays a small
+	# separate island and can never merge two continents into one component.
+	var arch: Dictionary = _archetype["archipelago"]
+	for ai in range(int(arch["count"])):
+		var lobe := _place_archipelago(ai, group_id, lobes, arch)
+		if not lobe.is_empty():
+			lobes.append(lobe)
+			group_id += 1
+
+	return lobes
+
+
+# Place one continent group: a chain of overlapping lobes sharing `group_id`. The
+# chain geometry is a pure function of (seed, tier, group index, attempt); the
+# whole chain is resampled (new attempt) until every lobe clears the ocean gap
+# against all already-placed lobes of other groups, or the attempt cap is hit (in
+# which case the group is dropped, deterministically, yielding one fewer
+# continent). Returns the accepted chain, or [] if it could not be placed.
+func _place_group(gs: Dictionary, group_id: int, existing: Array) -> Array:
+	var group_key := seed_value + (int(gs["tier"]) + 1) * 100003 + int(gs["gi"]) * 7649
+	var lobe_count := int(gs["lobes_min"]) + int(_hash2(group_key, 900) % (int(gs["lobes_max"]) - int(gs["lobes_min"]) + 1))
+	var attempt := 0
+	while attempt < CONTINENT_MAX_PLACEMENT_ATTEMPTS:
+		var chain := _build_chain(gs, group_id, group_key, attempt, lobe_count)
+		if _chain_isolated(chain, existing):
+			return chain
+		attempt += 1
+	return []
+
+
+# Build a candidate chain of `lobe_count` lobes for a group, from an anchor lobe
+# that walks in a wandering-but-directional path. Pure function of (group_key,
+# attempt): the anchor position, the base axis, and every per-lobe offset, core,
+# aspect and orientation come from hashes. Non-anchor lobes may wander past the
+# pole margin; their extent then clips at the map edge, which is intended.
+func _build_chain(gs: Dictionary, group_id: int, group_key: int, attempt: int, lobe_count: int) -> Array:
+	var base_h := _hash2(group_key, attempt * 7919 + 17)
+	var anchor_x := float(_hash2(base_h, 1) % width)
+	var y_span: int = max(height - 2 * CONTINENT_POLE_MARGIN, 1)
+	var anchor_y := float(CONTINENT_POLE_MARGIN + int(_hash2(base_h, 2) % y_span))
+	var base_angle := _unit_from_hash(base_h, 3) * TAU
+
+	var chain: Array = []
+	var prev_x := anchor_x
+	var prev_y := anchor_y
+	for i in range(lobe_count):
+		var lh := _hash2(base_h, 100 + i)
+		var core := int(gs["core_min"]) + int(lh % (int(gs["core_max"]) - int(gs["core_min"]) + 1))
+		var falloff: int = int(gs["falloff"])
+		var aspect := CONTINENT_ASPECT_MIN + _unit_from_hash(lh, 5) * (CONTINENT_ASPECT_MAX - CONTINENT_ASPECT_MIN)
+		var orient := _unit_from_hash(lh, 6) * PI
+		var cx := prev_x
+		var cy := prev_y
+		if i > 0:
+			# Offset from the previous lobe by a fraction of this lobe's core, so
+			# the cores overlap and the mask stays 1.0 across the join. The
+			# direction wanders around the group's base axis so the chain elongates.
+			var step_frac := LOBE_CHAIN_STEP_MIN_FRAC + _unit_from_hash(lh, 7) * (LOBE_CHAIN_STEP_MAX_FRAC - LOBE_CHAIN_STEP_MIN_FRAC)
+			var step := float(core) * step_frac
+			var ang := base_angle + (_unit_from_hash(lh, 8) - 0.5) * 2.0 * LOBE_CHAIN_ANGLE_SPREAD
+			cx = prev_x + cos(ang) * step
+			cy = prev_y + sin(ang) * step
+		chain.append({
+			# x is normalized onto the cylinder; y stays linear and may fall outside
+			# [0, height) so a large lobe's extent clips at the pole.
+			"x": fposmod(cx, float(width)), "y": cy,
+			"core": core, "falloff": falloff, "extent": core + falloff,
+			"aspect": aspect, "orient": orient, "group": group_id,
+		})
+		prev_x = cx
+		prev_y = cy
+	return chain
+
+
+# True if every lobe in `chain` keeps its circular extent CONTINENT_MIN_OCEAN_GAP
+# clear of every lobe in `existing`. `existing` only ever holds lobes of other
+# (already-placed) groups, so same-group lobes are never separated: this is what
+# lets a group's lobes overlap and merge while different groups stay isolated.
+func _chain_isolated(chain: Array, existing: Array) -> bool:
+	for lobe in chain:
+		for e in existing:
+			var d := _surface_distance(float(lobe["x"]), float(lobe["y"]), float(e["x"]), float(e["y"]))
+			if d < float(lobe["extent"]) + float(e["extent"]) + float(CONTINENT_MIN_OCEAN_GAP):
+				return false
+	return true
+
+
+# Place one archipelago island: a single small lobe that is isolated from every
+# already-placed lobe (continents and prior archipelagos). Pure function of
+# (seed, archipelago index, attempt). Archipelago lobes stay fully inside the
+# poles (they are small dots, no clipping) and get their own group so they can
+# never bridge two continents. Returns the lobe, or {} if it could not be placed.
+func _place_archipelago(ai: int, group_id: int, existing: Array, arch: Dictionary) -> Dictionary:
+	var akey := seed_value + 800000 + ai * 6271
+	var attempt := 0
+	while attempt < CONTINENT_MAX_PLACEMENT_ATTEMPTS:
+		var h := _hash2(akey, attempt * 7919 + 17)
+		var core := int(arch["core_min"]) + int(_hash2(h, 10) % (int(arch["core_max"]) - int(arch["core_min"]) + 1))
+		var falloff: int = int(arch["falloff"])
 		var extent := core + falloff
-
-		# Valid north-south band once the extent is known, so no continent's
-		# warped extent ever crosses the hard poles (Codex finding: keep centers
-		# a full extent from the edges rather than a fixed margin). Each
-		# continent is inscribed in its circular extent, so the extent radius
-		# bounds it in every direction, including toward the poles.
-		var cy_lo := int(ceil(float(extent) + warp_margin))
-		var cy_hi := height - 1 - cy_lo
-		if cy_hi < cy_lo:
-			# Too tall to fit between the poles at this size; skip it. This only
-			# happens for the largest archetype radii and simply yields one fewer
-			# continent, which is deterministic for the seed.
-			continue
-
-		var attempt := 0
-		var placed := false
-		while attempt < CONTINENT_MAX_PLACEMENT_ATTEMPTS and not placed:
-			# The candidate depends only on (seed, spec index, attempt), so the
-			# whole placement is a pure function of the seed.
-			var h := _hash2(seed_value + si * 6271, attempt * 7919 + 17)
-			var cx := int(_hash2(h, 1) % width)
-			var cy := cy_lo + int(_hash2(h, 2) % (cy_hi - cy_lo + 1))
-
-			var ok := true
-			for c in centers:
-				# Circular isolation on the extents. Because each continent is
-				# inscribed in its circular extent, keeping the extent circles
-				# MIN_OCEAN_GAP apart guarantees the actual (elliptical) landmasses
-				# are separated by at least that much ocean.
-				var d := _surface_distance(float(cx), float(cy), float(c["x"]), float(c["y"]))
-				if d < float(extent + int(c["extent"]) + CONTINENT_MIN_OCEAN_GAP):
-					ok = false
-					break
-
-			if ok:
-				centers.append({
-					"x": cx, "y": cy, "core": core, "falloff": falloff,
-					"extent": extent, "aspect": aspect, "orient": orient,
-				})
-				placed = true
-
-			attempt += 1
-
-	return centers
+		var y_lo := extent
+		var y_hi := height - 1 - extent
+		if y_hi < y_lo:
+			return {}
+		var cx := float(_hash2(h, 1) % width)
+		var cy := float(y_lo + int(_hash2(h, 2) % (y_hi - y_lo + 1)))
+		var lobe := {
+			"x": cx, "y": cy, "core": core, "falloff": falloff, "extent": extent,
+			"aspect": CONTINENT_ASPECT_MIN + _unit_from_hash(h, 5) * (CONTINENT_ASPECT_MAX - CONTINENT_ASPECT_MIN),
+			"orient": _unit_from_hash(h, 6) * PI, "group": group_id,
+		}
+		if _chain_isolated([lobe], existing):
+			return lobe
+		attempt += 1
+	return {}
 
 
-# Smallest surviving ocean band, in cells, between any two placed continents:
-# the center separation minus both circular extents. Because each continent is
-# inscribed in its extent circle, this is a lower bound on the true ocean gap
-# between the landmasses. Returns INF when fewer than two continents are placed.
-# The landmass test asserts this stays at or above twice the warp amplitude,
-# which is what proves the domain warp can never close a gap and make two
-# distinct landmasses touch.
+# Smallest surviving ocean band, in cells, between any two placed lobes of
+# DIFFERENT groups: the center separation minus both circular extents. Because
+# each lobe is inscribed in its extent circle, this is a lower bound on the true
+# ocean gap between distinct landmasses. Same-group pairs are skipped (they are
+# meant to overlap and merge). Returns INF when fewer than two groups are placed.
+# The landmass test asserts this stays at or above twice the warp amplitude, which
+# is what proves the domain warp can never close a gap and make two distinct
+# landmasses touch.
 func min_center_extent_gap() -> float:
 	var worst := INF
 	for i in range(_continent_centers.size()):
 		for j in range(i + 1, _continent_centers.size()):
 			var a: Dictionary = _continent_centers[i]
 			var b: Dictionary = _continent_centers[j]
+			if int(a["group"]) == int(b["group"]):
+				continue
 			var d := _surface_distance(float(a["x"]), float(a["y"]), float(b["x"]), float(b["y"]))
 			worst = minf(worst, d - float(a["extent"]) - float(b["extent"]))
 	return worst
@@ -773,8 +928,10 @@ func generate() -> Dictionary:
 		"archetype_land_band_min": _round6(float(_archetype["land_band_min"])),
 		"archetype_land_band_max": _round6(float(_archetype["land_band_max"])),
 		"archetype_min_significant_landmasses": int(_archetype["min_significant"]),
+		"archetype_min_largest_fraction": _round6(float(_archetype["min_largest_fraction"])),
 		"min_center_extent_gap": _round6(_finite_gap(min_center_extent_gap())),
 		"continent_center_count": _continent_centers.size(),
+		"continent_group_count": _continent_group_count,
 		"land_component_count": landmass["component_count"],
 		"significant_landmass_count": landmass["significant_count"],
 		"significant_landmass_min_size": LANDMASS_MIN_SIZE,

@@ -91,37 +91,59 @@ Raw layered noise alone does not produce truly isolated continents, which
 undermines region diversity and long-term exploration. A continent-mask layer
 sits beneath the heightmap to force distinct, ocean-separated continents.
 
-A small list of continent centers is derived deterministically from the world
-seed. Center positions, per-continent core radii, and the continent count come
-from a 64-bit position hash of `(seed, slot index, attempt)`, not from any
-per-cell RNG or noise sampling, so they honor the pure function of (seed,
-position) rule: the centers are a fixed list recomputed identically on every
-run. The count is a seed-determined value in a tunable range (default 4 to 6).
+A deterministic list of continent lobes is derived from the world seed. Lobe
+positions, core radii, elongation, and counts come from a 64-bit position hash of
+`(seed, tier, group index, lobe index, attempt)`, not from any per-cell RNG or
+noise sampling, so they honor the pure function of (seed, position) rule: the
+lobes are a fixed list recomputed identically on every run.
 
-Each center has a core radius (mask 1.0 inside) and a falloff band of width
-`CONTINENT_FALLOFF_WIDTH` over which the mask ramps from 1.0 down to 0.0 using
-a tunable falloff shape (linear, smoothstep, or quadratic; default smoothstep).
-Beyond core + falloff the mask is exactly 0.0. The per-cell mask is the maximum
-contribution over all centers.
+Lobed continent groups. A single hashed center plus falloff always reads as one
+compact rounded island, so each continent is instead built as a GROUP: a chain of
+several overlapping lobes that share a `group` id. The chain walks from an anchor
+lobe; each subsequent lobe is offset from the previous one by a hashed direction
+(wandering around the group's base axis, so the chain elongates rather than
+folding into a blob) and a hashed distance of a fraction of the lobe's core
+radius, so consecutive cores overlap and the mask stays 1.0 across the join. The
+lobes therefore fuse into one large, elongated, irregular landmass. Dramatic size
+variance within a single world comes from a tier structure: a "super" tier group
+(many lobes, larger cores) reads as a near-supercontinent, a "mid" tier group or
+two as mid-size continents, and a "small" tier plus scattered single-lobe
+"archipelago" groups as the tail. The tier mix, lobe counts and radii are all
+seed-derived per archetype (oceanic, continental, continent_heavy).
+
+Each lobe has a core radius (mask 1.0 inside) and a falloff band over which the
+mask ramps from 1.0 down to 0.0 using a tunable falloff shape (default EASE_OUT).
+Beyond core + falloff the mask is exactly 0.0. Each lobe is also stretched into an
+ellipse inscribed in its circular extent (a seed-derived aspect and orientation),
+and the mask sample position is domain-warped, so coasts are irregular. The
+per-cell mask is the maximum contribution over all lobes.
 
 Distances use the cylinder surface metric: the x separation is the shorter way
-around the wrap (`min(dx, width - dx)`), the y separation is linear, and the
-two combine as `sqrt(dx*dx + dy*dy)`. Because the cylinder radius is
-`width / TAU`, one wrapped column equals one unit of distance, matching the
-noise geometry, so the mask has no seam at the east-west wrap.
+around the wrap (via `fposmod`, correct for any logical x including positions many
+map widths out of range), the y separation is linear, and the two combine as
+`sqrt(dx*dx + dy*dy)`. Because the cylinder radius is `width / TAU`, one wrapped
+column equals one unit of distance, matching the noise geometry, so the mask has
+no seam at the east-west wrap.
 
-The mask combines with the raw heightmap as `elevation = clamp(lifted * mask)`
-where `lifted` domes the noise gently toward land in proportion to the mask
-(`CONTINENT_DOME_STRENGTH`). Where the mask is 0.0 the elevation is forced to
-0.0 (guaranteed deep ocean); inside a core the noise (slightly domed) governs
-land and coastline. Continent centers are placed by a deterministic rejection
-loop that keeps each continent's influence extent (core + falloff) at least
-`CONTINENT_MIN_OCEAN_GAP` away from every other continent's extent. Since land
-can only exist inside a continent's extent, non-overlapping extents guarantee a
-band of ocean between every pair of continents, so their landmasses are always
-disconnected. All of these parameters (count range, radii, falloff width and
-shape, min-ocean-gap, dome strength) are pinned constants in `src/macro_map.gd`
-and are part of the determinism contract for M1.
+The mask combines with the raw heightmap as an additive continent bias (not a
+multiply): the bias slides with the mask from a deep ocean bias (guaranteed ocean
+where the mask is 0.0) up to a per-archetype sea-level lift (land wherever the raw
+noise clears the lifted sea level), so the raw noise, not the mask ramp, owns the
+coastline. Groups are placed by a deterministic rejection loop that keeps every
+lobe's influence extent (core + falloff) at least `CONTINENT_MIN_OCEAN_GAP` away
+from every lobe of a DIFFERENT group; lobes within one group are never separated
+(that is how they merge). Archipelago groups keep the same gap, so an island can
+never bridge two continents into one component. Since land can only exist inside a
+lobe's extent, isolated groups guarantee a band of ocean between every pair of
+continents, so their landmasses are always disconnected. Anchor lobes stay a small
+margin from the poles, but a large continent's extent is deliberately allowed to
+run past a pole and clip at the map edge, so land reaches high latitude instead of
+sitting inside an enclosing ocean ring (a future polar-cap layer, issue #2, will
+refine those high latitudes). Clipping only ever removes land at the edge, so it
+cannot affect the circular, extent-based isolation guarantee. All of these
+parameters (tier mix, radii, falloff width and shape, chain steps, min-ocean-gap,
+pole margin, lift) are pinned constants in `src/macro_map.gd` and are part of the
+determinism contract for M1.
 
 Temperature. Derived from latitude, not from a free noise field, so the poles
 are reliably cold and the equator reliably warm:
@@ -179,7 +201,8 @@ land_fraction, ocean_fraction,
 biome_distribution_of_land,  # biome name -> fraction of land tiles (ocean excluded)
 
 # Continent / landmass metrics (from the continent-mask layer).
-continent_center_count,        # number of continent centers placed for this seed
+continent_center_count,        # number of continent lobes placed for this seed
+continent_group_count,         # number of continent groups (continents + islands)
 land_component_count,          # total land connected components (any size)
 significant_landmass_count,    # components at or above significant_landmass_min_size
 significant_landmass_min_size, # the size cutoff for "significant" (cells)

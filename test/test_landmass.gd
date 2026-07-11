@@ -6,14 +6,16 @@ extends SceneTree
 #   godot --headless --script res://test/test_landmass.gd
 #
 # The continent-mask layer breaks the old single blobby landmass into distinct,
-# ocean-separated continents. How much land a world has, how many continents,
-# and how their sizes spread is itself derived from the seed (the world
-# "archetype", see MacroMapGenerator._build_archetype): most seeds are
-# CONTINENTAL (a few large continents plus scattered islands, roughly a quarter
-# to two fifths land), with an OCEANIC water-world tail and a CONTINENT_HEAVY
-# dry tail. This variety is a feature, so this test does NOT assert one fixed
-# universal land fraction. Instead, for each seed it reads that seed's own
-# derived archetype and asserts:
+# ocean-separated continents. Each continent is now a GROUP of overlapping lobes
+# that merge into one irregular landmass; the isolation guarantee applies between
+# groups. How much land a world has, how many continents, and how their sizes
+# spread is itself derived from the seed (the world "archetype", see
+# MacroMapGenerator._build_archetype): most seeds are CONTINENTAL (one near
+# supercontinent plus mid and small continents and scattered islands, roughly a
+# quarter to two fifths land), with an OCEANIC water-world tail and a
+# CONTINENT_HEAVY dry tail. This variety is a feature, so this test does NOT
+# assert one fixed universal land fraction. Instead, for each seed it reads that
+# seed's own derived archetype and asserts:
 #
 #   1. Land fraction falls inside the seed's archetype land band.
 #   2. There are at least the archetype's minimum significant landmasses (land
@@ -21,12 +23,19 @@ extends SceneTree
 #      components means they are separated by ocean, so continents are isolated.
 #   3. Every reported significant landmass is actually at or above the minimum
 #      size, and the reported list length matches the count (guards the metric).
+#   4. Size hierarchy: for archetypes with a dominant continent (continental and
+#      continent_heavy set a non-zero archetype min_largest_fraction), the largest
+#      landmass holds at least that share of all land, so the world reads as one
+#      dominant mass plus smaller ones, not N equal-size blobs. Oceanic sets the
+#      floor to 0.0, which disables the check (a water world has no dominant mass).
 #
 # Two invariants are hard and hold for EVERY seed regardless of archetype:
 #
-#   A. Isolation: the smallest ocean band between any two placed continents
-#      (min_center_extent_gap) stays at or above twice the domain-warp amplitude,
-#      so the warp can never close a gap and make two distinct landmasses touch.
+#   A. Isolation: the smallest ocean band between any two placed continents of
+#      DIFFERENT groups (min_center_extent_gap) stays at or above twice the
+#      domain-warp amplitude, so the warp can never close a gap and make two
+#      distinct landmasses (or an archipelago and a continent) touch. Lobes within
+#      one group are meant to merge and are not separated.
 #   B. Determinism (byte-identical PNG/JSON per seed) is covered separately in
 #      test/test_determinism.gd and is not re-checked here.
 #
@@ -37,8 +46,8 @@ const MacroMap := preload("res://src/macro_map.gd")
 # Seeds exercised. These match the committed example maps so the test and the
 # examples/ artifacts stay in agreement. They deliberately span archetypes:
 # seed 1 is continent_heavy (a dry world), seeds 7 and 12 are the typical
-# continental case (large continents plus smaller islands), and seed 42 is an
-# oceanic water world.
+# continental case (a near-supercontinent plus mid, small and island masses),
+# and seed 42 is an oceanic water world.
 const SEEDS := [1, 7, 12, 42]
 
 
@@ -67,6 +76,7 @@ func _check_seed(seed_value: int) -> int:
 	var band_min: float = float(arch["land_band_min"])
 	var band_max: float = float(arch["land_band_max"])
 	var min_significant: int = int(arch["min_significant"])
+	var min_largest_fraction: float = float(arch["min_largest_fraction"])
 
 	var failures := 0
 
@@ -74,11 +84,12 @@ func _check_seed(seed_value: int) -> int:
 	var min_size: int = summary["significant_landmass_min_size"]
 	var sizes: Array = summary["landmass_sizes"]
 	var land_fraction: float = summary["land_fraction"]
+	var largest_fraction: float = summary["largest_landmass_fraction"]
 	var gap: float = generator.min_center_extent_gap()
 
-	print("[seed %d] archetype=%s land_fraction=%f band=[%f,%f] significant=%d (need >= %d) sizes=%s gap=%f" % [
+	print("[seed %d] archetype=%s land_fraction=%f band=[%f,%f] significant=%d (need >= %d) largest_frac=%f (need >= %f) sizes=%s gap=%f" % [
 		seed_value, arch["name"], land_fraction, band_min, band_max,
-		significant_count, min_significant, str(sizes), gap,
+		significant_count, min_significant, largest_fraction, min_largest_fraction, str(sizes), gap,
 	])
 
 	# 1. Land fraction inside this seed's archetype band.
@@ -110,6 +121,17 @@ func _check_seed(seed_value: int) -> int:
 		print("  [PASS] every significant landmass is >= %d tiles" % min_size)
 	else:
 		print("  [FAIL] a reported significant landmass is below %d tiles" % min_size)
+		failures += 1
+
+	# 4. Size hierarchy: for archetypes with a dominant continent, the largest
+	# landmass must hold at least the archetype's min_largest_fraction of all land.
+	# A 0.0 floor (oceanic) disables the check.
+	if min_largest_fraction <= 0.0:
+		print("  [PASS] size-hierarchy floor not asserted for this archetype")
+	elif largest_fraction >= min_largest_fraction:
+		print("  [PASS] largest landmass fraction %f dominates (>= %f)" % [largest_fraction, min_largest_fraction])
+	else:
+		print("  [FAIL] largest landmass fraction %f below dominance floor %f" % [largest_fraction, min_largest_fraction])
 		failures += 1
 
 	# A. Hard isolation invariant for every seed: the smallest ocean band between
