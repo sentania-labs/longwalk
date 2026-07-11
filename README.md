@@ -50,6 +50,7 @@ deterministic coastal point on the largest landmass for the seed.
 - Sleep (fade to black, advance the day/night clock to morning): `R`
 - Toggle first-person / third-person camera: `C`
 - Look: mouse
+- Look with the keyboard instead of the mouse: yaw left/right with `Q` / `E`, pitch up/down with the `Up` / `Down` arrow keys
 - Release / recapture the mouse cursor: `Esc`
 
 ## Windows playtest build

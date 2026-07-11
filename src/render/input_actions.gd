@@ -26,6 +26,14 @@ const BINDINGS := {
 	"sleep": KEY_R,
 	"toggle_camera": KEY_C,
 	"toggle_mouse": KEY_ESCAPE,
+	# Keyboard camera control, an alternative to the mouse. Q/E yaw the body
+	# left/right; the arrow keys pitch the camera up/down. Shift is taken by
+	# sprint, so no modifier scheme is used. None of these physical keys is bound
+	# above, so there is no double-binding.
+	"yaw_left": KEY_Q,
+	"yaw_right": KEY_E,
+	"pitch_up": KEY_UP,
+	"pitch_down": KEY_DOWN,
 }
 
 

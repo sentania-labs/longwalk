@@ -26,10 +26,16 @@ func _ready() -> void:
 	_apply_view()
 
 
-# Add mouse-driven pitch (radians), clamped.
+# Add mouse-driven or keyboard-driven pitch (radians), clamped.
 func add_pitch(delta_pitch: float) -> void:
 	_pitch = clampf(_pitch + delta_pitch, PITCH_MIN, PITCH_MAX)
 	_pivot.rotation.x = _pitch
+
+
+# Current pitch (radians). Read by the player controller for the on-screen
+# look diagnostic and by the input regression test.
+func current_pitch() -> float:
+	return _pitch
 
 
 func toggle_view() -> void:

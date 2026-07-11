@@ -10,6 +10,9 @@
 #   - test_input_map.gd:       every input action the controller polls is
 #                              registered, so WASD/Esc can never be silently dead
 #                              in an export.
+#   - test_player_input.gd:    mouse look and keyboard yaw/pitch actually reach
+#                              and rotate the player/camera, not just that the
+#                              action names exist.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,5 +32,6 @@ run_test test_determinism.gd
 run_test test_sim_determinism.gd
 run_test test_game_smoke.gd
 run_test test_input_map.gd
+run_test test_player_input.gd
 
 echo "All test suites passed."

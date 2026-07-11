@@ -7,8 +7,18 @@ class_name PlayerController
 # physics.
 #
 # Yaw is applied to this body (so movement is body-relative); the child
-# CameraRig handles pitch. Mouse look and the camera/sleep keybinds are read
-# here and dispatched.
+# CameraRig handles pitch. Mouse look, keyboard look, and the camera/sleep
+# keybinds are read here and dispatched.
+#
+# All discrete input (look, capture toggle, camera toggle, sleep) is handled in
+# _input, not _unhandled_input. _input sees every event before any UI Control can
+# consume it, the same reliable path the Esc capture toggle already used. Look is
+# gated on our own capture flag (see _captured), never on a re-read of
+# Input.mouse_mode: the platform can silently report a mode other than CAPTURED at
+# the moment motion events arrive (setting MOUSE_MODE_CAPTURED can read straight
+# back as VISIBLE), which was silently zeroing all camera rotation even though the
+# motion events themselves arrived fine. That readback gate was the dead
+# mouse-look bug.
 
 signal sleep_requested
 
@@ -18,6 +28,11 @@ const SWIM_SPEED := 4.0
 const JUMP_VELOCITY := 5.5
 const GRAVITY := 18.0
 const MOUSE_SENSITIVITY := 0.0025
+
+# Keyboard look rates (radians per second) for Q/E yaw and arrow-key pitch, the
+# no-mouse alternative to mouse look.
+const KEY_YAW_SPEED := 1.8
+const KEY_PITCH_SPEED := 1.8
 
 # Acceleration blends velocity toward the target so movement is not instant.
 const GROUND_ACCEL := 12.0
@@ -38,6 +53,16 @@ var _sampler
 # uses logical world coordinates.
 var render_origin := Vector3.ZERO
 var swimming := false
+
+# Our own record of whether the game intends the mouse captured. Look is gated on
+# this, not on Input.mouse_mode, because the platform's reported mode is not a
+# reliable readback (see the header note). _set_mouse_captured is the only writer.
+var _captured := false
+
+# Mouse motion accumulated since the last HUD read, exposed for the on-screen
+# look diagnostic so a playtester can tell "no motion events are arriving" from
+# "events arrive but the camera does not rotate".
+var mouse_rel_this_frame := Vector2.ZERO
 
 # Whether the mouse was captured when the window lost focus, so focus regain can
 # restore capture. See _notification.
@@ -60,24 +85,24 @@ func _ready() -> void:
 	_mesh.visible = _rig.third_person
 
 
-# The mouse-capture toggle lives in _input (which sees every event first), NOT
-# _unhandled_input, so releasing the cursor is guaranteed to run even if a UI
-# Control is present and would otherwise swallow the key. During development the
-# editor auto-releases a captured mouse on focus changes, which masked this; an
-# exported build has no such safety net, so the Esc release must be handled
-# unconditionally here or the cursor stays locked to the window (Scott's report).
+# All discrete input is handled here in _input (which sees every event first),
+# NOT _unhandled_input, so it runs even if a UI Control is present that would
+# otherwise swallow the event. The editor auto-releases a captured mouse and
+# forwards motion on focus changes, which masked export-only issues; an exported
+# build has no such safety net.
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_mouse"):
-		_set_mouse_captured(Input.mouse_mode != Input.MOUSE_MODE_CAPTURED)
+		_set_mouse_captured(not _captured)
 		get_viewport().set_input_as_handled()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		# Horizontal mouse yaws the body; vertical pitches the camera rig.
+		return
+	# Horizontal mouse yaws the body; vertical pitches the camera rig. Gated on
+	# our own capture intent, not Input.mouse_mode (see the header note).
+	if event is InputEventMouseMotion and _captured:
+		mouse_rel_this_frame += event.relative
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		_rig.add_pitch(-event.relative.y * MOUSE_SENSITIVITY)
-	elif event.is_action_pressed("toggle_camera"):
+		return
+	if event.is_action_pressed("toggle_camera"):
 		_rig.toggle_view()
 		_mesh.visible = _rig.third_person
 	elif event.is_action_pressed("sleep"):
@@ -85,7 +110,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _set_mouse_captured(captured: bool) -> void:
+	_captured = captured
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if captured else Input.MOUSE_MODE_VISIBLE
+
+
+# Snapshot of the look state for the on-screen diagnostic, clearing the
+# accumulated mouse delta so each read reports motion since the previous frame.
+func consume_look_debug() -> Dictionary:
+	var d := {"rel": mouse_rel_this_frame, "yaw": rotation.y, "pitch": _rig.current_pitch()}
+	mouse_rel_this_frame = Vector2.ZERO
+	return d
 
 
 # Never leave the OS with a captured (hidden, window-confined) cursor while the
@@ -93,7 +127,7 @@ func _set_mouse_captured(captured: bool) -> void:
 # is locked. Release capture on focus out and restore it on focus in.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if _captured:
 			_was_captured = true
 			_set_mouse_captured(false)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
@@ -116,7 +150,20 @@ func _physics_process(delta: float) -> void:
 	else:
 		_walk(delta)
 
+	_apply_keyboard_look(delta)
 	move_and_slide()
+
+
+# Keyboard camera control, polled every physics frame like movement so it is
+# frame-rate independent. Q/E yaw the body, arrow Up/Down pitch the camera rig,
+# the same rotations mouse look drives.
+func _apply_keyboard_look(delta: float) -> void:
+	var yaw := Input.get_action_strength("yaw_left") - Input.get_action_strength("yaw_right")
+	if yaw != 0.0:
+		rotate_y(yaw * KEY_YAW_SPEED * delta)
+	var pitch := Input.get_action_strength("pitch_up") - Input.get_action_strength("pitch_down")
+	if pitch != 0.0:
+		_rig.add_pitch(pitch * KEY_PITCH_SPEED * delta)
 
 
 # Build the horizontal movement direction from input, relative to body yaw.

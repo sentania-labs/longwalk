@@ -96,6 +96,16 @@ func _show_menu() -> void:
 	start_button.text = "Explore"
 	panel.add_child(start_button)
 
+	# Controls hint, shown before the world loads so a playtester knows every
+	# binding. Kept in sync with the README Controls section and input_actions.gd.
+	var controls := Label.new()
+	controls.text = "Controls\n" \
+		+ "Move: W A S D    Sprint: Shift    Jump / swim up: Space\n" \
+		+ "Look: mouse    Yaw: Q E    Pitch: Up / Down arrows\n" \
+		+ "Camera view: C    Sleep: R    Release cursor: Esc"
+	controls.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(controls)
+
 	start_button.pressed.connect(func():
 		var seed_text := seed_edit.text.strip_edges()
 		var seed_value := int(seed_text) if seed_text.is_valid_int() else DEFAULT_SEED
@@ -197,10 +207,17 @@ func _physics_process(_delta: float) -> void:
 		var speed := Vector2(vel.x, vel.z).length()
 		# Position and velocity update every frame so a playtester can confirm
 		# movement objectively from the HUD, independent of visual terrain cues.
-		_hud.text = "%s  %s\npos (%.1f, %.1f, %.1f)\nvel %.2f m/s  (%.1f, %.1f, %.1f)" % [
+		# The look line reports the raw mouse delta received this frame and the
+		# live yaw/pitch, so a playtest can tell "no motion events arriving" from
+		# "events arrive but the camera does not rotate". Diagnostic, kept on
+		# purpose for the next playtest.
+		var look: Dictionary = _player.consume_look_debug()
+		var rel: Vector2 = look["rel"]
+		_hud.text = "%s  %s\npos (%.1f, %.1f, %.1f)\nvel %.2f m/s  (%.1f, %.1f, %.1f)\nlook rel (%.0f, %.0f)  yaw %.2f  pitch %.2f" % [
 			_day_night.time_string(), state,
 			logical.x, logical.y, logical.z,
 			speed, vel.x, vel.y, vel.z,
+			rel.x, rel.y, look["yaw"], look["pitch"],
 		]
 
 	if _smoketest_frames >= 0:
