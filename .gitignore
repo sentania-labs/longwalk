@@ -6,7 +6,13 @@
 # Godot editor / import caches.
 .godot/
 *.import
-export_presets.cfg
+
+# Exported build output (produced by the Windows export, uploaded as a CI
+# artifact; never committed).
+/build/
+
+# NOTE: export_presets.cfg IS committed. It is the project's Windows export
+# configuration that the CI playtest job depends on, not machine-specific state.
 
 # OS / editor cruft.
 .DS_Store

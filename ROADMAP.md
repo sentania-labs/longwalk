@@ -29,6 +29,15 @@ Status: delivered in this bootstrap dispatch.
 - Begin the origin-shifting work described in ARCHITECTURE.md, since this is the
   first milestone with a walkable world.
 
+Status: in progress. The walkable world is split into a sim layer (`src/sim/`:
+terrain sampler with bilinear macro upsampling plus a local-detail noise pass,
+and a deterministic coastal spawn finder) and a render layer (`src/render/`:
+chunk streaming, a CharacterBody3D controller with walk/run/swim/sleep, a
+first/third person camera, a sea-level water plane, and a minimal day/night).
+Origin shifting is begun as a floating-origin rebase in the game loop. A
+fork-gated CI job exports a downloadable Windows playtest build on every pull
+request.
+
 ## M3: chunked streaming
 
 - Stream chunks of the world in and out as the player moves.
