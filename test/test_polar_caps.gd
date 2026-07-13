@@ -8,9 +8,9 @@ extends SceneTree
 # The world is sphere-traversable at the poles: crossing the north edge at
 # longitude x re-enters from the north edge at longitude (x + width/2) heading
 # south, mirrored at the south edge. The generator constraint that makes that
-# crossing seamless is that the top and bottom POLAR_CAP_ROWS rows are uniform
-# featureless ice: flat elevation, one biome, nothing to mismatch across the
-# seam. This test asserts, per seed:
+# crossing seamless is that the top and bottom polar_cap_rows() rows (a per
+# seed, era-scaled depth) are uniform featureless ice: flat elevation, one
+# biome, nothing to mismatch across the seam. This test asserts, per seed:
 #
 #   1. Cap uniformity: every cell in both cap bands has biome ice and elevation
 #      exactly POLAR_ICE_ELEVATION (above sea level, so the cap is solid ice).
@@ -50,8 +50,9 @@ func _check_seed(seed_value: int) -> int:
 	var generator := MacroMap.new(seed_value)
 	var failures := 0
 
-	print("[seed %d] polar cap rows=%d ice elevation=%f" % [
-		seed_value, MacroMap.POLAR_CAP_ROWS, MacroMap.POLAR_ICE_ELEVATION,
+	var cap_rows := generator.polar_cap_rows()
+	print("[seed %d] polar cap rows=%d (era %s) ice elevation=%f" % [
+		seed_value, cap_rows, generator.era()["name"], MacroMap.POLAR_ICE_ELEVATION,
 	])
 
 	# 1. Cap uniformity: flat ice across both bands.
@@ -85,8 +86,8 @@ func _check_seed(seed_value: int) -> int:
 		failures += 1
 
 	# 3. Terrain variation resumes immediately below each cap band.
-	var north_row := MacroMap.POLAR_CAP_ROWS
-	var south_row := generator.height - MacroMap.POLAR_CAP_ROWS - 1
+	var north_row := cap_rows
+	var south_row := generator.height - cap_rows - 1
 	for row in [north_row, south_row]:
 		if _row_varies(generator, row):
 			print("  [PASS] row %d (first past a cap band) has terrain variation" % row)
@@ -96,7 +97,7 @@ func _check_seed(seed_value: int) -> int:
 
 	# 4. Summary accounting.
 	var summary: Dictionary = generator.generate()["summary"]
-	var expected_ice: int = 2 * MacroMap.POLAR_CAP_ROWS * generator.width
+	var expected_ice: int = 2 * cap_rows * generator.width
 	var ice_tiles: int = summary["ice_tiles"]
 	var land_ice: int = summary["land_ice_tiles"]
 	var sea_ice: int = summary["sea_ice_tiles"]
@@ -114,10 +115,11 @@ func _check_seed(seed_value: int) -> int:
 	var total: int = summary["total_tiles"]
 	var land: int = summary["land_tiles"]
 	var ocean: int = summary["ocean_tiles"]
-	if land + ocean + ice_tiles == total:
-		print("  [PASS] land, ocean and ice partition the map exactly")
+	var hypersaline: int = summary["hypersaline_tiles"]
+	if land + ocean + hypersaline + ice_tiles == total:
+		print("  [PASS] land, water and ice partition the map exactly")
 	else:
-		print("  [FAIL] land %d + ocean %d + ice %d != total %d" % [land, ocean, ice_tiles, total])
+		print("  [FAIL] land %d + ocean %d + hypersaline %d + ice %d != total %d" % [land, ocean, hypersaline, ice_tiles, total])
 		failures += 1
 
 	return failures
@@ -126,7 +128,7 @@ func _check_seed(seed_value: int) -> int:
 # Every row index inside the north and south cap bands.
 func _cap_rows(generator: MacroMap) -> Array:
 	var rows: Array = []
-	for py in range(MacroMap.POLAR_CAP_ROWS):
+	for py in range(generator.polar_cap_rows()):
 		rows.append(py)
 		rows.append(generator.height - 1 - py)
 	return rows

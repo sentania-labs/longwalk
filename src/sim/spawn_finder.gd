@@ -49,7 +49,7 @@ const CELL_ICE := 2
 func _classify(px: int, py: int) -> int:
 	if _generator.in_polar_cap(py):
 		return CELL_ICE
-	if _generator.elevation_at(px, py) >= MacroMapGen.SEA_LEVEL:
+	if _generator.elevation_at(px, py) >= _generator.sea_level:
 		return CELL_LAND
 	return CELL_OCEAN
 

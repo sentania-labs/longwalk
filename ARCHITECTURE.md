@@ -92,12 +92,14 @@ constraint that makes the crossing seamless, because it is cheap today and
 expensive to retrofit.
 
 That constraint is the uniform polar cap bands: the top and bottom
-`POLAR_CAP_ROWS` rows (pinned in `src/macro_map.gd`, currently 12) are uniform
-featureless ice. Within the band, `elevation_at` returns the flat
-`POLAR_ICE_ELEVATION` (above sea level, so the cap is solid walkable ice) and
-the biome is always `ice`, so the columns at `x` and `x + width/2` are
-byte-identical across the whole band and the crossing seam has nothing to
-mismatch. Terrain variation begins only below the cap band.
+`polar_cap_rows()` rows are uniform featureless ice. The band DEPTH is
+era-scaled per seed (5 to 25 rows, deep caps on ice-age worlds, thin ones on
+warm worlds, see section 2.3b); the uniformity within the band is invariant.
+Within the band, `elevation_at` returns the flat `POLAR_ICE_ELEVATION` (above
+the sea level of every era, so the cap is solid walkable ice) and the biome is
+always `ice`, so the columns at `x` and `x + width/2` are byte-identical
+across the whole band and the crossing seam has nothing to mismatch. Terrain
+variation begins only below the cap band.
 
 The cap is a surface layer over whatever terrain reaches that latitude. The
 underlying elevation (mask plus noise, `underlying_elevation_at`) is still
@@ -191,6 +193,59 @@ cannot affect the circular, extent-based isolation guarantee. All of these
 parameters (tier mix, radii, falloff width and shape, chain steps, min-ocean-gap,
 pole margin, lift) are pinned constants in `src/macro_map.gd` and are part of the
 determinism contract for M1.
+
+### 2.3b Hydrological eras (per-seed sea level)
+
+Each seed derives a hydrological era that explains its character geologically.
+The era sets a per-seed sea level (a position hash of the seed, honoring the
+purity rule) instead of one universal constant:
+
+- `ice_age`: sea level 0.435 to 0.465. The lowered sea exposes former ocean
+  floor as vast lowland basins, and the missing water is locked in enlarged
+  polar caps (18 to 25 cap rows).
+- `temperate`: sea level 0.49 to 0.51, cap rows 10 to 14. Close to the
+  neutral reference level of 0.5 the elevation field is tuned around.
+- `warm`: sea level 0.52 to 0.545, cap rows 5 to 8. Higher seas trend the
+  world toward a water world with thin caps.
+
+The era latent is an independent hash draw from the archetype latent, but it
+is biased by the archetype so worlds read as geologically coherent: a
+continent-heavy (dry) world skews strongly toward ice age (a supercontinent
+dry world is a deep ice age), an oceanic world skews toward the warm era.
+Both tails stay reachable for every archetype, so a warm supercontinent world
+is possible, just rare. A second severity hash slides each era between its
+mild and deep extreme, moving the sea level and the cap depth together (a
+deeper ice age has a lower sea AND a thicker cap).
+
+Content that falls out of the lowered ice-age sea nearly free:
+
+- Exposed seabed biomes on land between the era sea level and the neutral
+  level: `marsh` fringes on wet cells near the waterline, `salt_flat` where
+  dry, `basin` (dry basin plains) otherwise. Descending into a basin that
+  should be ocean is discovery texture, and basins are natural isolated
+  regions even on a supercontinent world.
+- Remnant hypersaline inland seas (`hypersaline_sea`): a water cell deep
+  inside a continent (continent mask at or above `HYPERSALINE_MASK_MIN`) on an
+  ice-age world is an old ocean reduced to a dead sea, not open ocean. It is a
+  water biome: it counts with water, not land, in the statistics.
+- The JSON summary names the era (`era`, `sea_level`, `polar_cap_rows`,
+  `hypersaline_tiles`), so a seed's character is legible at a glance.
+
+Endorheic drainage (rivers terminating in basins instead of coasts) is
+deferred until rivers exist.
+
+Two load-bearing margins hold across all eras and are asserted by
+`test/test_world_eras.gd`: the guaranteed-ocean bias (`CONTINENT_OCEAN_BIAS`,
+-0.60) keeps mask-0 cells below even the lowest ice-age sea, so continent
+isolation survives every era; and `POLAR_ICE_ELEVATION` (0.56) stays above
+even the highest warm sea, so the cap is solid walkable ice in every era. The
+archetype's expected land band is widened per era before the landmass test
+reads it (a lowered sea exposes extra land, a raised sea drowns some).
+
+The sea-level consumers all read the per-seed value: biome classification,
+elevation-based temperature cooling, the terrain sampler (world Y = 0 is the
+era sea level, so the water plane stays at zero in every era), and spawn
+selection.
 
 Temperature. Derived from latitude, not from a free noise field, so the poles
 are reliably cold and the equator reliably warm:

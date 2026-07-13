@@ -96,10 +96,10 @@ func _test_sampler_agrees_with_macro() -> int:
 		for px in range(0, generator.width, 23):
 			var wx := (float(px) + 0.5) * cell_size
 			var wz := (float(py) + 0.5) * cell_size
-			var macro_land: bool = generator.elevation_at(px, py) >= generator.SEA_LEVEL
+			var macro_land: bool = generator.elevation_at(px, py) >= generator.sea_level
 			# Compare against the bilinear base (detail excluded), which is what
 			# must agree with the macro map exactly at cell centers.
-			var base_land: bool = sampler.macro_elevation01(wx, wz) >= generator.SEA_LEVEL
+			var base_land: bool = sampler.macro_elevation01(wx, wz) >= generator.sea_level
 			checked += 1
 			if macro_land != base_land:
 				mismatches += 1
@@ -118,7 +118,7 @@ func _test_detail_never_flips_coast() -> int:
 	var generator := MacroMap.new(SEED_A)
 	var sampler = TerrainSamplerC.new(generator)
 	var cell_size: float = TerrainSamplerC.MACRO_CELL_SIZE
-	var sea: float = generator.SEA_LEVEL
+	var sea: float = generator.sea_level
 	var flips := 0
 	var checked := 0
 	# Sample a fine grid (including off-center points) so near-shore cells and
@@ -157,7 +157,7 @@ func _test_spawn_determinism() -> int:
 		return failures + 1
 
 	var cell: Vector2i = spawn1["cell"]
-	if g1.elevation_at(cell.x, cell.y) >= g1.SEA_LEVEL:
+	if g1.elevation_at(cell.x, cell.y) >= g1.sea_level:
 		print("[PASS] spawn cell is land")
 	else:
 		print("[FAIL] spawn cell is not land")
@@ -171,7 +171,7 @@ func _test_spawn_determinism() -> int:
 		var ny: int = cell.y + o.y
 		if ny < 0 or ny >= g1.height:
 			continue
-		if g1.elevation_at(nx, ny) < g1.SEA_LEVEL:
+		if g1.elevation_at(nx, ny) < g1.sea_level:
 			coastal = true
 			break
 	if coastal:

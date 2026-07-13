@@ -40,10 +40,10 @@ const MacroMapGen := preload("res://src/macro_map.gd")
 # default), so each cell covers a sizeable patch of walkable ground.
 const MACRO_CELL_SIZE := 24.0
 
-# World units for the full 0..1 elevation range. Sea level (elevation 0.5) maps
-# to world Y = 0, so ocean floor is negative Y and land is positive Y. This
-# keeps the numbers small and centered, which is friendly to the floating
-# origin work.
+# World units for the full 0..1 elevation range. The seed's era sea level
+# (generator.sea_level) maps to world Y = 0, so ocean floor is negative Y and
+# land is positive Y regardless of era. This keeps the numbers small and
+# centered, which is friendly to the floating origin work.
 const HEIGHT_SCALE := 140.0
 
 # --- Local-detail noise -----------------------------------------------------
@@ -148,11 +148,12 @@ func _detail_raw(wx: float, wz: float) -> float:
 # authoritative on land vs ocean (the hierarchical rule), matching what spawn
 # selection and biome lookup use, while still giving full detail away from the
 # coast. Because the attenuation reaches full strength exactly one detail
-# amplitude from sea level, the sign of (result - SEA_LEVEL) always matches the
-# sign of (base - SEA_LEVEL).
+# amplitude from sea level, the sign of (result - sea_level) always matches
+# the sign of (base - sea_level). The sea level is the generator's per-seed
+# era sea level, so the rule holds in every era.
 func elevation01_at(wx: float, wz: float) -> float:
 	var base := macro_elevation01(wx, wz)
-	var margin := absf(base - MacroMapGen.SEA_LEVEL)
+	var margin := absf(base - _generator.sea_level)
 	var attenuation := clampf(margin / DETAIL_AMPLITUDE01, 0.0, 1.0)
 	var detail := _detail_raw(wx, wz) * DETAIL_AMPLITUDE01 * attenuation
 	return clampf(base + detail, 0.0, 1.0)
@@ -160,7 +161,7 @@ func elevation01_at(wx: float, wz: float) -> float:
 
 # Surface height in world Y at a world position. Sea level is Y = 0.
 func height_at(wx: float, wz: float) -> float:
-	return (elevation01_at(wx, wz) - MacroMapGen.SEA_LEVEL) * HEIGHT_SCALE
+	return (elevation01_at(wx, wz) - _generator.sea_level) * HEIGHT_SCALE
 
 
 # True where the surface is below sea level (ocean / swimmable water).

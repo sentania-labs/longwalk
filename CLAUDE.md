@@ -55,9 +55,10 @@ gives sphere semantics:
 
 The polar traversal mechanic itself only becomes reachable when flight exists
 (far future milestone), but the generator constraint that makes it seamless is
-in place NOW: the top and bottom `POLAR_CAP_ROWS` rows are uniform featureless
-ice (flat elevation, one biome), so the polar crossing seam has nothing to
-mismatch. Terrain variation begins only below the cap band. A cap can sit over
+in place NOW: the top and bottom `polar_cap_rows()` rows (a per-seed,
+era-scaled depth, see the hydrological eras section in ARCHITECTURE.md) are
+uniform featureless ice (flat elevation, one biome), so the polar crossing
+seam has nothing to mismatch. Terrain variation begins only below the cap band. A cap can sit over
 polar ocean (sea ice, Arctic-style) or over a landmass that reaches the pole
 (land ice, Antarctica-style); the underlying split is reported in the JSON
 summary, but the surface stays uniform either way. Cap cells count as neither

@@ -29,10 +29,73 @@ class_name MacroMapGenerator
 const DEFAULT_WIDTH := 512
 const DEFAULT_HEIGHT := 256
 
-# Elevation thresholds (noise normalized to 0..1).
-const SEA_LEVEL := 0.5
-const BEACH_LEVEL := 0.52
+# Elevation thresholds (noise normalized to 0..1). NEUTRAL_SEA_LEVEL is the
+# geological reference level: the elevation field is tuned around it, and the
+# per-seed hydrological era (see the world-eras section below) sets the actual
+# `sea_level` above or below it. Land that sits between the era sea level and
+# the neutral level on an ice-age world is exposed former seabed.
+const NEUTRAL_SEA_LEVEL := 0.5
+# Beaches span this band of elevation above the era sea level.
+const BEACH_BAND := 0.02
 const MOUNTAIN_LEVEL := 0.76
+
+# --- Hydrological eras (issue #4) --------------------------------------------
+#
+# Each seed gets a hydrological era that explains its character geologically:
+# the sea level is derived per seed (a position hash, honoring the purity
+# rule), so an ICE_AGE world has its water locked up in enlarged polar caps
+# and a lowered sea that exposes former ocean floor as vast lowland basins,
+# while a WARM world runs a higher sea and trends toward a water world. The
+# wide middle is TEMPERATE, close to the neutral level.
+#
+# The era latent is an independent draw from the archetype latent, but it is
+# BIASED by the archetype so worlds read as geologically coherent: a
+# continent-heavy (dry) world skews strongly toward ice age (a supercontinent
+# dry world is a deep ice age with the water in the caps), an oceanic world
+# skews toward the warm era. The tails stay open, so a warm supercontinent
+# world is possible, just rare.
+#
+# What falls out of the lowered sea nearly free on ice-age worlds:
+#   - Exposed seabed biomes on land between the era sea level and the neutral
+#     level: marsh fringes near the waterline, salt flats where dry, dry basin
+#     plains otherwise.
+#   - Remnant hypersaline inland seas: water deep inside a continent (high
+#     continent mask) is an old ocean reduced to a dead sea, not open ocean.
+#   - Era-scaled polar caps: ice-age worlds get deep cap bands, warm worlds
+#     thin ones. The cap-band uniformity invariant of issue #2 is preserved;
+#     only the band depth varies per seed.
+#
+# Everything is a pure function of the seed (position hashes, no per-cell
+# RNG), so the era is byte-reproducible. See _build_era().
+enum Era { ICE_AGE, TEMPERATE, WARM }
+
+# Era selector thresholds on the (archetype-biased) 0..1 latent.
+const ERA_ICE_MAX := 0.33
+const ERA_WARM_MIN := 0.67
+
+# Era sea-level and cap-depth ranges. Severity (a second per-seed hash) slides
+# each era between its mild and deep extreme: a deeper ice age has a lower sea
+# AND a thicker cap (the water has to go somewhere), a warmer warm era has a
+# higher sea and a thinner cap.
+#   ICE_AGE:   sea 0.465 down to 0.435, cap rows 18 up to 25
+#   TEMPERATE: sea 0.490 up to 0.510,   cap rows 10 up to 14
+#   WARM:      sea 0.520 up to 0.545,   cap rows 8 down to 5
+# The lowest possible sea (0.435) must stay above 1.0 + CONTINENT_OCEAN_BIAS
+# so the guaranteed-ocean gap between continents survives every era; the
+# highest possible sea (0.545) must stay below POLAR_ICE_ELEVATION so the cap
+# is solid ice in every era. Both margins are asserted by test_world_eras.gd.
+
+# Exposed-seabed classification on ice-age worlds (land between the era sea
+# level and the neutral level): a wet cell within this band of the waterline
+# is marsh fringe; otherwise dry cells are salt flats and the rest is dry
+# basin plains.
+const EXPOSED_MARSH_BAND := 0.015
+const EXPOSED_MARSH_MOISTURE_MIN := 0.5
+const EXPOSED_SALT_MOISTURE_MAX := 0.35
+
+# A water cell this deep inside a continent (continent mask at or above this)
+# on an ice-age world is a remnant hypersaline sea, not open ocean.
+const HYPERSALINE_MASK_MIN := 0.75
 
 # --- Polar cap bands (issue #2) ----------------------------------------------
 #
@@ -42,10 +105,12 @@ const MOUNTAIN_LEVEL := 0.76
 # east-west wrapped flat map with no true-sphere geometry anywhere. The
 # traversal mechanic itself only matters once flight exists (far future), but
 # the GENERATOR constraint lands now, because it is cheap today and expensive
-# to retrofit: the top and bottom POLAR_CAP_ROWS rows are uniform featureless
+# to retrofit: the top and bottom polar_cap_rows() rows are uniform featureless
 # ice, so the polar crossing seam has nothing to mismatch. Terrain variation
-# begins only below the cap band. test/test_polar_caps.gd asserts the
-# uniformity per seed.
+# begins only below the cap band. The band DEPTH is era-scaled (deep caps on
+# ice-age worlds, thin ones on warm worlds, see the world-eras section above);
+# the uniformity invariant holds at every depth. test/test_polar_caps.gd
+# asserts the uniformity per seed.
 #
 # Within the band the surface is a flat ice sheet at POLAR_ICE_ELEVATION,
 # above sea level so the cap is solid, walkable ice. The UNDERLYING
@@ -60,8 +125,10 @@ const MOUNTAIN_LEVEL := 0.76
 # analysis, so a continent that runs under the cap cannot merge with another
 # one through the pole band and the archetype landmass invariants keep their
 # meaning.
-const POLAR_CAP_ROWS := 12
-const POLAR_ICE_ELEVATION := 0.55
+#
+# POLAR_ICE_ELEVATION sits above the highest possible era sea level (0.545)
+# so the cap is solid, walkable ice in every era.
+const POLAR_ICE_ELEVATION := 0.56
 
 # --- Continent-mask layer (see issue #1) ------------------------------------
 #
@@ -239,6 +306,17 @@ var _warp_noise_y: FastNoiseLite
 # _build_archetype() for the fields.
 var _archetype: Dictionary = {}
 
+# The seed-derived hydrological era, computed once in _init after the
+# archetype (the era latent is biased by the archetype kind). Fields:
+# {"kind": Era, "name": String, "sea_level": float, "cap_rows": int}.
+# See _build_era().
+var _era: Dictionary = {}
+
+# The authoritative sea level for this seed, cached from the era. Everything
+# that used to reference a fixed sea-level constant (biome classification,
+# temperature cooling, the sim-side sampler and spawn finder) reads this.
+var sea_level: float = NEUTRAL_SEA_LEVEL
+
 # Deterministic list of continent lobes, computed once from the seed in _init.
 # Each entry is {"x": float, "y": float, "core": int, "falloff": int,
 # "extent": int, "aspect": float, "orient": float, "group": int} where `core` is
@@ -264,6 +342,13 @@ const BIOME_DESERT := "desert"
 const BIOME_TUNDRA := "tundra"
 const BIOME_MOUNTAIN := "mountain"
 const BIOME_ICE := "ice"
+# Exposed former seabed (ice-age worlds only, see the world-eras section).
+const BIOME_MARSH := "marsh"
+const BIOME_SALT_FLAT := "salt_flat"
+const BIOME_BASIN := "basin"
+# Remnant dead sea deep inside a continent (ice-age worlds only). A water
+# biome: counts with ocean, not land.
+const BIOME_HYPERSALINE := "hypersaline_sea"
 
 const BIOME_ORDER := [
 	BIOME_OCEAN,
@@ -274,6 +359,10 @@ const BIOME_ORDER := [
 	BIOME_TUNDRA,
 	BIOME_MOUNTAIN,
 	BIOME_ICE,
+	BIOME_MARSH,
+	BIOME_SALT_FLAT,
+	BIOME_BASIN,
+	BIOME_HYPERSALINE,
 ]
 
 # Biome colors for the rendered PNG. Ocean and mountain get elevation-based
@@ -287,6 +376,10 @@ const BIOME_COLORS := {
 	BIOME_TUNDRA: Color8(168, 178, 172),
 	BIOME_MOUNTAIN: Color8(122, 116, 110),
 	BIOME_ICE: Color8(226, 234, 242),
+	BIOME_MARSH: Color8(94, 124, 92),
+	BIOME_SALT_FLAT: Color8(233, 227, 205),
+	BIOME_BASIN: Color8(173, 160, 122),
+	BIOME_HYPERSALINE: Color8(70, 120, 118),
 }
 
 
@@ -349,9 +442,15 @@ func _init(p_seed: int, p_width: int = DEFAULT_WIDTH, p_height: int = DEFAULT_HE
 	_warp_noise_y.fractal_type = FastNoiseLite.FRACTAL_FBM
 	_warp_noise_y.fractal_octaves = 2
 
-	# Derive the world archetype, then place the continent centers once, both
-	# deterministically from the seed.
+	# Derive the world archetype and its hydrological era, then place the
+	# continent centers once, all deterministically from the seed. The era is
+	# built after the archetype (its latent is biased by the archetype kind)
+	# and adjusts the archetype's expected land band (a lowered sea exposes
+	# seabed as extra land, a raised sea drowns some).
 	_archetype = _build_archetype()
+	_era = _build_era()
+	sea_level = float(_era["sea_level"])
+	_apply_era_to_archetype()
 	_continent_centers = _build_continent_centers()
 
 	var groups := {}
@@ -486,6 +585,86 @@ func _build_archetype() -> Dictionary:
 				# brittle invariant, proving the world is not N equal-size masses).
 				"min_largest_fraction": 0.20,
 			}
+
+
+# Derive the hydrological era for this seed. The era latent is an independent
+# hash draw, remapped by the archetype kind so the distribution is biased
+# (continent-heavy worlds skew toward ice age, oceanic worlds toward warm)
+# while both tails stay reachable for every archetype. A second severity hash
+# slides the era between its mild and deep extreme: severity moves the sea
+# level away from neutral and the cap depth with it, so a deeper ice age has
+# both a lower sea and a thicker polar cap. Pure function of the seed.
+func _build_era() -> Dictionary:
+	var u := float(_hash2(seed_value, 9100) % 1000000) / 1000000.0
+	var sev := float(_hash2(seed_value, 9200) % 1000000) / 1000000.0
+	match int(_archetype["kind"]):
+		Archetype.CONTINENT_HEAVY:
+			# Compress toward 0 (ice age); warm needs u above ~0.89.
+			u = u * 0.75
+		Archetype.OCEANIC:
+			# Compress toward 1 (warm); ice age needs u below ~0.11.
+			u = 0.25 + u * 0.75
+		_:
+			pass
+
+	if u < ERA_ICE_MAX:
+		return {
+			"kind": Era.ICE_AGE,
+			"name": "ice_age",
+			"sea_level": 0.465 - 0.03 * sev,
+			"cap_rows": 18 + int(sev * 7.999),
+		}
+	if u >= ERA_WARM_MIN:
+		return {
+			"kind": Era.WARM,
+			"name": "warm",
+			"sea_level": 0.52 + 0.025 * sev,
+			"cap_rows": 8 - int(sev * 3.999),
+		}
+	return {
+		"kind": Era.TEMPERATE,
+		"name": "temperate",
+		"sea_level": 0.49 + 0.02 * sev,
+		"cap_rows": 10 + int(sev * 4.999),
+	}
+
+
+# Widen the archetype's expected land band for the era before the landmass
+# test reads it: a lowered ice-age sea exposes former seabed as extra land, a
+# raised warm sea drowns low coastal land. The bands stay honest per-seed
+# expectations derived from the same source the generator uses.
+func _apply_era_to_archetype() -> void:
+	match int(_era["kind"]):
+		Era.ICE_AGE:
+			# The lowered sea exposes seabed (more land), but the deep ice-age
+			# cap also swallows high-latitude land as land ice (which counts as
+			# neither land nor ocean), so the band widens at BOTH ends.
+			_archetype["land_band_max"] = minf(float(_archetype["land_band_max"]) + 0.20, 0.95)
+			_archetype["land_band_min"] = maxf(float(_archetype["land_band_min"]) - 0.06, 0.0)
+		Era.WARM:
+			_archetype["land_band_min"] = maxf(float(_archetype["land_band_min"]) - 0.06, 0.0)
+		_:
+			# Temperate sea wanders slightly around neutral; widen both edges a
+			# little so the band tolerates the wander.
+			_archetype["land_band_min"] = maxf(float(_archetype["land_band_min"]) - 0.03, 0.0)
+			_archetype["land_band_max"] = minf(float(_archetype["land_band_max"]) + 0.05, 0.95)
+
+
+# True when this seed's era is an ice age (lowered sea, exposed seabed,
+# hypersaline remnant seas, deep polar caps).
+func is_ice_age() -> bool:
+	return int(_era["kind"]) == Era.ICE_AGE
+
+
+# The number of rows in each polar cap band for this seed (era-scaled).
+func polar_cap_rows() -> int:
+	return int(_era["cap_rows"])
+
+
+# The seed-derived hydrological era, exposed for the era test and the JSON
+# summary.
+func era() -> Dictionary:
+	return _era
 
 
 # Signed shortest separation a - b along the wrapping x axis, in (-width/2,
@@ -791,16 +970,18 @@ func base_elevation_at(px: int, py: int) -> float:
 	return (_sample_cylinder(_elevation_noise, px, py) + 1.0) * 0.5
 
 
-# True when row py lies inside the north or south polar cap band.
+# True when row py lies inside the north or south polar cap band. The band
+# depth is era-scaled (polar_cap_rows), the uniformity within it is not.
 func in_polar_cap(py: int) -> bool:
-	return py < POLAR_CAP_ROWS or py >= height - POLAR_CAP_ROWS
+	var rows := polar_cap_rows()
+	return py < rows or py >= height - rows
 
 
 # Elevation the mask plus noise would produce at (px, py), ignoring the polar
 # cap flattening. This is what the cap covers: inside the band it classifies a
-# cap cell as land ice (>= SEA_LEVEL, a cap over a landmass) or sea ice (a cap
-# over polar ocean) for the JSON summary. Outside the band it equals
-# elevation_at.
+# cap cell as land ice (at or above the era sea level, a cap over a landmass)
+# or sea ice (a cap over polar ocean) for the JSON summary. Outside the band
+# it equals elevation_at.
 func underlying_elevation_at(px: int, py: int) -> float:
 	var base := base_elevation_at(px, py)
 	var mask := continent_mask_at(px, py)
@@ -824,13 +1005,14 @@ func elevation_at(px: int, py: int) -> float:
 
 # Bias applied to the raw heightmap where the continent mask is exactly 0 (every
 # cell outside all continent extents, i.e. the open ocean between continents).
-# It must be deep enough that even the highest possible raw noise stays below sea
-# level, so the gaps between continents are guaranteed ocean. The raw heightmap
-# is normalized to 0..1, so any bias below SEA_LEVEL - 1.0 = -0.5 guarantees it;
-# -0.55 leaves margin while keeping the coastal bias ramp gentle (a deeper bias
-# would steepen the shoreline). This is the load-bearing "guaranteed ocean gap"
-# mechanism.
-const CONTINENT_OCEAN_BIAS := -0.55
+# It must be deep enough that even the highest possible raw noise stays below
+# sea level IN EVERY ERA, so the gaps between continents are guaranteed ocean.
+# The raw heightmap is normalized to 0..1 and the lowest era sea level is 0.435
+# (a deep ice age), so any bias below 0.435 - 1.0 = -0.565 guarantees it; -0.60
+# leaves margin while keeping the coastal bias ramp reasonably gentle (a deeper
+# bias steepens the shoreline). This is the load-bearing "guaranteed ocean gap"
+# mechanism; test_world_eras.gd asserts the margin against the era ranges.
+const CONTINENT_OCEAN_BIAS := -0.60
 
 
 # Combine a raw noise elevation with a continent mask value (both 0..1) into the
@@ -878,9 +1060,9 @@ func temperature_at(px: int, py: int, elevation: float) -> float:
 	var perturb := _sample_cylinder(_temperature_noise, px, py)  # -1..1
 	var temp := equator_factor + perturb * TEMP_NOISE_WEIGHT
 
-	# Higher elevation (above sea level) is colder.
-	if elevation > SEA_LEVEL:
-		var land_height := (elevation - SEA_LEVEL) / (1.0 - SEA_LEVEL)
+	# Higher elevation (above the era sea level) is colder.
+	if elevation > sea_level:
+		var land_height := (elevation - sea_level) / (1.0 - sea_level)
 		temp -= land_height * ELEVATION_COOLING
 
 	return clampf(temp, 0.0, 1.0)
@@ -896,18 +1078,37 @@ func biome_for_cell(px: int, py: int) -> String:
 		return BIOME_ICE
 	var elevation := elevation_at(px, py)
 	var moisture := moisture_at(px, py)
+
+	if elevation < sea_level:
+		# Water. On an ice-age world, water deep inside a continent (high
+		# continent mask) is an old ocean reduced to a remnant dead sea.
+		if is_ice_age() and continent_mask_at(px, py) >= HYPERSALINE_MASK_MIN:
+			return BIOME_HYPERSALINE
+		return BIOME_OCEAN
+
+	if is_ice_age() and elevation < NEUTRAL_SEA_LEVEL:
+		# Exposed former seabed: land the lowered ice-age sea uncovered. Wet
+		# cells near the waterline are marsh fringe, dry cells are salt flats,
+		# the rest is dry basin plains.
+		if elevation < sea_level + EXPOSED_MARSH_BAND and moisture >= EXPOSED_MARSH_MOISTURE_MIN:
+			return BIOME_MARSH
+		if moisture < EXPOSED_SALT_MOISTURE_MAX:
+			return BIOME_SALT_FLAT
+		return BIOME_BASIN
+
 	var temperature := temperature_at(px, py, elevation)
 	return biome_at(elevation, temperature, moisture)
 
 
 # Biome lookup table. Combines elevation, temperature and moisture into one
-# of the seven non-ice starter biomes. Ice is not produced here: it is a
-# position rule (the polar cap bands), applied by biome_for_cell. Documented
-# in ARCHITECTURE.md.
+# of the seven non-ice starter biomes against this seed's era sea level. Ice
+# and the era biomes (exposed seabed, hypersaline seas) are not produced here:
+# they are position and era rules, applied by biome_for_cell. Documented in
+# ARCHITECTURE.md.
 func biome_at(elevation: float, temperature: float, moisture: float) -> String:
-	if elevation < SEA_LEVEL:
+	if elevation < sea_level:
 		return BIOME_OCEAN
-	if elevation < BEACH_LEVEL:
+	if elevation < sea_level + BEACH_BAND:
 		return BIOME_BEACH
 	if elevation >= MOUNTAIN_LEVEL:
 		return BIOME_MOUNTAIN
@@ -934,7 +1135,7 @@ func _biome_color(biome: String, elevation: float) -> Color:
 		return base
 	if biome == BIOME_OCEAN:
 		# Deeper water (lower elevation) renders darker.
-		var depth := elevation / SEA_LEVEL          # 0 at deepest, ~1 near shore
+		var depth := elevation / sea_level          # 0 at deepest, ~1 near shore
 		return base.darkened((1.0 - depth) * 0.5)
 	if biome == BIOME_MOUNTAIN:
 		# Highest peaks get a snow cap.
@@ -978,9 +1179,9 @@ func generate() -> Dictionary:
 			biome_counts[biome] += 1
 			if biome == BIOME_ICE:
 				ice_tiles += 1
-				if underlying_elevation_at(px, py) >= SEA_LEVEL:
+				if underlying_elevation_at(px, py) >= sea_level:
 					land_ice_tiles += 1
-			elif biome != BIOME_OCEAN:
+			elif biome != BIOME_OCEAN and biome != BIOME_HYPERSALINE:
 				land_tiles += 1
 				land_mask[py * width + px] = 1
 
@@ -990,12 +1191,13 @@ func generate() -> Dictionary:
 
 	var landmass := _analyze_landmasses(land_mask, land_tiles)
 
-	# Biome distribution as a fraction of land tiles. Ocean is excluded (it is
-	# reported as ocean_fraction) and so is polar cap ice (neither land nor
-	# ocean, reported via the ice_* fields).
+	# Biome distribution as a fraction of land tiles. Water biomes are excluded
+	# (ocean is reported as ocean_fraction, hypersaline seas via their own
+	# field) and so is polar cap ice (neither land nor ocean, reported via the
+	# ice_* fields).
 	var land_distribution := {}
 	for b in BIOME_ORDER:
-		if b == BIOME_OCEAN or b == BIOME_ICE:
+		if b == BIOME_OCEAN or b == BIOME_ICE or b == BIOME_HYPERSALINE:
 			continue
 		var frac := 0.0
 		if land_tiles > 0:
@@ -1011,7 +1213,10 @@ func generate() -> Dictionary:
 		"ocean_tiles": biome_counts[BIOME_OCEAN],
 		"land_fraction": _round6(land_fraction),
 		"ocean_fraction": _round6(float(biome_counts[BIOME_OCEAN]) / float(total_tiles)),
-		"polar_cap_rows": POLAR_CAP_ROWS,
+		"era": _era["name"],
+		"sea_level": _round6(sea_level),
+		"hypersaline_tiles": biome_counts[BIOME_HYPERSALINE],
+		"polar_cap_rows": polar_cap_rows(),
 		"ice_tiles": ice_tiles,
 		"land_ice_tiles": land_ice_tiles,
 		"sea_ice_tiles": ice_tiles - land_ice_tiles,
