@@ -35,9 +35,23 @@ func _init(generator: MacroMapGen) -> void:
 	height = generator.height
 
 
-# A cell is land when its authoritative elevation is at or above sea level.
-func _is_land(px: int, py: int) -> bool:
-	return _generator.elevation_at(px, py) >= MacroMapGen.SEA_LEVEL
+# Cell classification for the mask. Polar cap ice is its own class: it is not
+# spawnable land (nobody starts on the featureless ice sheet), it must not
+# connect two landmasses through the pole band, and it is not ocean either, so
+# a land cell that merely touches the cap does not read as coastal.
+const CELL_OCEAN := 0
+const CELL_LAND := 1
+const CELL_ICE := 2
+
+
+# A cell is land when its authoritative elevation is at or above sea level and
+# it is not polar cap ice.
+func _classify(px: int, py: int) -> int:
+	if _generator.in_polar_cap(py):
+		return CELL_ICE
+	if _generator.elevation_at(px, py) >= MacroMapGen.SEA_LEVEL:
+		return CELL_LAND
+	return CELL_OCEAN
 
 
 # Wrap a column east-west; clamp is not needed because callers keep py in range.
@@ -45,13 +59,14 @@ func _wrap_col(px: int) -> int:
 	return ((px % width) + width) % width
 
 
-# Build the land mask once (row-major, py * width + px). Pure function of seed.
+# Build the cell-class mask once (row-major, py * width + px). Pure function of
+# seed.
 func _build_land_mask() -> PackedByteArray:
 	var mask := PackedByteArray()
 	mask.resize(width * height)
 	for py in range(height):
 		for px in range(width):
-			mask[py * width + px] = 1 if _is_land(px, py) else 0
+			mask[py * width + px] = _classify(px, py)
 	return mask
 
 
@@ -77,7 +92,7 @@ func find_spawn() -> Dictionary:
 	for py in range(height):
 		for px in range(width):
 			var idx := py * width + px
-			if mask[idx] == 0 or component[idx] != -1:
+			if mask[idx] != CELL_LAND or component[idx] != -1:
 				continue
 			# New component: BFS/DFS from here.
 			var id := next_id
@@ -102,7 +117,7 @@ func find_spawn() -> Dictionary:
 				if cy < height - 1:
 					neighbors.append(cx + (cy + 1) * width)
 				for n in neighbors:
-					if mask[n] == 1 and component[n] == -1:
+					if mask[n] == CELL_LAND and component[n] == -1:
 						component[n] = id
 						stack.push_back(n)
 			component_size.append(size)
@@ -152,16 +167,17 @@ func find_spawn() -> Dictionary:
 	}
 
 
-# True if any 4-neighbor of (px, py) is ocean. East-west wraps, north-south
-# treats the hard poles as ocean-free edges (an edge cell can still be coastal
-# via its in-bounds neighbors).
+# True if any 4-neighbor of (px, py) is ocean. Polar cap ice does not count:
+# a land cell that only touches the ice band is not a coast. East-west wraps,
+# north-south treats the map edges as ocean-free (an edge cell can still be
+# coastal via its in-bounds neighbors).
 func _has_ocean_neighbor(mask: PackedByteArray, px: int, py: int) -> bool:
-	if mask[_wrap_col(px - 1) + py * width] == 0:
+	if mask[_wrap_col(px - 1) + py * width] == CELL_OCEAN:
 		return true
-	if mask[_wrap_col(px + 1) + py * width] == 0:
+	if mask[_wrap_col(px + 1) + py * width] == CELL_OCEAN:
 		return true
-	if py > 0 and mask[px + (py - 1) * width] == 0:
+	if py > 0 and mask[px + (py - 1) * width] == CELL_OCEAN:
 		return true
-	if py < height - 1 and mask[px + (py + 1) * width] == 0:
+	if py < height - 1 and mask[px + (py + 1) * width] == CELL_OCEAN:
 		return true
 	return false

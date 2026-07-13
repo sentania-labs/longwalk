@@ -41,8 +41,10 @@ with the same seed produces byte-identical PNG and JSON.
 
 ### 2.2 East-west wrap through cylindrical noise sampling
 
-The world is a cylinder: it wraps east-west and has hard north and south edges.
-To make the noise seamless across the wrap, the x axis is mapped onto a circle
+The world is a cylinder that behaves like a sphere at its ends: it wraps
+east-west, and the north and south edges are sphere-consistent polar crossings
+(section 2.2a). Within the noise sampling itself the y axis simply does not
+wrap. To make the noise seamless across the east-west wrap, the x axis is mapped onto a circle
 and sampled with 3D noise. For a cell at column `px` on a map of `width`
 columns:
 
@@ -71,6 +73,51 @@ The generator logs the maximum absolute elevation difference between column 0
 and column width-1 across all rows. The determinism test asserts this stays
 below 0.05, which confirms the wrap is continuous (measured around 0.02 for the
 sample seeds).
+
+### 2.2a Sphere-consistent polar crossings and the uniform cap bands
+
+The world must be traversable like a globe for a player who later develops
+flight: crossing over a pole has to work like a real sphere, not a torus. The
+rule, with no true-sphere geometry anywhere:
+
+- Crossing the top edge at longitude `x` re-enters from the top edge at
+  longitude `(x + width/2) mod width`, heading south.
+- Mirrored at the south edge.
+
+This is exactly what happens when you fly over a pole on a globe: you come down
+the far side of the planet, half the world away in longitude, now moving in the
+opposite north-south direction. The traversal/teleport mechanic itself is
+implemented when flight exists (far future); what lands now is the generator
+constraint that makes the crossing seamless, because it is cheap today and
+expensive to retrofit.
+
+That constraint is the uniform polar cap bands: the top and bottom
+`POLAR_CAP_ROWS` rows (pinned in `src/macro_map.gd`, currently 12) are uniform
+featureless ice. Within the band, `elevation_at` returns the flat
+`POLAR_ICE_ELEVATION` (above sea level, so the cap is solid walkable ice) and
+the biome is always `ice`, so the columns at `x` and `x + width/2` are
+byte-identical across the whole band and the crossing seam has nothing to
+mismatch. Terrain variation begins only below the cap band.
+
+The cap is a surface layer over whatever terrain reaches that latitude. The
+underlying elevation (mask plus noise, `underlying_elevation_at`) is still
+computed: cap cells at or above sea level underneath are land ice (an
+Antarctica-style cap over a landmass), the rest are sea ice (an Arctic-style
+cap over polar ocean). The split is reported in the JSON summary (`ice_tiles`,
+`land_ice_tiles`, `sea_ice_tiles`); the surface stays uniform either way.
+
+Cap cells are their own category in the statistics: they count as neither land
+nor ocean, they are excluded from `land_fraction` and the biome distribution,
+and they are excluded from the landmass connected-component analysis (so a
+continent running under a cap can never merge with another one through the
+pole band). Spawn selection treats ice as non-spawnable and non-ocean: nobody
+spawns on the featureless cap, and a land cell that merely touches the ice
+band does not read as coastal.
+
+`test/test_polar_caps.gd` asserts per seed: band uniformity (flat ice
+everywhere in both bands), polar-crossing partner agreement on the edge rows,
+terrain variation resuming immediately below each band, and exact ice
+accounting in the summary.
 
 ### 2.3 Field layers
 
@@ -138,8 +185,8 @@ lobe's extent, isolated groups guarantee a band of ocean between every pair of
 continents, so their landmasses are always disconnected. Anchor lobes stay a small
 margin from the poles, but a large continent's extent is deliberately allowed to
 run past a pole and clip at the map edge, so land reaches high latitude instead of
-sitting inside an enclosing ocean ring (a future polar-cap layer, issue #2, will
-refine those high latitudes). Clipping only ever removes land at the edge, so it
+sitting inside an enclosing ocean ring (the polar cap bands of section 2.2a sit on
+top of that high-latitude land as land ice). Clipping only ever removes land at the edge, so it
 cannot affect the circular, extent-based isolation guarantee. All of these
 parameters (tier mix, radii, falloff width and shape, chain steps, min-ocean-gap,
 pole margin, lift) are pinned constants in `src/macro_map.gd` and are part of the

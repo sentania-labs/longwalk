@@ -44,8 +44,25 @@ refine the macro map, they never contradict it.
 ## World topology
 
 The world is a flat plane wrapped east-west (cylindrical, like a horizontally
-scrolling map), NOT a sphere. There is a north edge and a south edge that do
-not wrap. The map wraps only when you keep walking east or west.
+scrolling map) with sphere-consistent polar crossings at the north and south
+edges. There is no true-sphere geometry anywhere; the flat map plus two rules
+gives sphere semantics:
+
+- East-west: the map wraps. Walking all the way around in x is one full loop.
+- North-south: crossing the top edge at longitude x re-enters from the top
+  edge at longitude (x + width/2) heading south, mirrored at the south edge.
+  This is how crossing over a pole works on a real globe, NOT a torus wrap.
+
+The polar traversal mechanic itself only becomes reachable when flight exists
+(far future milestone), but the generator constraint that makes it seamless is
+in place NOW: the top and bottom `POLAR_CAP_ROWS` rows are uniform featureless
+ice (flat elevation, one biome), so the polar crossing seam has nothing to
+mismatch. Terrain variation begins only below the cap band. A cap can sit over
+polar ocean (sea ice, Arctic-style) or over a landmass that reaches the pole
+(land ice, Antarctica-style); the underlying split is reported in the JSON
+summary, but the surface stays uniform either way. Cap cells count as neither
+land nor ocean in the stats and are excluded from landmass connected-component
+analysis. `test/test_polar_caps.gd` asserts the cap-band uniformity per seed.
 
 To keep noise seamless across the east-west wrap, the x axis is mapped onto a
 circle and sampled with 3D noise: walking all the way around in x is one full

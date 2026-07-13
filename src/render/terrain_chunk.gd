@@ -34,6 +34,7 @@ const BIOME_COLORS := {
 	"desert": Color8(211, 182, 108),
 	"tundra": Color8(168, 178, 172),
 	"mountain": Color8(122, 116, 110),
+	"ice": Color8(226, 234, 242),
 }
 
 var chunk_coord: Vector2i

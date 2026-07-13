@@ -27,10 +27,13 @@ const MacroMapGen := preload("res://src/macro_map.gd")
 #   stays land. The detail layer only adds modest sub-macro-cell variation.
 #
 # World topology (see CLAUDE.md):
-#   The world is a cylinder: it wraps east-west and has hard north and south
-#   edges. The x axis wraps modulo the macro width; the detail noise is sampled
-#   on the same cylinder mapping the macro layer uses, so there is no seam at
-#   the wrap. The y (north-south) axis is clamped, it does not wrap.
+#   The world is a cylinder: it wraps east-west. The x axis wraps modulo the
+#   macro width; the detail noise is sampled on the same cylinder mapping the
+#   macro layer uses, so there is no seam at the wrap. The y (north-south)
+#   axis is clamped, it does not wrap. The north and south edges end in the
+#   uniform polar cap bands; the sphere-consistent polar crossing they enable
+#   is a traversal mechanic that lands with flight (far future), so this
+#   sampler simply clamps at the edges for now.
 
 # --- World scale ------------------------------------------------------------
 # World units spanned by one macro cell. The macro grid is coarse (512x256 by
@@ -181,11 +184,10 @@ func macro_to_world_center(px: int, py: int) -> Vector3:
 
 
 # Biome string at a world position, resolved at macro resolution so it agrees
-# with the authoritative macro map. Uses the macro (non-detail) elevation for
-# the classification, matching what the macro generator itself would report.
+# with the authoritative macro map. Delegates to the generator's per-cell
+# lookup, which applies the polar cap ice rule and classifies everything else
+# from the macro (non-detail) elevation, matching what the macro generator
+# itself would report.
 func biome_at(wx: float, wz: float) -> String:
 	var cell := world_to_macro(wx, wz)
-	var elevation := _generator.elevation_at(cell.x, cell.y)
-	var moisture := _generator.moisture_at(cell.x, cell.y)
-	var temperature := _generator.temperature_at(cell.x, cell.y, elevation)
-	return _generator.biome_at(elevation, temperature, moisture)
+	return _generator.biome_for_cell(cell.x, cell.y)

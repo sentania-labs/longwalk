@@ -16,8 +16,12 @@ class_name MacroMapGenerator
 #   noise seamless across the east-west wrap, the x axis is mapped onto a
 #   circle and sampled with 3D noise: a horizontal wrap becomes a full loop
 #   around the cylinder, so x=0 and x=width-1 are neighbors with no seam.
-#   The y axis (north-south) is sampled linearly and does NOT wrap; there
-#   is a hard north edge and a hard south edge.
+#   The y axis (north-south) is sampled linearly and does NOT wrap in the
+#   noise. The north and south edges are sphere-consistent polar crossings:
+#   crossing the top edge at longitude x re-enters from the top edge at
+#   longitude (x + width/2) heading south, mirrored at the south edge. The
+#   top and bottom POLAR_CAP_ROWS rows are uniform featureless ice so that
+#   crossing seam has nothing to mismatch (see the polar cap section below).
 
 # Fixed generation parameters. These are part of the determinism contract:
 # changing them changes every map, so they are pinned constants rather than
@@ -29,6 +33,35 @@ const DEFAULT_HEIGHT := 256
 const SEA_LEVEL := 0.5
 const BEACH_LEVEL := 0.52
 const MOUNTAIN_LEVEL := 0.76
+
+# --- Polar cap bands (issue #2) ----------------------------------------------
+#
+# The world is sphere-traversable at the poles: crossing the north edge at
+# longitude x re-enters from the north edge at longitude (x + width/2), heading
+# south, and mirrored at the south edge. That preserves sphere semantics on the
+# east-west wrapped flat map with no true-sphere geometry anywhere. The
+# traversal mechanic itself only matters once flight exists (far future), but
+# the GENERATOR constraint lands now, because it is cheap today and expensive
+# to retrofit: the top and bottom POLAR_CAP_ROWS rows are uniform featureless
+# ice, so the polar crossing seam has nothing to mismatch. Terrain variation
+# begins only below the cap band. test/test_polar_caps.gd asserts the
+# uniformity per seed.
+#
+# Within the band the surface is a flat ice sheet at POLAR_ICE_ELEVATION,
+# above sea level so the cap is solid, walkable ice. The UNDERLYING
+# elevation (what the mask plus noise would have produced) is still computed
+# and reported in the JSON: cap cells whose underlying elevation reaches sea
+# level are land ice (an Antarctica-style cap over a landmass), the rest are
+# sea ice (an Arctic-style cap over polar ocean). The distinction is stats
+# and flavor only; the surface stays uniform either way.
+#
+# Cap cells are their own category in the summary: they count as neither land
+# nor ocean, and they are excluded from the landmass connected-component
+# analysis, so a continent that runs under the cap cannot merge with another
+# one through the pole band and the archetype landmass invariants keep their
+# meaning.
+const POLAR_CAP_ROWS := 12
+const POLAR_ICE_ELEVATION := 0.55
 
 # --- Continent-mask layer (see issue #1) ------------------------------------
 #
@@ -154,10 +187,10 @@ const LOBE_CHAIN_ANGLE_SPREAD := 1.15
 # allowed to run past a pole and clip at the map edge, so land reaches high
 # latitude and the map no longer sits inside an enclosing ocean ring. Clipping
 # only ever removes land at the edge, so it cannot affect the (circular, extent
-# based) isolation guarantee between groups. A future polar-cap layer (issue #2)
-# will refine what happens at those high latitudes; here we simply do not hold
-# land away from the poles. Chained (non-anchor) lobes may wander past this margin
-# and clip too.
+# based) isolation guarantee between groups. The polar cap bands (POLAR_CAP_ROWS
+# above) sit on top of whatever terrain reaches those high latitudes: land that
+# runs under a cap becomes land ice, so we simply do not hold land away from the
+# poles. Chained (non-anchor) lobes may wander past this margin and clip too.
 const CONTINENT_POLE_MARGIN := 16
 
 # Minimum guaranteed ocean gap (in cells) between the influence extents (core +
@@ -230,6 +263,7 @@ const BIOME_FOREST := "forest"
 const BIOME_DESERT := "desert"
 const BIOME_TUNDRA := "tundra"
 const BIOME_MOUNTAIN := "mountain"
+const BIOME_ICE := "ice"
 
 const BIOME_ORDER := [
 	BIOME_OCEAN,
@@ -239,6 +273,7 @@ const BIOME_ORDER := [
 	BIOME_DESERT,
 	BIOME_TUNDRA,
 	BIOME_MOUNTAIN,
+	BIOME_ICE,
 ]
 
 # Biome colors for the rendered PNG. Ocean and mountain get elevation-based
@@ -251,6 +286,7 @@ const BIOME_COLORS := {
 	BIOME_DESERT: Color8(211, 182, 108),
 	BIOME_TUNDRA: Color8(168, 178, 172),
 	BIOME_MOUNTAIN: Color8(122, 116, 110),
+	BIOME_ICE: Color8(226, 234, 242),
 }
 
 
@@ -755,14 +791,35 @@ func base_elevation_at(px: int, py: int) -> float:
 	return (_sample_cylinder(_elevation_noise, px, py) + 1.0) * 0.5
 
 
+# True when row py lies inside the north or south polar cap band.
+func in_polar_cap(py: int) -> bool:
+	return py < POLAR_CAP_ROWS or py >= height - POLAR_CAP_ROWS
+
+
+# Elevation the mask plus noise would produce at (px, py), ignoring the polar
+# cap flattening. This is what the cap covers: inside the band it classifies a
+# cap cell as land ice (>= SEA_LEVEL, a cap over a landmass) or sea ice (a cap
+# over polar ocean) for the JSON summary. Outside the band it equals
+# elevation_at.
+func underlying_elevation_at(px: int, py: int) -> float:
+	var base := base_elevation_at(px, py)
+	var mask := continent_mask_at(px, py)
+	return _apply_continent_mask(base, mask)
+
+
 # Authoritative elevation at (px, py): the raw noise heightmap combined with
 # the continent mask. Land only survives near a continent center; between
 # continents the mask forces the elevation below sea level, guaranteeing deep
 # ocean. Everything downstream (temperature, biome, rendering) uses this.
+#
+# Inside a polar cap band the surface is a flat ice sheet at
+# POLAR_ICE_ELEVATION regardless of the underlying terrain: the band must be
+# featureless so the sphere-consistent polar crossing (see the polar cap
+# section above) has nothing to mismatch.
 func elevation_at(px: int, py: int) -> float:
-	var base := base_elevation_at(px, py)
-	var mask := continent_mask_at(px, py)
-	return _apply_continent_mask(base, mask)
+	if in_polar_cap(py):
+		return POLAR_ICE_ELEVATION
+	return underlying_elevation_at(px, py)
 
 
 # Bias applied to the raw heightmap where the continent mask is exactly 0 (every
@@ -829,8 +886,24 @@ func temperature_at(px: int, py: int, elevation: float) -> float:
 	return clampf(temp, 0.0, 1.0)
 
 
+# Authoritative biome at cell (px, py). Polar cap cells are always ice (the
+# cap band is uniform and featureless by construction); everywhere else the
+# biome comes from the elevation/temperature/moisture lookup table. Callers
+# that need the biome for a position should use this rather than composing
+# biome_at themselves, so the cap rule is applied in exactly one place.
+func biome_for_cell(px: int, py: int) -> String:
+	if in_polar_cap(py):
+		return BIOME_ICE
+	var elevation := elevation_at(px, py)
+	var moisture := moisture_at(px, py)
+	var temperature := temperature_at(px, py, elevation)
+	return biome_at(elevation, temperature, moisture)
+
+
 # Biome lookup table. Combines elevation, temperature and moisture into one
-# of the seven starter biomes. Documented in ARCHITECTURE.md.
+# of the seven non-ice starter biomes. Ice is not produced here: it is a
+# position rule (the polar cap bands), applied by biome_for_cell. Documented
+# in ARCHITECTURE.md.
 func biome_at(elevation: float, temperature: float, moisture: float) -> String:
 	if elevation < SEA_LEVEL:
 		return BIOME_OCEAN
@@ -855,6 +928,10 @@ func biome_at(elevation: float, temperature: float, moisture: float) -> String:
 
 func _biome_color(biome: String, elevation: float) -> Color:
 	var base: Color = BIOME_COLORS[biome]
+	if biome == BIOME_ICE:
+		# Featureless by design: no shading, so the cap band renders as one
+		# uniform color with nothing for the polar crossing seam to mismatch.
+		return base
 	if biome == BIOME_OCEAN:
 		# Deeper water (lower elevation) renders darker.
 		var depth := elevation / SEA_LEVEL          # 0 at deepest, ~1 near shore
@@ -880,20 +957,30 @@ func generate() -> Dictionary:
 	for b in BIOME_ORDER:
 		biome_counts[b] = 0
 
+	# Polar cap accounting: cap cells are neither land nor ocean. The
+	# underlying elevation splits them into land ice (cap over a landmass)
+	# and sea ice (cap over polar ocean) for the summary.
+	var ice_tiles := 0
+	var land_ice_tiles := 0
+
 	# Land mask for the connected-component analysis: 1 where the cell is land
-	# (any non-ocean biome), 0 where it is ocean. Indexed py * width + px.
+	# (any biome that is not ocean and not polar cap ice), 0 otherwise. Cap
+	# cells stay 0 so landmasses cannot connect through the pole band. Indexed
+	# py * width + px.
 	var land_mask := PackedByteArray()
 	land_mask.resize(total_tiles)
 
 	for py in range(height):
 		for px in range(width):
 			var elevation := elevation_at(px, py)
-			var moisture := moisture_at(px, py)
-			var temperature := temperature_at(px, py, elevation)
-			var biome := biome_at(elevation, temperature, moisture)
+			var biome := biome_for_cell(px, py)
 
 			biome_counts[biome] += 1
-			if biome != BIOME_OCEAN:
+			if biome == BIOME_ICE:
+				ice_tiles += 1
+				if underlying_elevation_at(px, py) >= SEA_LEVEL:
+					land_ice_tiles += 1
+			elif biome != BIOME_OCEAN:
 				land_tiles += 1
 				land_mask[py * width + px] = 1
 
@@ -903,11 +990,12 @@ func generate() -> Dictionary:
 
 	var landmass := _analyze_landmasses(land_mask, land_tiles)
 
-	# Biome distribution as a fraction of land tiles (ocean excluded from the
-	# land breakdown but reported separately as land_fraction above).
+	# Biome distribution as a fraction of land tiles. Ocean is excluded (it is
+	# reported as ocean_fraction) and so is polar cap ice (neither land nor
+	# ocean, reported via the ice_* fields).
 	var land_distribution := {}
 	for b in BIOME_ORDER:
-		if b == BIOME_OCEAN:
+		if b == BIOME_OCEAN or b == BIOME_ICE:
 			continue
 		var frac := 0.0
 		if land_tiles > 0:
@@ -923,6 +1011,11 @@ func generate() -> Dictionary:
 		"ocean_tiles": biome_counts[BIOME_OCEAN],
 		"land_fraction": _round6(land_fraction),
 		"ocean_fraction": _round6(float(biome_counts[BIOME_OCEAN]) / float(total_tiles)),
+		"polar_cap_rows": POLAR_CAP_ROWS,
+		"ice_tiles": ice_tiles,
+		"land_ice_tiles": land_ice_tiles,
+		"sea_ice_tiles": ice_tiles - land_ice_tiles,
+		"ice_fraction": _round6(float(ice_tiles) / float(total_tiles)),
 		"biome_distribution_of_land": land_distribution,
 		"archetype": _archetype["name"],
 		"archetype_land_band_min": _round6(float(_archetype["land_band_min"])),
