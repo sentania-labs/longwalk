@@ -50,7 +50,60 @@ func _ready() -> void:
 	# responding to F11 mid-pause would be a confusing thing to debug then).
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_settings()
+	# Before the first apply(), not only when the player opens the settings
+	# screen: a settings file carried over from a larger monitor would
+	# otherwise size the first window to something that does not fit.
+	clamp_to_available()
 	apply()
+
+
+# The screen area a window may actually occupy: the desktop minus whatever the
+# OS reserves (a taskbar, a dock, a menu bar). Smaller than the physical
+# resolution on essentially every real desktop, which is why the presets are
+# checked against this rather than against screen_get_size().
+func _usable_rect() -> Rect2i:
+	return DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+
+
+# The presets that fit the current screen. Kept as a pure function of the
+# usable size so it is testable without a display server; available_resolutions()
+# supplies the real one.
+static func resolutions_fitting(usable_size: Vector2i) -> Array[Vector2i]:
+	var fitting: Array[Vector2i] = []
+	for resolution in RESOLUTIONS:
+		if resolution.x <= usable_size.x and resolution.y <= usable_size.y:
+			fitting.append(resolution)
+	# Never return nothing. On a screen smaller than the smallest preset the
+	# window is clamped by apply() regardless, and a picker with no entries at
+	# all would just read as broken.
+	if fitting.is_empty():
+		fitting.append(RESOLUTIONS[0])
+	return fitting
+
+
+# Where a window of `size` sits centered in `usable`, never starting above or
+# left of the usable area. The clamp is the point: on a 1080p monitor the
+# usable height is under 1080 once the taskbar is subtracted, so centering the
+# 1920x1080 preset there would otherwise yield a negative y and put the title
+# bar out of reach. Pure, for the same testability reason as above.
+static func centered_position(usable: Rect2i, size: Vector2i) -> Vector2i:
+	var centered := usable.position + (usable.size - size) / 2
+	return Vector2i(maxi(centered.x, usable.position.x), maxi(centered.y, usable.position.y))
+
+
+func available_resolutions() -> Array[Vector2i]:
+	if DisplayServer.get_name() == "headless":
+		return RESOLUTIONS
+	return resolutions_fitting(_usable_rect().size)
+
+
+# Snaps windowed_resolution to the largest preset this screen can show if the
+# current choice does not fit. available_resolutions() is ascending, so the
+# last entry is the largest.
+func clamp_to_available() -> void:
+	var available := available_resolutions()
+	if not windowed_resolution in available:
+		windowed_resolution = available[available.size() - 1]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -87,24 +140,24 @@ func apply() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		DisplayServer.window_set_size(windowed_resolution)
-		_center_window()
+		var usable := _usable_rect()
+		# Final clamp, even though clamp_to_available() already snapped the
+		# choice to a fitting preset: it catches a screen too small for even
+		# the smallest preset. stretch/aspect="keep" letterboxes the result
+		# rather than distorting it, so a clamped, off-aspect window is a
+		# cosmetic cost, not a broken one.
+		var size := windowed_resolution.min(usable.size)
+		DisplayServer.window_set_size(size)
+		# Re-position after every resize: Godot keeps the previous top-left
+		# corner, so a window that grew would otherwise hang off the screen
+		# edge. Computed from `size` rather than read back via
+		# window_get_size(), because the resize above is a request to the
+		# window manager and not an immediate change; on X11 the read-back
+		# still reports the PREVIOUS size this soon, which lands the window
+		# off-center by half the delta.
+		DisplayServer.window_set_position(centered_position(usable, size))
 
 	changed.emit()
-
-
-# Re-centering matters when leaving fullscreen or growing the window: Godot
-# keeps the previous top-left corner, so a window that grew past the screen
-# edge would otherwise end up with its title bar off-screen.
-#
-# Centers on windowed_resolution rather than on window_get_size(): the resize
-# above is a request to the window manager, not an immediate change, so on X11
-# window_get_size() still reports the PREVIOUS size when read back this soon
-# and the window lands off-center by half the delta.
-func _center_window() -> void:
-	var screen := DisplayServer.window_get_current_screen()
-	var usable := DisplayServer.screen_get_usable_rect(screen)
-	DisplayServer.window_set_position(usable.position + (usable.size - windowed_resolution) / 2)
 
 
 func load_settings(path: String = CONFIG_PATH) -> void:

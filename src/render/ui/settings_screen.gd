@@ -14,6 +14,11 @@ extends Control
 
 var _display_settings: Node
 
+# The presets this screen actually lists: those that fit the current screen,
+# not every preset DisplaySettings knows about. Cached rather than re-queried,
+# so the OptionButton item indices stay aligned with it.
+var _resolutions: Array[Vector2i] = []
+
 
 func _ready() -> void:
 	# get_node_or_null rather than the "DisplaySettings" autoload global
@@ -24,7 +29,8 @@ func _ready() -> void:
 	if _display_settings == null:
 		return
 
-	for resolution in _display_settings.RESOLUTIONS:
+	_resolutions = _display_settings.available_resolutions()
+	for resolution in _resolutions:
 		_resolution_option.add_item("%d x %d" % [resolution.x, resolution.y])
 
 	_display_settings.changed.connect(_sync_from_settings)
@@ -37,7 +43,7 @@ func _ready() -> void:
 func _sync_from_settings() -> void:
 	_fullscreen_check.set_pressed_no_signal(_display_settings.fullscreen)
 
-	var index: int = _display_settings.RESOLUTIONS.find(_display_settings.windowed_resolution)
+	var index := _resolutions.find(_display_settings.windowed_resolution)
 	if index >= 0:
 		_resolution_option.selected = index
 
@@ -55,7 +61,7 @@ func _on_fullscreen_toggled(pressed: bool) -> void:
 
 func _on_resolution_selected(index: int) -> void:
 	if _display_settings != null:
-		_display_settings.set_windowed_resolution(_display_settings.RESOLUTIONS[index])
+		_display_settings.set_windowed_resolution(_resolutions[index])
 
 
 func _on_back_pressed() -> void:
