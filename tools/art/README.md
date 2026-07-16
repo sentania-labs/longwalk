@@ -62,12 +62,42 @@ directly with the same prompt text to see the full transcript and error.
 
 ## Current output
 
-Three assets prove the pipeline end to end (`ground_path_tile.png`,
-`building_facade.png`, `player_character.png`). They are raw generator
-output: high-resolution (1254x1254 or 1536x1024), uncropped, on a plain
-cream background rather than true alpha transparency. Cropping to exact game
-tile/sprite dimensions and background removal are manual post-processing
-steps for a later dispatch (do them locally with, for example, Python/PIL,
-not inside the codex sandbox, per the caveat above); this dispatch's job was
-proving the generation pipeline works and is regenerable, not final asset
-processing.
+`out/` holds five raw generated assets: the three that proved the pipeline
+end to end (`ground_path_tile.png`, `building_facade.png`,
+`player_character.png`) plus two added for the starter-town prototype
+(`grass_ground_tile.png`, `cottage_facade.png`, a second building distinct
+from the general store). All five are raw generator output: high-resolution,
+uncropped, and (for the two building sprites and the player sprite) on a
+plain cream background rather than true alpha transparency.
+
+## Post-processing: `out/` (raw) versus `out/processed/` (game-ready)
+
+`out/<name>.png` is always raw codex output, committed as-is so every asset
+is regenerable and diffable against its prompt. `out/processed/<name>.png`
+is the game-ready version the actual scenes import from: `process_assets.py`
+does background removal (a corner-seeded flood fill, since every sprite
+prompt asks for one flat background color) and a crop-to-content pass for
+sprites, plus a resize to a small tile/sprite pixel size for everything.
+Ground tiles have no background to remove (the prompts ask for a full-bleed
+texture), so they only get resized.
+
+Run it locally with plain Python/PIL and numpy, not inside the codex
+sandbox (same caveat as image generation above, though this script has no
+codex or network dependency at all, so the caveat mostly does not apply
+here; it is just kept out of `generate.sh` for the same separation of
+concerns):
+
+```
+python3 tools/art/process_assets.py
+```
+
+It also generates the character-creation appearance presets: three
+`player_character_<name>.png` variants (`moss`, `slate_blue`, `burgundy`)
+that hue-shift only the tunic pixels of the processed player sprite, so
+character creation has a small set of visibly different choices without a
+separate AI generation per outfit color. See the script for the hue-range
+mask that isolates tunic pixels from skin/hair.
+
+Scenes reference `out/processed/`, never `out/` directly. Regenerating an
+asset means: edit or add a prompt file, rerun `generate.sh`, then rerun
+`process_assets.py` to refresh the processed copy.
