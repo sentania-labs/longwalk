@@ -48,9 +48,16 @@ Both agents sign, in this exact form, one per line:
     Signed-off-by: claude-worker <claude@sentania.net> 2026-07-16T14:22:05Z
     Signed-off-by: codex-worker <codex@sentania.net> 2026-07-16T14:31:40Z
 
-The consensus CI gate greps for exactly these two `Signed-off-by:` lines and
-fails the check unless both residents appear. A record signed by only one
-resident is not a consensus record.
+All three fields are required: resident name, email, and a real UTC ISO 8601
+timestamp. The gate validates the whole line, not just the name, and this is
+not pedantry. `TEMPLATE.md` already contains both residents' names in its
+sign-off block, so a record copied from the template and never actually signed
+would satisfy a name-only check. The timestamp is what a placeholder cannot
+fake: `YYYY-MM-DDTHH:MM:SSZ` is rejected, so an unsigned copy of the template
+fails the gate rather than clearing it. Sign with the time you actually
+signed.
+
+A record signed by only one resident is not a consensus record.
 
 A worker signing a record is claiming it read the synthesis and accepts it as
 the team's decision, including where the synthesis went against its own
@@ -70,7 +77,10 @@ violation.
 
 `.github/workflows/consensus.yml` runs `tools/check_consensus.py` on every PR.
 If the PR touches any path listed in `.github/protected-paths.txt`, the check
-requires that the PR reference a decision record carrying both sign-off lines.
+requires that the PR reference a decision record which both carries valid
+sign-off lines from both residents **and** covers the protected paths the PR
+actually touches.
+
 A reference counts if either:
 
 - the PR **body** mentions the record path (for example
@@ -79,6 +89,17 @@ A reference counts if either:
 
 The second form is the normal case: the record usually lands in the same PR as
 the change it governs.
+
+Coverage is why the `Protected paths touched` section is load-bearing rather
+than documentation. A record authorizes only the paths it lists there. Without
+that, once any signed record existed, a later PR could cite it while changing
+something entirely unrelated and pass the gate, which would make the check
+theatre. If your PR touches a protected path no existing record covers, you
+need a new record, not a citation of an old one.
+
+The gate is currently **informational**: it runs and reports on every PR but
+does not block the merge. See the comment in `.github/workflows/consensus.yml`
+for why, and for the two changes that switch it to enforcing.
 
 See `.github/protected-paths.txt` for the enumerated paths and
 `.team/signoffs/README.md` for the separate pre-PR peer sign-off marker, which

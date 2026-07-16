@@ -56,15 +56,29 @@ escalated to Scott rather than decided by the orchestrator. Note that here.
 
 ## Protected paths touched
 
-List the paths from `.github/protected-paths.txt` this decision covers, or
-"None" if this record exists for reasons other than the CI gate.
+> List the entries from `.github/protected-paths.txt` this decision covers, one
+> per line, copied exactly as they appear there (for example `src/sim/`, not
+> `src/sim/game_state.gd`). Write "None" if this record exists for reasons
+> other than the CI gate.
+>
+> This section is read by the gate, not just by humans: the record authorizes
+> only the paths listed here. A PR touching a protected path this record does
+> not list needs its own record. Delete this instruction block when filling it
+> in.
+
+None
 
 ## Sign-offs
 
-Both residents sign. The consensus CI gate greps for exactly these lines and
-fails unless both appear. Signing means "I read the synthesis and accept it as
-the team's decision," not necessarily "I agree with all of it"; a worker whose
-objection lost still signs, and its dissent is recorded above.
+Both residents sign. Signing means "I read the synthesis and accept it as the
+team's decision," not necessarily "I agree with all of it"; a worker whose
+objection lost still signs, and its dissent is recorded verbatim above.
+
+Replace `YYYY-MM-DDTHH:MM:SSZ` with the real UTC time you signed. The gate
+validates the whole line and rejects these placeholders, so an unsigned copy of
+this template fails the gate rather than passing it. That is deliberate: the
+template already carries both names, so the timestamp is what proves a human
+or agent actually signed.
 
     Signed-off-by: claude-worker <claude@sentania.net> YYYY-MM-DDTHH:MM:SSZ
     Signed-off-by: codex-worker <codex@sentania.net> YYYY-MM-DDTHH:MM:SSZ

@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -37,11 +38,36 @@ DECISIONS_DIR = "docs/decisions"
 # TEMPLATE.md and README.md live in the same directory and are not records.
 DECISION_RECORD_RE = re.compile(r"docs/decisions/(\d{3})-([a-z0-9][a-z0-9-]*)\.md")
 
-# The residents that must both sign. Matched against the name field of a
-# "Signed-off-by: <name> <email> <timestamp>" line.
+# The residents that must both sign.
 REQUIRED_SIGNERS = ("claude-worker", "codex-worker")
 
-SIGNOFF_RE = re.compile(r"^\s*Signed-off-by:\s*([\w.-]+)\s*<", re.MULTILINE)
+# A sign-off line is validated in full, not just by name:
+#
+#     Signed-off-by: claude-worker <claude@sentania.net> 2026-07-16T14:22:05Z
+#
+# The whole line matters because docs/decisions/TEMPLATE.md already carries
+# both required worker names in its sign-off block. A record copied from the
+# template and never actually signed would satisfy a name-only match, so an
+# unsigned record would clear the gate. Requiring a real UTC ISO 8601
+# timestamp is what separates a signature from the template's
+# 'YYYY-MM-DDTHH:MM:SSZ' placeholder: a worker cannot sign without stating
+# when, and a placeholder cannot spell a date.
+SIGNOFF_RE = re.compile(
+    r"^\s*Signed-off-by:\s*"
+    r"(?P<name>[\w.-]+)\s*"
+    r"<(?P<email>[^@<>\s]+@[^@<>\s]+)>\s*"
+    r"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)\s*$",
+    re.MULTILINE,
+)
+
+# The record section naming the protected paths a record covers. A record
+# authorizes only the paths it says it covers, so the gate reads this rather
+# than accepting any signed record for any protected change.
+COVERAGE_HEADING = "Protected paths touched"
+COVERAGE_SECTION_RE = re.compile(
+    r"^#+\s*" + re.escape(COVERAGE_HEADING) + r"\s*$(?P<body>.*?)(?=^#+\s|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
 
 
 def load_protected_paths(path: Path) -> list[str]:
@@ -103,23 +129,53 @@ def referenced_records(changed_files: list[str], pr_body: str) -> list[str]:
 
 
 def signers_of(record_text: str) -> set[str]:
-    """The resident names appearing in Signed-off-by lines."""
-    return set(SIGNOFF_RE.findall(record_text))
+    """Resident names with a complete, non-placeholder Signed-off-by line."""
+    return {m.group("name") for m in SIGNOFF_RE.finditer(record_text)}
 
 
-def check_record(record_path: str, repo_root: Path) -> tuple[bool, str]:
-    """Is this record present and signed by both residents?"""
+def covered_entries(record_text: str, protected: list[str]) -> set[str]:
+    """Protected-path entries this record's coverage section claims to cover."""
+    match = COVERAGE_SECTION_RE.search(record_text)
+    if not match:
+        return set()
+    body = match.group("body")
+    # Drop the template's own instructional prose so an unfilled section does
+    # not accidentally 'cover' every entry it names as an example.
+    lines = [ln for ln in body.splitlines() if not ln.strip().startswith(">")]
+    text = "\n".join(lines)
+    return {entry for entry in protected if entry in text}
+
+
+def check_record(record_path: str, repo_root: Path, hit_entries: set[str], protected: list[str]) -> tuple[bool, str]:
+    """Is this record present, signed by both residents, and does it cover these paths?"""
     full = repo_root / record_path
     if not full.exists():
         return False, f"{record_path}: referenced but does not exist in the repo"
-    signers = signers_of(full.read_text(encoding="utf-8"))
+
+    text = full.read_text(encoding="utf-8")
+
+    signers = signers_of(text)
     missing = [s for s in REQUIRED_SIGNERS if s not in signers]
     if missing:
         return False, (
-            f"{record_path}: missing sign-off from {', '.join(missing)} "
-            f"(found: {', '.join(sorted(signers)) or 'none'})"
+            f"{record_path}: missing a valid sign-off from {', '.join(missing)} "
+            f"(found: {', '.join(sorted(signers)) or 'none'}). A sign-off line must "
+            f"carry a name, an email, and a real UTC timestamp; template placeholders "
+            f"do not count."
         )
-    return True, f"{record_path}: signed by {', '.join(REQUIRED_SIGNERS)}"
+
+    covered = covered_entries(text, protected)
+    uncovered = sorted(hit_entries - covered)
+    if uncovered:
+        return False, (
+            f"{record_path}: signed, but its '{COVERAGE_HEADING}' section does not "
+            f"cover {', '.join(uncovered)} (covers: {', '.join(sorted(covered)) or 'nothing'})"
+        )
+
+    return True, (
+        f"{record_path}: signed by {', '.join(REQUIRED_SIGNERS)} and covers "
+        f"{', '.join(sorted(hit_entries))}"
+    )
 
 
 def run_check(changed_files: list[str], pr_body: str, repo_root: Path) -> int:
@@ -135,6 +191,8 @@ def run_check(changed_files: list[str], pr_body: str, repo_root: Path) -> int:
         print(f"  {changed}  (matches '{entry}')")
     print()
 
+    hit_entries = {entry for _, entry in hits}
+
     records = referenced_records(changed_files, pr_body)
     if not records:
         print("FAIL: no decision record referenced.")
@@ -145,17 +203,19 @@ def run_check(changed_files: list[str], pr_body: str, repo_root: Path) -> int:
         print("PR body. See docs/decisions/README.md.")
         return 1
 
-    results = [check_record(r, repo_root) for r in records]
+    results = [check_record(r, repo_root, hit_entries, protected) for r in records]
     for ok, message in results:
         print(f"  {'OK  ' if ok else 'FAIL'} {message}")
     print()
 
     if any(ok for ok, _ in results):
-        print("PASS: a referenced decision record carries both agents' sign-offs.")
+        print("PASS: a referenced decision record is signed by both agents and covers")
+        print("every protected path this PR touches.")
         return 0
 
-    print("FAIL: referenced decision record(s) are not signed by both agents.")
-    print("See docs/decisions/README.md for the required sign-off line format.")
+    print("FAIL: no referenced decision record both carries valid sign-offs from")
+    print("both agents and covers every protected path this PR touches.")
+    print("See docs/decisions/README.md.")
     return 1
 
 
@@ -207,14 +267,74 @@ def self_test() -> int:
         "Signed-off-by: claude-worker <claude@sentania.net> 2026-07-16T14:22:05Z\n"
         "Signed-off-by: codex-worker <codex@sentania.net> 2026-07-16T14:31:40Z\n"
     )
-    if signers_of(signed) != {"claude-worker", "codex-worker"}:
-        print(f"FAIL signers_of(both) = {signers_of(signed)!r}")
+    signoff_cases = [
+        (signed, {"claude-worker", "codex-worker"}, "both residents signed"),
+        (
+            "    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-16T14:22:05Z",
+            {"claude-worker"},
+            "indented (fenced) sign-off still counts",
+        ),
+        ("no sign-offs here at all", set(), "no sign-off lines"),
+        # The template placeholder must never count. A record copied from
+        # TEMPLATE.md and left unsigned would otherwise clear the gate,
+        # because the template already names both required residents.
+        (
+            "Signed-off-by: claude-worker <claude@sentania.net> YYYY-MM-DDTHH:MM:SSZ\n"
+            "Signed-off-by: codex-worker <codex@sentania.net> YYYY-MM-DDTHH:MM:SSZ\n",
+            set(),
+            "unedited template placeholder timestamps",
+        ),
+        (
+            "Signed-off-by: claude-worker <claude@sentania.net>",
+            set(),
+            "name and email but no timestamp",
+        ),
+        (
+            "Signed-off-by: claude-worker 2026-07-16T14:22:05Z",
+            set(),
+            "name and timestamp but no email",
+        ),
+    ]
+    for text, expected, label in signoff_cases:
+        actual = signers_of(text)
+        if actual != expected:
+            print(f"FAIL signers_of [{label}] = {actual!r}, expected {expected!r}")
+            failures += 1
+
+    # The real template must not read as a signed record. This is the exact
+    # bootstrap trap: the template names both residents already.
+    template = REPO_ROOT / "docs" / "decisions" / "TEMPLATE.md"
+    if template.exists():
+        template_signers = signers_of(template.read_text(encoding="utf-8"))
+        if template_signers:
+            print(f"FAIL docs/decisions/TEMPLATE.md reads as signed by {template_signers!r}")
+            failures += 1
+
+    # Coverage: a signed record authorizes only the paths it says it covers,
+    # so an old record cannot be cited to wave through an unrelated protected
+    # change.
+    record = signed + "\n## Protected paths touched\n\nsrc/sim/\n"
+    coverage_cases = [
+        ({"src/sim/"}, True, "record covers the touched path"),
+        ({"project.godot"}, False, "record does not cover the touched path"),
+        ({"src/sim/", "project.godot"}, False, "record covers only some touched paths"),
+        (set(), True, "nothing to cover"),
+    ]
+    for hits, expect_ok, label in coverage_cases:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs" / "decisions").mkdir(parents=True)
+            (root / "docs" / "decisions" / "001-x.md").write_text(record, encoding="utf-8")
+            ok, message = check_record("docs/decisions/001-x.md", root, hits, protected)
+            if ok != expect_ok:
+                print(f"FAIL check_record [{label}] ok={ok}, expected {expect_ok}: {message}")
+                failures += 1
+
+    if covered_entries("## Protected paths touched\n\nNone\n", protected) != set():
+        print("FAIL covered_entries('None') was not empty")
         failures += 1
-    if signers_of("Signed-off-by: claude-worker <claude@sentania.net> 2026-07-16T14:22:05Z") != {"claude-worker"}:
-        print("FAIL signers_of(one) did not return just claude-worker")
-        failures += 1
-    if signers_of("no sign-offs here at all") != set():
-        print("FAIL signers_of(none) was not empty")
+    if covered_entries("no such section", protected) != set():
+        print("FAIL covered_entries(missing section) was not empty")
         failures += 1
 
     # The real config must parse, so a malformed edit to it fails here rather
