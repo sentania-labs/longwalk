@@ -64,7 +64,12 @@ def is_protected(changed_path: str, protected: list[str]) -> str | None:
     A trailing '/' entry matches that directory and everything under it.
     Anything else matches the exact path.
     """
-    normalized = changed_path.strip().replace("\\", "/").lstrip("./")
+    normalized = changed_path.strip().replace("\\", "/")
+    # Strip a leading './' only. Not str.lstrip('./'), which strips leading '.'
+    # and '/' characters individually and so turns '.github/x' into 'github/x',
+    # silently unprotecting every dot-prefixed path.
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
     for entry in protected:
         if entry.endswith("/"):
             if normalized.startswith(entry):
@@ -156,12 +161,24 @@ def run_check(changed_files: list[str], pr_body: str, repo_root: Path) -> int:
 
 def self_test() -> int:
     """Lightweight checks on the matching logic. No network, no fixtures on disk."""
-    protected = ["project.godot", "ARCHITECTURE.md", "src/sim/", "roles/"]
+    protected = [
+        "project.godot",
+        "ARCHITECTURE.md",
+        "src/sim/",
+        "roles/",
+        ".github/protected-paths.txt",
+    ]
     cases = [
         ("project.godot", "project.godot"),
         ("src/sim/game_state.gd", "src/sim/"),
         ("src/sim/nested/deep.gd", "src/sim/"),
         ("roles/orchestrator.md", "roles/"),
+        # Dot-prefixed paths: str.lstrip('./') used to mangle these into
+        # 'github/...' and silently unprotect them.
+        (".github/protected-paths.txt", ".github/protected-paths.txt"),
+        ("./.github/protected-paths.txt", ".github/protected-paths.txt"),
+        ("./project.godot", "project.godot"),
+        (".github/workflows/ci.yml", None),
         ("src/render/town/starter_town.gd", None),
         ("src/legacy_procedural/sim/spawn_finder.gd", None),
         ("src/simulation_notes.md", None),  # 'src/sim' prefix but not the dir
@@ -208,7 +225,7 @@ def self_test() -> int:
         print(f"FAIL loading the real protected-paths config: {exc}")
         failures += 1
     else:
-        for required in ("project.godot", "ARCHITECTURE.md", "src/sim/"):
+        for required in ("project.godot", "ARCHITECTURE.md", "src/sim/", ".github/protected-paths.txt"):
             if required not in entries:
                 print(f"FAIL protected-paths config is missing required entry: {required}")
                 failures += 1
