@@ -42,9 +42,14 @@ layout_mode = 2
 layout_mode = 2
 text = "New Game"
 
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Settings"
+
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Quit"
 
 [connection signal="pressed" from="CenterContainer/VBoxContainer/NewGameButton" to="." method="_on_new_game_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/QuitButton" to="." method="_on_quit_pressed"]

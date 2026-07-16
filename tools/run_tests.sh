@@ -7,6 +7,12 @@
 #     screen -> character creation -> starter town). Asserts the hand-authored
 #     town layout (src/sim/town_layout.gd) is deterministic and sane, and that
 #     every scene in the flow loads and instantiates headless.
+#   - test_display_settings.gd: the display settings plumbing
+#     (src/render/display_settings.gd). Asserts the ConfigFile round-trip
+#     under user://, that a resolution this build does not offer is rejected
+#     rather than pinning the window somewhere the settings screen cannot
+#     undo, and that the fullscreen shortcut's F11 / Alt+Enter bindings are
+#     registered (an unregistered action is a silently dead key).
 #
 # The runtime procedural world and its tests were parked under
 # src/legacy_procedural/ and test/legacy_procedural/ during the docs/authored-map
@@ -30,5 +36,8 @@ GODOT="${SCRIPT_DIR}/godot/godot"
 
 echo "=== test_boot_flow.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_boot_flow.gd
+
+echo "=== test_display_settings.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_display_settings.gd
 
 echo "All active-path test suites passed."
