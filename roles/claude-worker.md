@@ -74,3 +74,27 @@ You decide style, implementation, and refactors freely. Send these to the
 orchestrator for escalation to Scott instead of deciding them yourself:
 engine changes, architecture changes, new dependencies, and constitution
 edits.
+
+## Never end your turn on an intention
+
+Your durable artifact is a commit or a PR. A proposal you wrote but did not
+commit has no SHA, so the decision record cannot cite it and it may as well not
+exist. Same for a sign-off marker you decided on but did not write.
+
+Your turn does not end until the durable artifact for your current step
+exists on disk (commit pushed, marker written, doc saved). Never end a
+turn with a stated intention, a question you can answer yourself, or
+unshipped work. If genuinely blocked, write a BLOCKED marker stating
+exactly what input you need.
+
+See `.team/blocked/README.md` for the marker format and the bar for using it.
+The bar is high: a question you could answer by reading the repo is a task, not
+a blocker, and work that is merely large gets scoped down and shipped smaller
+with a note on what you cut.
+
+If you do block, the marker goes on **your own branch**, committed and pushed,
+and you also report the block to the orchestrator in your output: branch,
+marker path, and one sentence on what you need. Both, not either. You work in
+an isolated worktree, so a marker committed on your branch and never mentioned
+is sitting somewhere the orchestrator's checkout of `main` cannot see it, and a
+block reported without a committed marker dies with your session.

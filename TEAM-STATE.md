@@ -94,16 +94,29 @@ deadlock where the losing objection claimed a constitution violation.
 ## Notes for the next run
 
 **Status:** the framework conventions (constitution refactor, role briefs,
-decision records, sign-off markers, consensus gate) have landed. Still
-outstanding before the pilot can run: the Dashboard "Team" tab (build order
-step 5) and the orchestrator phase prompts plus assignment template (step 6).
-The pilot assignment (step 7) is "bring motion to the starter town: player
-walk cycle at minimum, ambient town motion if cheap."
+decision records, sign-off markers, consensus gate) have landed, and so have
+the orchestrator phase prompts plus assignment template (build order step 6):
+see `roles/phases/`, plus the new critic seat brief at `roles/critic.md` and
+the BLOCKED marker convention at `.team/blocked/`.
+
+Still outstanding before the pilot can run: the Dashboard "Team" tab (build
+order step 5). The pilot assignment (step 7) is "bring motion to the starter
+town: player walk cycle at minimum, ambient town motion if cheap."
+
+Two known contract gaps against the dashboard's `POST /api/team` schema, both
+worked around in `roles/orchestrator.md` and both worth closing dashboard-side:
+the schema has no `critic` author value (critic votes post as
+`author: "orchestrator"`, `kind: "decision"`, identity folded into the body
+text), and its phase enum has no `implementation` or `done` (folded into
+`execution` and `review`, with the truth carried in `status_note`).
+
+Dashboard POST failures get logged here, under this heading, with a timestamp
+and what was tried. A failed post never blocks the protocol.
 
 Anything the next orchestrator run needs and cannot derive from the repo. Keep
 it short. If it is long, it probably belongs in a decision record.
 
 ---
 
-**Last updated:** 2026-07-16 (framework conventions dispatch, no assignment
-active)
+**Last updated:** 2026-07-16 (phase prompts / critic seat dispatch, no
+assignment active)
