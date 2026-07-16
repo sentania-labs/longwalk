@@ -62,10 +62,22 @@ starter town.
 - AI-generated art for the town and characters (see `tools/art/README.md`).
 
 Scope note for dispatch sequencing: the dispatch that wrote this roadmap
-entry (docs pivot, parking the old code, art pipeline scaffold) does not
-build any of the above. It is the groundwork. A following dispatch builds the
-title screen, character creation, and starter town; another builds the NPCs
-and the interactable shopkeeper.
+entry originally (docs pivot, parking the old code, art pipeline scaffold)
+built none of the above; it was the groundwork.
+
+Status after the second dispatch (title screen, character creation, starter
+town): delivered. `scenes/title_screen.tscn` (New Game / Quit; no Continue
+option since there is no save system yet, that is M4 territory) flows into
+`scenes/character_creation.tscn` (name entry plus a choice of three tunic
+color presets) and lands in `scenes/starter_town.tscn`: a hand-authored
+18x14 tile town (`src/sim/town_layout.gd`, zero RNG, pure data) with a
+general store and two cottages, a path network, an invisible town boundary,
+and 8-directional player movement with collision, using processed
+AI-generated art (see `tools/art/README.md`). A `shopkeeper_plot` reserved
+plot is marked in the layout data (walkable, no building sprite yet) for the
+next dispatch. NPCs and the interactable shopkeeper are NOT built in this
+dispatch; that is the following dispatch's job, using the reserved plot and
+the sim/render separation these scenes already establish.
 
 ## M4 and beyond: not yet planned in detail
 
