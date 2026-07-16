@@ -108,6 +108,17 @@ func _check_player_scene() -> int:
 # would silently fail here even though the same code works in normal play.
 # Setting character_name/appearance_variant directly, as character creation's
 # handoff would via GameState, sidesteps that without touching the autoload.
+#
+# This is safe for the @onready child references _ready() also uses
+# (_ground_layer, _world, _boundary, _name_label): GDScript compiles
+# @onready initializers into the start of the generated _ready() function
+# itself, they are not a separate engine-triggered hook, and those
+# initializers only need the child nodes to exist (true immediately after
+# instantiate(), since a PackedScene's whole node hierarchy is built up
+# front) rather than needing tree membership. Verified empirically: every
+# check below (building bodies built, player spawned, 4 boundary walls,
+# name label set) passes, which would be impossible if these were still
+# null.
 func _check_starter_town_boot() -> int:
 	var failures := 0
 	var town := StarterTownScene.instantiate()

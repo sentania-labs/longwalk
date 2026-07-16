@@ -84,15 +84,19 @@ func _build_buildings() -> void:
 		var sprite := Sprite2D.new()
 		sprite.texture = texture
 		sprite.centered = true
-		# Anchor the sprite's bottom edge to the bottom of its footprint, and
-		# use that same bottom-edge y for y-sorting (see _world.y_sort_enabled
-		# in starter_town.tscn), so a building with a tall roof still reads as
-		# standing on its own footprint tiles and sorts against the player
-		# correctly.
-		sprite.position = Vector2(
-			footprint_center.x,
-			footprint_origin.y + footprint_px.y - texture.get_height() / 2.0
-		)
+		# Y-sort (see _world.y_sort_enabled in starter_town.tscn) compares
+		# each direct child's own `position`, not where its texture is drawn.
+		# The player's sort key is its feet (the CharacterBody2D's own
+		# origin, see player.tscn's Sprite2D offset). To sort consistently
+		# against that, this sprite's `position` must ALSO be the footprint's
+		# bottom edge, with the taller texture then drawn upward from there
+		# via `offset` rather than by moving `position` itself; moving
+		# `position` up by half the texture height (as an earlier version of
+		# this code did) put the sort key at the sprite's vertical middle,
+		# which flipped front/back ordering against the player across
+		# roughly the lower half of the building's height.
+		sprite.position = Vector2(footprint_center.x, footprint_origin.y + footprint_px.y)
+		sprite.offset = Vector2(0, -texture.get_height() / 2.0)
 		_world.add_child(sprite)
 
 		var body := StaticBody2D.new()
