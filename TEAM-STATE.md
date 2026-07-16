@@ -145,6 +145,23 @@ text), and its phase enum has no `implementation` or `done` (folded into
 Dashboard POST failures get logged here, under this heading, with a timestamp
 and what was tried. A failed post never blocks the protocol.
 
+**2026-07-16T23:53Z: dashboard POST failed, 401, phase 1 snapshot never landed.**
+Tried `POST https://dashboard.int.sentania.net/api/team` with the token from
+`/home/scott/.claude/pka-secrets/dashboard-config.md`. Response:
+`{"detail":"Invalid or missing X-Bridge-Token"}`. That config file documents the
+failure mode exactly: `deploy.sh` rotates the token on every deploy, and a 401
+means the recorded token is stale. The fix is to re-run deploy.sh and update the
+secrets file with the new `BRIDGE_API_TOKEN` from its output, or read the live
+value from `/srv/services/dashboard/dashboard.env` on docker.int.
+
+This run did not do that on purpose. Rotating a shared token is an outward
+change to a service other things depend on, taken as a side effect of narration,
+and narration is explicitly not allowed to block or bend the protocol. It needs
+Scott, or a run whose actual assignment is the dashboard. Per the brief: logged,
+not retried in a loop, and the phase proceeded. The Team tab is stale for this
+assignment until the token is refreshed; the truth is in this file and in the
+decision record either way.
+
 ---
 
 **Last updated:** 2026-07-16T23:52:59Z (pilot assignment dispatched, phase 1
