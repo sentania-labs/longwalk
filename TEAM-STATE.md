@@ -26,86 +26,118 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**Status:** none. No assignment is active. The team framework is being built;
-the first pilot assignment has not been dispatched yet.
+**Status:** active. Pilot run of the multi-harness team framework (build order
+step 7).
 
-When an assignment is active, this section holds:
+**Assignment (goal statement, verbatim as Scott gave it):**
 
-- **Assignment:** the goal statement as Scott gave it, verbatim.
-- **Dispatched:** UTC ISO 8601 timestamp of the orchestrator run that took it.
-- **Lane:** `full protocol` or `fast lane`, plus one line on why the triage
-  went that way.
-- **Scope:** what the team scoped the goal down to, once it has. A goal
-  statement is not a scope; the scoping is itself team work.
+> Bring motion to the starter town: player walk cycle at minimum, ambient town
+> motion if cheap.
+
+**Dispatched:** 2026-07-16T23:52:59Z
+
+**Lane:** `full protocol`. Directed by Scott, not left to orchestrator triage.
+Recorded reasoning as directed: "full protocol: pilot run, design-level (three
+viable animation approaches), Scott directed full protocol explicitly for this
+assignment."
+
+**Constraints (beyond the constitution):**
+
+- Render-layer work. The sim/render separation applies in full: no
+  simulation-side timing or state may leak into animation logic.
+- Any new generated art assets follow the existing `tools/art/` pipeline
+  conventions already in the repo.
+- Nothing else beyond the constitution.
+
+**Protected paths touched:** not expected. This is forecast, made before anyone
+has proposed anything, and phase 3 corrects it against what the synthesis
+actually calls for. The forecast is "no" because the assignment is scoped to the
+render layer and the constraint above explicitly keeps timing and state out of
+the sim side.
+
+One live possibility the next run must not miss: `src/sim/` is protected and
+holds `town_layout.gd`, the authored starter-town data. If either proposal wants
+ambient town motion to be driven by, or to add entries to, the authored layout,
+the assignment touches a protected path after all. That flips two things on
+automatically: the consensus decision record must be signed by both agents
+before merge, and the critic seat (`roles/critic.md`) is invoked at synthesis
+whether or not the critique round deadlocks. Check this at phase 3 against the
+actual proposals rather than trusting this forecast.
+
+**Scope:** not yet scoped. A goal statement is not a scope, and the scoping
+fight (generated sprite-sheet frames vs. procedural animation in Godot vs. a
+hybrid) is deliberately part of what phase 1 argues about. Scott named the
+scoping fight as part of the pilot's test. Do not resolve it from the referee
+seat.
 
 ## Phase
 
-**Status:** not started.
+**Status:** `phase 1: blind proposal`. Both workers dispatched
+2026-07-16T23:52:59Z, in parallel, in separate worktrees, neither having seen
+the other's work.
 
-For a full-protocol assignment, one of:
+- Claude worker: branch `claude/town-motion`, worktree
+  `/home/scott/claude/longwalk-worktrees/claude-town-motion`
+- Codex worker: branch `codex/town-motion`, worktree
+  `/home/scott/claude/longwalk-worktrees/codex-town-motion`
 
-- `phase 1: blind proposal` (workers proposing independently, neither having
-  seen the other's work)
-- `phase 2: adversarial critique` (each worker critiquing the other's
-  proposal)
-- `phase 3: synthesis` (orchestrator converging, dividing labor by
-  capability)
-- `implementation` (workers building the agreed synthesis)
-- `review` (pre-PR peer sign-off, external Codex review, merge)
-- `done`
-
-For a fast-lane assignment: `fast lane: dispatched` or `fast lane: review`.
-
-Record which worker is blocking the phase, if any. A phase that has been
-sitting in the same state across two orchestrator runs is a stall, and the
-next run should say so here rather than quietly wait again.
+Blocking on: both workers. Phase 1 closes when both proposal commit SHAs are
+recorded under "Active decision record" below.
 
 ## Active decision record
 
-**Status:** none.
+**Status:** none yet. Drafting begins at phase 3 (synthesis), per
+`roles/phases/3-synthesis.md`. Next free number is `001`; `docs/decisions/`
+currently holds only `README.md` and `TEMPLATE.md`.
 
-Link to the `docs/decisions/NNN-topic.md` record for the active assignment,
-and its status (`drafting`, `awaiting sign-offs`, `signed`, `escalated to
-Scott`). If both proposals are committed, record their SHAs here too, so a
-resumed run does not have to go hunting for them on branches.
+Proposal SHAs (full 40 characters, cited by the decision record):
+
+- Claude proposal: not yet reported.
+- Codex proposal: not yet reported.
 
 ## Outstanding sign-offs
 
-**Status:** none.
-
-Two different things land here; label which is which:
-
-- **Pre-PR peer sign-off** (`.team/signoffs/`): which branch and SHA is
-  waiting, and which resident owes the review. Remember a marker covers one
-  SHA: if the author pushed after the sign-off, the marker is stale and the
-  review is owed again.
-- **Decision record sign-off** (`docs/decisions/`): which record is waiting,
-  and which resident has not signed it.
+**Status:** none. Nothing has been built yet, so no pre-PR peer sign-off is owed
+and no decision record is awaiting signature.
 
 ## Open escalations to Scott
 
-**Status:** none.
-
-Anything sent to Scott and not yet answered: what was asked, when, and what is
-blocked behind the answer. Escalation-worthy topics are engine changes,
-architecture changes, new dependencies, and constitution edits, plus any
-deadlock where the losing objection claimed a constitution violation.
+**Status:** none open.
 
 ## Notes for the next run
 
-**Status:** the framework conventions (constitution refactor, role briefs,
-decision records, sign-off markers, consensus gate) have landed, and so have
-the orchestrator phase prompts plus assignment template (build order step 6):
-see `roles/phases/`, plus the new critic seat brief at `roles/critic.md` and
-the BLOCKED marker convention at `.team/blocked/`.
+**The dispatch wrapper does not exist, and this run worked around it.** This
+orchestrator run was told to dispatch via `scripts/team/dispatch.sh` per
+`scripts/team/README.md`'s adapter contract. Neither file exists, in this repo
+or anywhere on this box. That wrapper is build order step 1 in
+`vault/scott/reports/2026-07-16-longwalk-team-framework-design.md` ("Teft: codex
+exec dispatch wrapper, role injection, worktree isolation, durable markers, N-
+harness adapter interface, two adapters"), owned by a different workspace, and
+it was never built. The build order says steps 1-2 are prerequisites for the
+pilot at step 7, so the pilot was started with a prerequisite missing.
 
-Still outstanding before the pilot can run: the Dashboard "Team" tab (build
-order step 5). The pilot assignment (step 7) is "bring motion to the starter
-town: player walk cycle at minimum, ambient town motion if cheap."
+This run dispatched both workers by hand instead: `git worktree add` for
+isolation, then the invocation form the constitution already documents
+(`claude -p --append-system-prompt "$(cat roles/claude-worker.md)"` and the
+equivalent instruction prepend for `codex exec`), with
+`roles/phases/1-proposal.md` appended as the phase template. The orchestrator
+did not author the missing wrapper: writing it is code, and the referee seat
+does not write code (`roles/orchestrator.md`). Scott should decide whether the
+wrapper still gets built by its owner or whether the hand-dispatch path is good
+enough to keep. Until then, every orchestrator run pays this cost by hand and
+the "durable markers" part of the wrapper's remit has no implementation at all.
 
-Two known contract gaps against the dashboard's `POST /api/team` schema, both
-worked around in `roles/orchestrator.md` and both worth closing dashboard-side:
-the schema has no `critic` author value (critic votes post as
+**The design report lives in the vault, not this repo.** It is at
+`/home/scott/claude/vault/scott/reports/2026-07-16-longwalk-team-framework-design.md`.
+The dispatch prompt cited it as `scott/reports/...`, a repo-relative path that
+does not resolve here. Not a blocker, but it costs a search every run.
+
+**Still outstanding from the previous run:** the Dashboard "Team" tab (build
+order step 5).
+
+**Two known contract gaps against the dashboard's `POST /api/team` schema,**
+both worked around in `roles/orchestrator.md` and both worth closing dashboard-
+side: the schema has no `critic` author value (critic votes post as
 `author: "orchestrator"`, `kind: "decision"`, identity folded into the body
 text), and its phase enum has no `implementation` or `done` (folded into
 `execution` and `review`, with the truth carried in `status_note`).
@@ -113,10 +145,7 @@ text), and its phase enum has no `implementation` or `done` (folded into
 Dashboard POST failures get logged here, under this heading, with a timestamp
 and what was tried. A failed post never blocks the protocol.
 
-Anything the next orchestrator run needs and cannot derive from the repo. Keep
-it short. If it is long, it probably belongs in a decision record.
-
 ---
 
-**Last updated:** 2026-07-16 (phase prompts / critic seat dispatch, no
-assignment active)
+**Last updated:** 2026-07-16T23:52:59Z (pilot assignment dispatched, phase 1
+open)
