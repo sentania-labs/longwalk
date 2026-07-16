@@ -13,7 +13,7 @@ class_name TerrainChunk
 # chunk is repositioned without rebuilding its mesh (the geometry is in local
 # space relative to the chunk corner).
 
-const TerrainSamplerC := preload("res://src/sim/terrain_sampler.gd")
+const TerrainSamplerC := preload("res://src/legacy_procedural/sim/terrain_sampler.gd")
 
 # Geometry of a chunk. CHUNK_SIZE is the side length in world units; RES is the
 # number of quads per side (so there are RES + 1 vertices per side). A 48 unit

@@ -2,8 +2,13 @@ extends SceneTree
 
 # Headless CLI entry point for the macro planet map generator.
 #
-# Invocation (see README.md and ARCHITECTURE.md):
-#   godot --headless --script res://src/generate_map.gd -- --seed=<N> --out=<path-prefix>
+# PARKED (see src/legacy_procedural/README.md): this generator drove runtime
+# procedural world generation before the pivot to a finite authored map. It is
+# kept, not deleted, because it is the likely starting point for an offline
+# draft-map authoring tool.
+#
+# Invocation (see src/legacy_procedural/README.md and ARCHITECTURE.md):
+#   godot --headless --script res://src/legacy_procedural/generate_map.gd -- --seed=<N> --out=<path-prefix>
 #
 # The `--` separates Godot's own arguments from the script arguments. Anything
 # after `--` is passed through to this script via OS.get_cmdline_user_args().
@@ -13,9 +18,10 @@ extends SceneTree
 #              Defaults to "res://examples/map" if omitted.
 #
 # Determinism: two runs with the same seed produce byte-identical .png and
-# .json. See test/test_determinism.gd for the automated assertion.
+# .json. See test/legacy_procedural/test_determinism.gd for the automated
+# assertion.
 
-const MacroMap := preload("res://src/macro_map.gd")
+const MacroMap := preload("res://src/legacy_procedural/macro_map.gd")
 
 
 func _initialize() -> void:

@@ -3,7 +3,7 @@ extends SceneTree
 # Determinism test for the macro planet map generator.
 #
 # Invocation (headless, this is what CI runs):
-#   godot --headless --script res://test/test_determinism.gd
+#   godot --headless --script res://test/legacy_procedural/test_determinism.gd
 #
 # The test generates the map twice with the same seed, saves both the PNG and
 # the JSON each time, and asserts the two PNGs are byte-identical and the two
@@ -11,7 +11,7 @@ extends SceneTree
 # a different PNG (so the test cannot pass trivially by producing a constant
 # image). Exit code 0 means pass, non-zero means fail.
 
-const MacroMap := preload("res://src/macro_map.gd")
+const MacroMap := preload("res://src/legacy_procedural/macro_map.gd")
 
 const SEED_A := 424242
 const SEED_B := 987654

@@ -14,14 +14,14 @@ extends SceneTree
 # everything except the actual pixel draw.
 #
 # Invocation (run by tools/run_tests.sh):
-#   godot --headless --script res://test/test_game_smoke.gd
+#   godot --headless --script res://test/legacy_procedural/test_game_smoke.gd
 
-const GameMainScript := preload("res://src/render/game_main.gd")
-const MainScene := preload("res://scenes/main.tscn")
-const PlayerScene := preload("res://scenes/player.tscn")
-const TerrainChunkScript := preload("res://src/render/terrain_chunk.gd")
-const MacroMap := preload("res://src/macro_map.gd")
-const TerrainSamplerC := preload("res://src/sim/terrain_sampler.gd")
+const GameMainScript := preload("res://src/legacy_procedural/render/game_main.gd")
+const MainScene := preload("res://src/legacy_procedural/scenes/main.tscn")
+const PlayerScene := preload("res://src/legacy_procedural/scenes/player.tscn")
+const TerrainChunkScript := preload("res://src/legacy_procedural/render/terrain_chunk.gd")
+const MacroMap := preload("res://src/legacy_procedural/macro_map.gd")
+const TerrainSamplerC := preload("res://src/legacy_procedural/sim/terrain_sampler.gd")
 
 const SEED := 424242
 

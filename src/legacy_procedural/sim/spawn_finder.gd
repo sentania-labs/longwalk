@@ -4,7 +4,7 @@ class_name SpawnFinder
 # Preloaded rather than referenced by global class name so this module resolves
 # in a headless `--script` run (the global class cache is only built by the
 # editor). The alias avoids clashing with the MacroMapGenerator global name.
-const MacroMapGen := preload("res://src/macro_map.gd")
+const MacroMapGen := preload("res://src/legacy_procedural/macro_map.gd")
 
 # SpawnFinder chooses a deterministic spawn point for a given seed: a coastal
 # land cell (a land cell 4-adjacent to an ocean cell) on the LARGEST landmass.

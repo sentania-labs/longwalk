@@ -3,7 +3,7 @@ extends SceneTree
 # Landmass isolation and archetype test for the macro planet map generator.
 #
 # Invocation (headless, wired into tools/run_tests.sh and CI):
-#   godot --headless --script res://test/test_landmass.gd
+#   godot --headless --script res://test/legacy_procedural/test_landmass.gd
 #
 # The continent-mask layer breaks the old single blobby landmass into distinct,
 # ocean-separated continents. Each continent is now a GROUP of overlapping lobes
@@ -41,7 +41,7 @@ extends SceneTree
 #
 # Exit code 0 means pass, non-zero means fail.
 
-const MacroMap := preload("res://src/macro_map.gd")
+const MacroMap := preload("res://src/legacy_procedural/macro_map.gd")
 
 # Seeds exercised. These match the committed example maps so the test and the
 # examples/ artifacts stay in agreement. They deliberately span archetypes:

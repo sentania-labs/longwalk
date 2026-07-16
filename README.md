@@ -1,14 +1,24 @@
 # longwalk
 
-A procedural planet-scale exploration game built in Godot 4 (GDScript). Windows
-is the primary export target, and the project stays cross-platform-clean.
+An isometric / top-down 2.5D persistent-world RPG built in Godot 4 (GDScript),
+in the visual spirit of Warcraft 2, SimCity, and Theme Hospital, with an
+Ultima Online feel: you play a person roaming a persistent world and
+developing skills (hunting, boat-building, and similar). Windows is the
+primary export target, and the project stays cross-platform-clean.
 
-M1 delivered a project scaffold plus a deterministic macro planet map generator
-that runs headless and outputs a PNG map and a JSON summary. M2 adds a walkable
-3D world streamed from that macro map: you spawn on a coast, walk, run, swim, and
-sleep. See [ROADMAP.md](ROADMAP.md) for the milestone ladder, [CLAUDE.md](CLAUDE.md)
-for the load-bearing constraints, and [ARCHITECTURE.md](ARCHITECTURE.md) for the
-full design.
+longwalk pivoted direction on 2026-07-15, away from a runtime procedural
+planet-scale exploration game and toward a finite, authored map. The prior
+M1 (macro planet map generator) and M2 (walkable 3D world streamed from it)
+work is parked, not deleted, under `src/legacy_procedural/` (see that
+directory's `README.md`). See [ROADMAP.md](ROADMAP.md) for the milestone
+ladder, [CLAUDE.md](CLAUDE.md) for the load-bearing constraints, and
+[ARCHITECTURE.md](ARCHITECTURE.md) for the full design.
+
+The current milestone, "M3: starter-town prototype" (title screen, character
+creation, a hand-authored starter town, a couple of scheduled NPCs, one
+interactable shopkeeper), is in progress across several dispatches. This
+dispatch delivered the docs pivot, the parking of the old code, and the AI
+art pipeline scaffold; the starter-town scene work itself is not in yet.
 
 ## Quick start
 
@@ -21,37 +31,18 @@ tools/fetch_godot.sh
 This installs Godot 4.3-stable into `tools/godot/`. The exact pinned version is
 in `tools/godot/VERSION`.
 
-## Play the walkable world (M2)
-
-Run the game from the repo root (needs a display):
+Run the project (needs a display); it currently opens a placeholder scene,
+since the starter town has not landed yet:
 
 ```
 tools/godot/godot --path .
 ```
 
-This opens a minimal menu where you enter a world seed and press Explore. To
-skip the menu (or run a specific seed headlessly for scripting), pass the seed
-on the command line:
+## Game art
 
-```
-tools/godot/godot --path . -- --seed=42
-```
-
-The world you walk is streamed from the same macro map the generator produces,
-so land renders as land and ocean as ocean for that seed. Spawn is a
-deterministic coastal point on the largest landmass for the seed.
-
-### Controls
-
-- Move: `W` `A` `S` `D`
-- Sprint (run): hold `Shift`
-- Jump / swim up: `Space`
-- Swim: automatic when you are over water and at or below the surface
-- Sleep (fade to black, advance the day/night clock to morning): `R`
-- Toggle first-person / third-person camera: `C`
-- Look: mouse
-- Look with the keyboard instead of the mouse: yaw left/right with `Q` / `E`, pitch up/down with the `Up` / `Down` arrow keys
-- Release / recapture the mouse cursor: `Esc`
+All game art is AI-generated, not downloaded asset packs. See
+[`tools/art/README.md`](tools/art/README.md) for the generation pipeline;
+prompts and style config are committed so any asset is regenerable.
 
 ## Windows playtest build
 
@@ -72,33 +63,19 @@ To grab it:
 Building the Windows export locally (needs a display only to play, not to
 export) is documented under "Export the Windows build" below.
 
-## Generate a map
-
-From the repo root:
-
-```
-tools/godot/godot --headless --path . \
-  --script res://src/generate_map.gd -- --seed=42 --out=res://examples/map_seed42
-```
-
-- `--seed=<N>`: integer world seed.
-- `--out=<prefix>`: output path prefix. Writes `<prefix>.png` and
-  `<prefix>.json`.
-
-The world is a pure function of (seed, position), so the same seed always
-produces the same map, byte for byte.
-
 ## Run the tests
 
 ```
 tools/run_tests.sh
 ```
 
-This fetches Godot if needed and runs the headless test suite: the M1 macro map
-determinism test (byte-identical PNG and JSON for a seed, seamless east-west
-wrap), the M2 sim determinism test (the terrain sampler and spawn finder are a
-pure function of seed and position), and the M2 game smoke test (the world boots
-and streams terrain sanely). This is the exact command CI runs.
+There are no active-path tests yet; the starter-town prototype work in a
+later dispatch will add them. The parked M1/M2 procedural-world test suite
+still runs headless and stays green, but only manually:
+
+```
+tools/run_legacy_procedural_tests.sh
+```
 
 ## Export the Windows build
 
@@ -120,22 +97,24 @@ since the full multi-platform archive is several gigabytes). Set
 `GODOT_TEMPLATES_ROOT` to install them elsewhere. The export preset is
 `export_presets.cfg` (`Windows Desktop`, `x86_64`, PCK embedded in the exe).
 
-## Sample maps
+## Sample maps (parked)
 
-`examples/` contains committed sample maps (PNG plus JSON) for several seeds.
+`examples/` contains committed sample maps (PNG plus JSON) from the parked
+M1 procedural generator, for several seeds. See
+`src/legacy_procedural/README.md` for how to regenerate them.
 
 ## Layout
 
-- `src/macro_map.gd`: the `MacroMapGenerator` class (noise layers, biome table,
-  rendering).
-- `src/generate_map.gd`: headless CLI entry point.
-- `src/sim/`: headless simulation layer (terrain sampler, spawn finder). Zero
-  rendering or input dependency.
-- `src/render/`: the walkable-world render layer (terrain streaming, player,
-  camera, water, day/night, game entry). Depends on `src/sim/`, never the
-  reverse.
-- `scenes/`: the runnable scenes (`main.tscn`, `player.tscn`).
-- `test/`: the headless tests CI runs.
+- `src/legacy_procedural/`: the parked M1/M2 procedural planet generator and
+  walkable 3D world (macro map generator, sim layer, render layer, scenes).
+  Not wired into the active project. See its `README.md`.
+- `scenes/`: the active runnable scenes. Currently just a placeholder
+  `main.tscn` until the starter-town prototype lands.
+- `tools/art/`: the AI art generation pipeline (prompts, style config,
+  generation script, committed output).
+- `test/legacy_procedural/`: the parked test suite matching
+  `src/legacy_procedural/`, runnable via `tools/run_legacy_procedural_tests.sh`.
+  Not part of the active CI gate.
 - `tools/`: engine and export-template fetch scripts, test runner, pinned
   version.
-- `examples/`: committed sample maps.
+- `examples/`: committed sample maps from the parked generator.
