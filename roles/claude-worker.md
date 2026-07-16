@@ -91,3 +91,10 @@ See `.team/blocked/README.md` for the marker format and the bar for using it.
 The bar is high: a question you could answer by reading the repo is a task, not
 a blocker, and work that is merely large gets scoped down and shipped smaller
 with a note on what you cut.
+
+If you do block, the marker goes on **your own branch**, committed and pushed,
+and you also report the block to the orchestrator in your output: branch,
+marker path, and one sentence on what you need. Both, not either. You work in
+an isolated worktree, so a marker committed on your branch and never mentioned
+is sitting somewhere the orchestrator's checkout of `main` cannot see it, and a
+block reported without a committed marker dies with your session.

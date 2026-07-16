@@ -76,6 +76,40 @@ Note `timestamp` appears in both the filename and the front matter. The
 filename form is basic (no colons, cross-platform-clean), the front matter form
 is the readable one. They record the same instant.
 
+## Where to put it, given worktree isolation
+
+A worker works in its own worktree on its own branch. Committing a marker there
+and stopping puts the marker on that branch and nowhere else, so the
+orchestrator, reading its own checkout of `main`, sees nothing. The recovery
+signal would be invisible in exactly the situation it exists for.
+
+So a blocked worker does both of these, in order:
+
+1. **Commit and push the marker on your own branch**, alongside whatever work
+   exists. This is the durable artifact and it satisfies the anti-stall clause
+   in your brief. Do not leave it uncommitted in a worktree nobody else will
+   ever check out.
+2. **Report the block to the orchestrator in your dispatch output**: branch,
+   marker path, and the one-sentence version of what you need. The marker is
+   the detail; this is the ping. A marker nobody is told about is a message in
+   a bottle.
+
+The orchestrator, on its next run, does not rely on step 2 having landed. It
+enumerates the resident branches for markers under `.team/blocked/` that are
+not on `main`:
+
+    git fetch --all --quiet
+    git ls-tree -r --name-only origin/<branch> -- .team/blocked/
+
+A worker can die between committing the marker and reporting it, and that is
+one of the likelier ways for a run to end. The scan is what makes the marker
+findable anyway.
+
+When the orchestrator acts on a marker, it cherry-picks or re-commits it onto
+`main` so the block is visible in one place, and records the pointer in
+`TEAM-STATE.md`. The orchestrator's own markers go straight onto `main`, since
+it has no feature branch of its own.
+
 ## Who reads these
 
 The orchestrator, on its next run. It reads `TEAM-STATE.md` first, which should

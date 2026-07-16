@@ -54,10 +54,13 @@ the split was right.
 
 Two conditions, either one is sufficient (see `roles/critic.md`):
 
-1. **Deadlock.** The critique round did not converge and you are deciding. Your
-   vote plus the critic's forms the majority. This is what the seat is for: you
-   run on Claude's harness, so you refereeing a Claude-versus-Codex deadlock
-   alone is a house call.
+1. **Deadlock.** The critique round did not converge and you are deciding. This
+   is what the seat is for: you run on Claude's harness, so you refereeing a
+   Claude-versus-Codex deadlock alone is a house call. If the critic agrees
+   with your ruling, that is your majority. If it sides with the worker you
+   meant to overrule, there is no majority, and you either adopt its side or
+   escalate to Scott with its vote attached. See "When the critic votes against
+   you" in `roles/orchestrator.md`.
 2. **Protected paths.** The synthesis touches a path in
    `.github/protected-paths.txt`. Deadlock or not, invoke the seat.
 
@@ -87,8 +90,9 @@ wrong. The next reader needs the losing argument in its own words to see that,
 and your paraphrase of an argument you just ruled against is not a neutral
 instrument.
 
-Escalate to Scott instead of deciding **only** when the losing objection claims
-a constitution violation. Every other disagreement, you settle.
+Escalate to Scott instead of deciding when the losing objection claims a
+constitution violation, or when the critic voted against your ruling and you
+intend to hold it anyway. Every other disagreement, you settle.
 
 ## Produce the record
 
