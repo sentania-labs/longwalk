@@ -1,0 +1,128 @@
+name: Consensus
+
+# Layers of the team review architecture that can be checked mechanically:
+#   - conventions: AGENTS.md/CLAUDE.md drift, decision-record filenames.
+#   - consensus: PRs touching protected paths need a both-agent decision record.
+#
+# Both jobs are stdlib-python and bash only. No Godot, no network, no export
+# templates: they are cheap enough to run on every PR without anyone minding.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    name: constitution and decision-record conventions
+    # Fork-gated the same way as ci.yml's jobs: PR jobs run only for branches
+    # pushed into this repo, never for forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # AGENTS.md is generated from CLAUDE.md. This is the check that makes
+      # "the two files can never drift" true rather than aspirational: a hand
+      # edit to AGENTS.md, or a CLAUDE.md edit without re-running the
+      # generator, turns this job red.
+      - name: AGENTS.md is in sync with CLAUDE.md
+        run: ./tools/generate_agents_md.sh --check
+
+      - name: Consensus gate self-tests
+        run: ./tools/check_consensus.py --self-test
+
+      - name: Decision record filenames follow NNN-topic.md
+        run: |
+          set -euo pipefail
+          status=0
+          for f in docs/decisions/*.md; do
+            name="$(basename "$f")"
+            case "$name" in
+              README.md|TEMPLATE.md) continue ;;
+            esac
+            if ! printf '%s' "$name" | grep -Eq '^[0-9]{3}-[a-z0-9][a-z0-9-]*\.md$'; then
+              echo "Bad decision record filename: $f"
+              echo "  Expected NNN-topic.md (zero-padded 3-digit number, kebab-case slug)."
+              status=1
+            fi
+          done
+          if [ "$status" -eq 0 ]; then
+            echo "All decision record filenames are well formed."
+          fi
+          exit "$status"
+
+  consensus:
+    name: consensus gate (informational)
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The gate diffs the PR against its merge base, so it needs history
+          # rather than the default single-commit checkout.
+          fetch-depth: 0
+
+      - name: Collect the PR's changed files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > /tmp/changed-files.txt
+          echo "Changed files in this PR:"
+          cat /tmp/changed-files.txt
+
+      - name: Capture the PR body
+        env:
+          # Via env, not inline interpolation: a PR body is attacker-controlled
+          # text and must never be pasted into a shell command.
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s' "$PR_BODY" > /tmp/pr-body.txt
+
+      # INFORMATIONAL, NOT BLOCKING, for now. Two reasons, both temporary:
+      #
+      # 1. Making this actually block a merge means adding it as a required
+      #    status check in branch protection, which is a repo-settings change
+      #    outside the dispatch that added this workflow.
+      # 2. The two-resident team does not exist yet. Until both residents are
+      #    running, no PR can produce a record signed by both of them, so
+      #    enforcing this today would block every PR including the ones that
+      #    build the team.
+      #
+      # The check still runs and still prints its full verdict, so the gate is
+      # exercised on every PR rather than sitting untested until the day it is
+      # switched on. To enforce it: delete the `|| true` below and add
+      # "consensus gate (informational)" to main's required status checks.
+      - name: Consensus gate
+        run: |
+          set -uo pipefail
+          ./tools/check_consensus.py \
+            --changed-files /tmp/changed-files.txt \
+            --pr-body /tmp/pr-body.txt \
+            | tee /tmp/consensus-result.txt || true
+
+          echo
+          echo "NOTE: this check is informational and does not block the merge."
+          echo "See the comment in .github/workflows/consensus.yml for why, and"
+          echo "for what to change when it becomes enforcing."
+
+      - name: Summarize the verdict
+        if: always()
+        run: |
+          {
+            echo "### Consensus gate (informational)"
+            echo
+            echo '```'
+            cat /tmp/consensus-result.txt 2>/dev/null || echo "no result captured"
+            echo '```'
+            echo
+            echo "Informational only: does not block this merge."
+            echo "See docs/decisions/README.md for the convention."
+          } >> "$GITHUB_STEP_SUMMARY"

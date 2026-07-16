@@ -1,0 +1,53 @@
+# Protected paths, longwalk.
+#
+# The single source of truth for which paths require a signed consensus
+# decision record (docs/decisions/NNN-*.md, signed by both agents) before a PR
+# touching them can merge. Read by tools/check_consensus.py, enforced by
+# .github/workflows/consensus.yml.
+#
+# Format: one path per line. Blank lines and lines starting with '#' are
+# ignored. A line ending in '/' matches that directory and everything under
+# it. Any other line matches that exact file path. Paths are repo-relative,
+# forward-slash separated (the repo is cross-platform-clean, see CLAUDE.md).
+#
+# What belongs here: paths where a unilateral change by one resident would be
+# expensive or invisible to undo. Not "important files". Plenty of important
+# code is not listed here because a bad change to it shows up as a failing
+# test, which is a cheaper gate than a consensus record.
+
+# Engine and project configuration. A change here can alter the behavior of
+# every scene at once, and engine changes are a Scott escalation anyway.
+project.godot
+export_presets.cfg
+tools/godot/VERSION
+
+# The architecture writeup. Architecture changes are a Scott escalation; this
+# entry makes an attempt to edit the design visible at the gate.
+ARCHITECTURE.md
+
+# The constitution and its generated twin. Constitution edits are a Scott
+# escalation. AGENTS.md is generated from CLAUDE.md by
+# tools/generate_agents_md.sh, so it moves only when CLAUDE.md does.
+CLAUDE.md
+AGENTS.md
+
+# Sim-layer contracts. CLAUDE.md's simulation/rendering separation makes this
+# module tree the boundary the whole server-backend evolution depends on: sim
+# code has zero viewport/camera/UI dependencies and runs headless. Enumerated
+# as a directory rather than file-by-file so new sim contracts are protected
+# the day they land rather than the day someone remembers to add them here.
+#
+# Current contents: game_state.gd (session carrier, autoloaded as GameState)
+# and town_layout.gd (authored starter-town data, class_name TownLayout).
+#
+# src/legacy_procedural/sim/ is deliberately NOT protected: it is parked, not
+# wired into the active project, and gated only by
+# tools/run_legacy_procedural_tests.sh.
+src/sim/
+
+# The team framework itself. Role briefs are injected at dispatch time and
+# shape how every resident behaves, so a quiet edit to one is a quiet edit to
+# the team. Same for this file: an unreviewed removal of a protected path is
+# how a protection silently stops existing.
+roles/
+.github/protected-paths.txt
