@@ -1,16 +1,18 @@
 ; Engine configuration file for the longwalk project.
 ; Godot 4.3-stable. See tools/godot/VERSION for the pinned engine version.
 ;
-; This file is the standard Godot project descriptor. The M1 macro map
-; generator still runs headless as a CLI tool (src/generate_map.gd); M2 adds a
-; walkable world whose entry point is the main scene set below.
+; This file is the standard Godot project descriptor. `scenes/main.tscn` is a
+; placeholder until the title screen, character creation, and starter town
+; land in a later dispatch (see ROADMAP.md, "M3: starter-town prototype").
+; The prior runtime procedural world (macro map generator, walkable 3D
+; world) is parked under src/legacy_procedural/, see its README.md.
 
 config_version=5
 
 [application]
 
 config/name="longwalk"
-config/description="Procedural planet-scale exploration game. M2: walkable world sourced from the macro planet map."
+config/description="Isometric / top-down 2.5D persistent-world RPG. Starter-town prototype in progress."
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3")
 run/disable_stdout=false

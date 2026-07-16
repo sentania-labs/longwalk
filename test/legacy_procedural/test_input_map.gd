@@ -16,15 +16,15 @@ extends SceneTree
 #      binding table forgot.
 #
 # Invocation (run by tools/run_tests.sh):
-#   godot --headless --script res://test/test_input_map.gd
+#   godot --headless --script res://test/legacy_procedural/test_input_map.gd
 
-const InputActionsScript := preload("res://src/render/input_actions.gd")
+const InputActionsScript := preload("res://src/legacy_procedural/render/input_actions.gd")
 
 # Render scripts that reference input actions by name. Scanned as text so a typo
 # or a newly-referenced-but-unregistered action fails CI, not a playtest.
 const SCANNED_SOURCES := [
-	"res://src/render/player_controller.gd",
-	"res://src/render/game_main.gd",
+	"res://src/legacy_procedural/render/player_controller.gd",
+	"res://src/legacy_procedural/render/game_main.gd",
 ]
 
 

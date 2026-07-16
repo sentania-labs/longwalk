@@ -13,15 +13,15 @@ extends Node3D
 # The sim layers have zero dependency on any of the render nodes below; the
 # dependency is strictly render -> sim.
 
-const MacroMap := preload("res://src/macro_map.gd")
-const TerrainSamplerC := preload("res://src/sim/terrain_sampler.gd")
-const SpawnFinderC := preload("res://src/sim/spawn_finder.gd")
-const TerrainStreamerScript := preload("res://src/render/terrain_streamer.gd")
-const TerrainChunkScript := preload("res://src/render/terrain_chunk.gd")
-const WaterScript := preload("res://src/render/water.gd")
-const DayNightScript := preload("res://src/render/day_night.gd")
-const InputActionsScript := preload("res://src/render/input_actions.gd")
-const PlayerScene := preload("res://scenes/player.tscn")
+const MacroMap := preload("res://src/legacy_procedural/macro_map.gd")
+const TerrainSamplerC := preload("res://src/legacy_procedural/sim/terrain_sampler.gd")
+const SpawnFinderC := preload("res://src/legacy_procedural/sim/spawn_finder.gd")
+const TerrainStreamerScript := preload("res://src/legacy_procedural/render/terrain_streamer.gd")
+const TerrainChunkScript := preload("res://src/legacy_procedural/render/terrain_chunk.gd")
+const WaterScript := preload("res://src/legacy_procedural/render/water.gd")
+const DayNightScript := preload("res://src/legacy_procedural/render/day_night.gd")
+const InputActionsScript := preload("res://src/legacy_procedural/render/input_actions.gd")
+const PlayerScene := preload("res://src/legacy_procedural/scenes/player.tscn")
 
 const DEFAULT_SEED := 424242
 

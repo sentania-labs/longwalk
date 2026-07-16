@@ -1,11 +1,26 @@
 # ARCHITECTURE.md, longwalk
 
-Design writeup for longwalk. This is a design document. Where it describes
-persistence and origin shifting, those are plans for later milestones and are
-explicitly out of scope for M1. See [ROADMAP.md](ROADMAP.md) for the milestone
-ladder and [CLAUDE.md](CLAUDE.md) for the load-bearing constraints.
+Design writeup for longwalk. This is a design document. See
+[ROADMAP.md](ROADMAP.md) for the milestone ladder and
+[CLAUDE.md](CLAUDE.md) for the load-bearing constraints.
 
 No em-dashes are used anywhere in this repo, including this document.
+
+## 0. Pivot notice (2026-07-15)
+
+longwalk changed direction on 2026-07-15: from a runtime procedural
+planet-scale exploration game to an isometric / top-down 2.5D
+persistent-world RPG on a finite, authored map (in the visual spirit of
+Warcraft 2, SimCity, and Theme Hospital, with an Ultima Online feel). Section
+2 below describes the M1/M2 runtime procedural generator and walkable 3D
+world as they were before the pivot; that code is parked, not deleted, under
+`src/legacy_procedural/` (see that directory's `README.md`) and
+`test/legacy_procedural/`. It is kept as a written record and as a plausible
+starting point for an offline map-authoring tool, not as a description of the
+active game. Section 2a describes the current direction. Sections 3 through 6
+(persistence, origin shifting, sim/render boundary, CI runner choice) are
+reframed for the new direction where the pivot changes them, and otherwise
+still apply.
 
 ## 1. Engine and tooling
 
@@ -15,302 +30,148 @@ No em-dashes are used anywhere in this repo, including this document.
   pinned Linux x86_64 build from the official GitHub release and unpacks it into
   `tools/godot/`. The binary and a `tools/godot/godot` convenience symlink are
   gitignored.
-- The generator and the tests run headless with no display server, so the same
+- Simulation code and tests run headless with no display server, so the same
   commands work locally, in CI, and in future automation.
 
-## 2. Macro planet map generation pipeline
+## 2. Parked: the runtime procedural macro planet map (pre-pivot)
 
-Source: `src/macro_map.gd` (the `MacroMapGenerator` class) and
-`src/generate_map.gd` (the headless CLI entry point).
+Source (now parked, see `src/legacy_procedural/README.md`):
+`src/legacy_procedural/macro_map.gd` (the `MacroMapGenerator` class) and
+`src/legacy_procedural/generate_map.gd` (the headless CLI entry point).
 
-### 2.1 Determinism model
+Before the pivot, longwalk generated an entire wrapping planet live from a
+seed: a macro map (elevation, temperature, moisture, a seven-biome lookup
+table, a continent-mask layer that forced distinct ocean-separated
+continents) as the authoritative low-resolution source of truth, with a
+walkable 3D world streamed from it in local chunks. The generator was a pure
+function of (seed, position): seeded `FastNoiseLite` instances keyed off the
+world seed (elevation at `seed`, moisture at `seed + 1013`, temperature
+perturbation at `seed + 2027`), continent lobes placed by a deterministic
+position hash rather than any per-cell RNG, and an east-west cylindrical wrap
+(the x axis mapped onto a circle and sampled with 3D noise) so the map
+wrapped seamlessly with no seam at the edges. Running the generator twice
+with the same seed produced byte-identical PNG and JSON output.
 
-The macro map is a pure function of (seed, position). There is no stateful RNG.
-Each cell value is produced by sampling seeded `FastNoiseLite` instances at a
-coordinate derived only from the cell position. Three noise layers are used, one
-per field, each seeded from the world seed plus a fixed offset so they are
-decorrelated but reproducible:
+The full technical detail (noise parameters, the continent-mask lobe and
+falloff math, the biome lookup thresholds, the JSON summary schema, the CLI
+invocation) is preserved in git history at the commit before this pivot, and
+in the parked source itself, which is still runnable headless
+(`tools/run_legacy_procedural_tests.sh`). It is not repeated here since it no
+longer describes the shipped game; consult the parked code and its README
+directly if you need the exact numbers.
 
-- elevation noise: `seed`
-- moisture noise: `seed + 1013`
-- temperature perturbation noise: `seed + 2027`
+## 2a. Current direction: the authored map
 
-Because nothing depends on iteration order, generating the map row-major,
-column-major, or in random access order all give the same result. Running twice
-with the same seed produces byte-identical PNG and JSON.
+The world is now a finite, authored map rather than an infinite procedurally
+streamed one. The likely production path: generate a draft map once offline
+(possibly reusing or forking the parked generator in section 2, since its
+determinism model is still useful for reproducibly re-rolling a draft), then
+hand-curate and freeze it into static game data that ships with the game.
+Nothing about the map is computed at runtime.
 
-### 2.2 East-west wrap through cylindrical noise sampling
+Rendering moves from the parked first/third-person 3D `CharacterBody3D` world
+to an isometric / top-down 2.5D view, tile- or region-based rather than
+chunk-streamed across an unbounded plane. Exact rendering and tile
+representation choices (tile size, isometric projection parameters, town
+layout format) are not decided yet; they land with the starter-town prototype
+work (see ROADMAP.md, "M3: starter-town prototype"). This section will be
+filled in as that work lands.
 
-The world is a cylinder: it wraps east-west and has hard north and south edges.
-To make the noise seamless across the wrap, the x axis is mapped onto a circle
-and sampled with 3D noise. For a cell at column `px` on a map of `width`
-columns:
+Game art is AI-generated. See `tools/art/README.md` for the generation
+pipeline: prompts and configuration are committed so art is regenerable, and
+it is the source of truth for how to regenerate or extend the art set. Art is
+not downloaded from asset packs.
 
-```
-theta  = TAU * px / width
-radius = width / TAU
-nx     = cos(theta) * radius
-nz     = sin(theta) * radius
-value  = noise.get_noise_3d(nx, py, nz)
-```
+### Ecology and fauna direction (future sim-layer scope)
 
-Walking from `px = 0` to `px = width - 1` traverses almost the entire circle, and
-the next step wraps back to `theta = 0`, so the east and west edges are
-neighbors on the circle with no seam. The radius is `width / TAU` so that one
-step in `px` corresponds to one unit of arc length, keeping horizontal feature
-scale consistent with the vertical (`py`) scale. The `py` (north-south) axis is
-sampled linearly and does not wrap.
+The sim layer is growing toward an ecology system, not scripted spawners:
+flora regrows over time unless a region is overharvested, and fauna hunt,
+reproduce, and migrate as agents, modeled all the way down to something as
+small as a fish, each a minimal independent agent rather than a hand-placed
+encounter. This is not designed yet, this note only records the direction so
+work that starts sooner, most immediately NPC schedules, is built in a way
+that composes with it later (for example: NPCs and fauna both running as
+sim-layer ticks on the same simulation clock, rather than NPCs being special-
+cased outside whatever ecology system comes later).
 
-Feature scale note: with `radius = width / TAU`, the number of noise features
-across the map width is approximately `width * frequency`. At 512 columns wide,
-the elevation base frequency of 0.011 yields roughly 5 to 6 continent-scale
-features. Frequencies that are too high alias between adjacent edge cells and
-reintroduce a visible seam, so they are pinned deliberately.
+## 3. Three-layer persistence design (planned, not yet implemented)
 
-The generator logs the maximum absolute elevation difference between column 0
-and column width-1 across all rows. The determinism test asserts this stays
-below 0.05, which confirms the wrap is continuous (measured around 0.02 for the
-sample seeds).
+The world state is stored in three layers, queried top-down so the cheapest
+layer answers when it can. This design predates the pivot but still applies;
+only layer (a) changes in kind.
 
-### 2.3 Field layers
+### 3.1 Layer (a): authored baseline layer
 
-Map size is fixed at 512 wide by 256 tall for M1 (a 2:1 ratio, the standard for
-a horizontally wrapping world map).
-
-Elevation. Fractal (FBM) simplex-smooth noise, 5 octaves, lacunarity 2.0, gain
-0.5, base frequency 0.011. Sampled on the cylinder and normalized from the
-native -1..1 range to 0..1. This is the raw heightmap (`base_elevation_at`); it
-produces coastlines and mountain interiors but, on its own, one connected
-blobby landmass with fringe islands. The continent-mask layer below shapes it
-into distinct continents. The authoritative `elevation_at` is the raw
-heightmap after the mask is applied.
-
-### 2.3a Continent-mask layer
-
-Raw layered noise alone does not produce truly isolated continents, which
-undermines region diversity and long-term exploration. A continent-mask layer
-sits beneath the heightmap to force distinct, ocean-separated continents.
-
-A deterministic list of continent lobes is derived from the world seed. Lobe
-positions, core radii, elongation, and counts come from a 64-bit position hash of
-`(seed, tier, group index, lobe index, attempt)`, not from any per-cell RNG or
-noise sampling, so they honor the pure function of (seed, position) rule: the
-lobes are a fixed list recomputed identically on every run.
-
-Lobed continent groups. A single hashed center plus falloff always reads as one
-compact rounded island, so each continent is instead built as a GROUP: a chain of
-several overlapping lobes that share a `group` id. The chain walks from an anchor
-lobe; each subsequent lobe is offset from the previous one by a hashed direction
-(wandering around the group's base axis, so the chain elongates rather than
-folding into a blob) and a hashed distance of a fraction of the lobe's core
-radius, so consecutive cores overlap and the mask stays 1.0 across the join. The
-lobes therefore fuse into one large, elongated, irregular landmass. Dramatic size
-variance within a single world comes from a tier structure: a "super" tier group
-(many lobes, larger cores) reads as a near-supercontinent, a "mid" tier group or
-two as mid-size continents, and a "small" tier plus scattered single-lobe
-"archipelago" groups as the tail. The tier mix, lobe counts and radii are all
-seed-derived per archetype (oceanic, continental, continent_heavy).
-
-Each lobe has a core radius (mask 1.0 inside) and a falloff band over which the
-mask ramps from 1.0 down to 0.0 using a tunable falloff shape (default EASE_OUT).
-Beyond core + falloff the mask is exactly 0.0. Each lobe is also stretched into an
-ellipse inscribed in its circular extent (a seed-derived aspect and orientation),
-and the mask sample position is domain-warped, so coasts are irregular. The
-per-cell mask is the maximum contribution over all lobes.
-
-Distances use the cylinder surface metric: the x separation is the shorter way
-around the wrap (via `fposmod`, correct for any logical x including positions many
-map widths out of range), the y separation is linear, and the two combine as
-`sqrt(dx*dx + dy*dy)`. Because the cylinder radius is `width / TAU`, one wrapped
-column equals one unit of distance, matching the noise geometry, so the mask has
-no seam at the east-west wrap.
-
-The mask combines with the raw heightmap as an additive continent bias (not a
-multiply): the bias slides with the mask from a deep ocean bias (guaranteed ocean
-where the mask is 0.0) up to a per-archetype sea-level lift (land wherever the raw
-noise clears the lifted sea level), so the raw noise, not the mask ramp, owns the
-coastline. Groups are placed by a deterministic rejection loop that keeps every
-lobe's influence extent (core + falloff) at least `CONTINENT_MIN_OCEAN_GAP` away
-from every lobe of a DIFFERENT group; lobes within one group are never separated
-(that is how they merge). Archipelago groups keep the same gap, so an island can
-never bridge two continents into one component. Since land can only exist inside a
-lobe's extent, isolated groups guarantee a band of ocean between every pair of
-continents, so their landmasses are always disconnected. Anchor lobes stay a small
-margin from the poles, but a large continent's extent is deliberately allowed to
-run past a pole and clip at the map edge, so land reaches high latitude instead of
-sitting inside an enclosing ocean ring (a future polar-cap layer, issue #2, will
-refine those high latitudes). Clipping only ever removes land at the edge, so it
-cannot affect the circular, extent-based isolation guarantee. All of these
-parameters (tier mix, radii, falloff width and shape, chain steps, min-ocean-gap,
-pole margin, lift) are pinned constants in `src/macro_map.gd` and are part of the
-determinism contract for M1.
-
-Temperature. Derived from latitude, not from a free noise field, so the poles
-are reliably cold and the equator reliably warm:
-
-```
-lat            = py / (height - 1)          # 0 at north edge, 1 at south edge
-equator_factor = 1 - abs(lat - 0.5) * 2     # 1 at the equator, 0 at both poles
-temp           = equator_factor + perturb * 0.18
-```
-
-`perturb` is a separate low-frequency noise layer (range -1..1) so the isotherms
-are wavy rather than perfectly horizontal bands. Temperature is then cooled by
-elevation: land above sea level loses up to 0.35 of temperature at the highest
-peaks, so high ground trends colder. The result is clamped to 0..1.
-
-Moisture. Its own decorrelated FBM simplex-smooth noise layer, 3 octaves, base
-frequency 0.014, normalized to 0..1. Independent of elevation and temperature.
-
-### 2.4 Biome lookup table
-
-The starter biome set is seven categories: ocean, beach, plains, forest, desert,
-tundra, mountain. Selection combines the three fields:
-
-```
-if elevation < 0.50            -> ocean       (below sea level)
-elif elevation < 0.52          -> beach       (just above the waterline)
-elif elevation >= 0.72         -> mountain    (high ground)
-elif temperature < 0.25        -> tundra      (cold land, any moisture)
-elif temperature > 0.60 and moisture < 0.35 -> desert   (hot and dry)
-elif moisture > 0.55           -> forest      (wet, temperate or warm)
-else                           -> plains      (the default open land)
-```
-
-The thresholds (`SEA_LEVEL`, `BEACH_LEVEL`, `MOUNTAIN_LEVEL`, and the
-temperature and moisture cutoffs) are pinned constants in `src/macro_map.gd`.
-Changing them changes every map, so they are part of the determinism contract
-rather than CLI-tunable for M1.
-
-### 2.5 Rendering and coloring
-
-Each biome has a base color. Ocean cells are shaded by depth (deeper water
-renders darker toward the abyss, lighter near the shore). Mountain cells are
-lightened with height and gain a snow cap on the highest peaks. The rendered
-map is saved as an RGB8 PNG via `Image.save_png`, which is deterministic for
-identical pixel data.
-
-### 2.6 JSON summary
-
-Alongside the PNG, the generator writes a JSON summary with, at minimum, the
-land fraction (0..1) and a biome distribution breakdown. Fields:
-
-```
-seed, width, height, total_tiles, land_tiles, ocean_tiles,
-land_fraction, ocean_fraction,
-biome_distribution_of_land,  # biome name -> fraction of land tiles (ocean excluded)
-
-# Continent / landmass metrics (from the continent-mask layer).
-continent_center_count,        # number of continent lobes placed for this seed
-continent_group_count,         # number of continent groups (continents + islands)
-land_component_count,          # total land connected components (any size)
-significant_landmass_count,    # components at or above significant_landmass_min_size
-significant_landmass_min_size, # the size cutoff for "significant" (cells)
-largest_landmass_tiles,        # cell count of the largest landmass
-largest_landmass_fraction,     # largest landmass as a fraction of total land
-landmass_sizes                 # descending list of significant landmass sizes (cells)
-```
-
-The landmass metrics come from a connected-component analysis of the land
-tiles (4-connectivity, flood fill). The analysis respects the east-west wrap:
-columns 0 and width-1 are neighbors, while the north and south edges are not.
-A land component count above 1 means the map has genuinely separate landmasses
-(they are separated by ocean, since the only non-land tile is ocean). This is
-how the continent-mask layer's isolation is measured, and
-`test/test_landmass.gd` asserts that the default parameters yield several
-distinct landmasses above a minimum size for the sample seeds.
-
-`JSON.stringify` is called with key sorting on, so the keys are emitted in
-alphabetical order regardless of insertion order. All fractions are rounded to
-6 decimal places, so the JSON text is byte-stable across runs.
-
-### 2.7 CLI invocation
-
-Generate a map (from the repo root, after `tools/fetch_godot.sh`):
-
-```
-tools/godot/godot --headless --path . \
-  --script res://src/generate_map.gd -- --seed=<N> --out=res://examples/map_seed<N>
-```
-
-The `--` separates Godot's own arguments from the script arguments. `--seed=<N>`
-is an integer world seed. `--out=<prefix>` is an output path prefix; the
-generator writes `<prefix>.png` and `<prefix>.json`. Run the determinism test:
-
-```
-tools/godot/godot --headless --path . --script res://test/test_determinism.gd
-# or the wrapper that fetches Godot first:
-tools/run_tests.sh
-```
-
-## 3. Three-layer persistence design (planned, M4)
-
-Not implemented in M1. The world state is stored in three layers, queried
-top-down so the cheapest layer answers when it can.
-
-### 3.1 Layer (a): deterministic formula layer
-
-No stored state. This is exactly what the macro map generator (and future
-detail generators) compute from (seed, position). For any cell, the baseline
-answer is recomputed on demand. Because it is a pure function, it costs zero
-disk and is identical on every machine for a given seed. Save files never store
-this layer.
+Before the pivot this was a "formula layer," computed from (seed, position)
+with no stored state at all. After the pivot the map is authored and frozen
+rather than regenerated at runtime, so this layer is now the shipped,
+hand-curated map data (tile ids, terrain, static placed objects) read as
+static game data. It still costs zero save-file disk and is identical on
+every machine, since it ships with the game rather than being computed or
+stored per player. Save files never store this layer.
 
 ### 3.2 Layer (b): delta / override layer
 
-Records only cells that have diverged from the formula baseline. Data shape: a
-sparse map keyed by cell coordinate, most naturally bucketed by chunk so that
-loading a region loads one delta blob:
+Records only cells that have diverged from the authored baseline. Data shape: a
+sparse map keyed by cell coordinate, most naturally bucketed by chunk or region
+so that loading an area loads one delta blob:
 
 ```
 deltas: {
-  chunk_key (for example "cx,cy"): {
+  region_key (for example "cx,cy"): {
     cell_key (local or global coordinate): <override payload>
   }
 }
 ```
 
-The override payload is whatever distinguishes the changed cell from its formula
-value: a replaced tile or block id, a removed-tree flag, a dug-out marker, a
-modified height. A cell absent from the delta layer means "ask the formula
-layer." This keeps saves proportional to how much the player has changed, not to
-how much world they have explored. Deltas live in the save file (one region file
-per chunk bucket is a natural on-disk layout), never in the shipped game data.
+The override payload is whatever distinguishes the changed cell from its
+baseline value: a replaced tile or object id, a removed-tree flag, a modified
+resource-node state. A cell absent from the delta layer means "ask the
+baseline layer." This keeps saves proportional to how much the player has
+changed, not to how much world they have explored. Deltas live in the save
+file (or in the server's persistent world state, see section 5), never in the
+shipped game data.
 
 Query order for a cell: check the delta layer first, and if there is no entry,
-fall back to the formula layer.
+fall back to the baseline layer.
 
 ### 3.3 Layer (c): entity layer
 
 For things that are not derivable from position at all: inventory contents,
-saved characters and their stats, quest and dialog state, placed objects that
-carry their own identity and internal state. Unlike the delta layer, which is
-keyed by world position and answers "what is at this cell," the entity layer is
-keyed by entity id and answers "what is this thing and where is it now." An
-entity can move, so its position is a property of the entity, not the key. The
-entity layer is a serialized list or table of records, saved and loaded whole
-(or streamed by region for entities that are spatially anchored).
+saved characters and their stats and skills (hunting, boat-building, and
+similar), quest and dialog state, NPC and fauna agent state, placed objects
+that carry their own identity and internal state. Unlike the delta layer,
+which is keyed by world position and answers "what is at this cell," the
+entity layer is keyed by entity id and answers "what is this thing and where
+is it now." An entity can move, so its position is a property of the entity,
+not the key. The entity layer is a serialized list or table of records, saved
+and loaded whole (or streamed by region for entities that are spatially
+anchored).
 
-The distinction in one line: the delta layer patches the deterministic world at
+The distinction in one line: the delta layer patches the authored world at
 fixed positions, the entity layer stores objects whose existence and state are
 not a function of position at all.
 
-## 4. Origin-shifting plan (planned, M2 onward)
+## 4. Origin-shifting plan (planned, revisit scope when the town/world scale is known)
 
-Not implemented in M1 (there is no walkable world yet). Single-precision floats
-lose sub-unit resolution at large magnitudes, which shows up as visible jitter
-in rendering and physics once the player is thousands of units from spawn.
+Not implemented. Single-precision floats lose sub-unit resolution at large
+magnitudes, which shows up as visible jitter in rendering and physics once a
+player is thousands of units from the origin. This was written for the
+parked large streamed 3D world; an isometric/top-down 2.5D authored map is
+likely to be tile-addressed (integer tile coordinates) and much smaller in
+extent than an unbounded procedural planet, which may make this concern
+moot, or may not, depending on how large the authored world and its persistent
+server-side simulation grow. Revisit once the town/world scale is decided
+rather than assuming the original plan still applies as written.
 
-Plan: keep the player near the numerical origin by periodically re-basing the
-world origin. When the player crosses a threshold distance from the current
-origin, subtract a shift vector from the player, the camera, and every active
-rendered and physics object, moving the whole active scene back toward zero. The
-player's logical world coordinate (a 64-bit or integer-plus-fraction quantity)
-keeps accumulating, but the float coordinates handed to the renderer and physics
-engine stay small. This is commonly called a floating origin or camera-relative
-rendering. Chunk streaming (M3) integrates with this: chunk world positions are
-tracked in the large logical coordinate space and converted to shifted local
-coordinates when instanced.
+The original plan, kept for reference: keep the player near the numerical
+origin by periodically re-basing the world origin. When the player crosses a
+threshold distance from the current origin, subtract a shift vector from the
+player, the camera, and every active rendered and physics object, moving the
+whole active scene back toward zero. The player's logical world coordinate (a
+64-bit or integer-plus-fraction quantity) keeps accumulating, but the float
+coordinates handed to the renderer and physics engine stay small. This is
+commonly called a floating origin or camera-relative rendering.
 
 ## 5. Simulation/rendering module boundary
 
@@ -321,25 +182,32 @@ lives under a `sim/` (or `core/`) directory tree, and rendering, camera, and
 UI code lives under a separate `render/` (or `ui/`) directory tree. Code in
 `sim/`/`core/` must have zero imports from `render/`/`ui/`, no dependency on
 `Viewport`, `Camera3D`/`Camera2D`, or any UI node, and must run headless with
-no display server, the same way `src/macro_map.gd` and
-`test/test_determinism.gd` do today.
+no display server, the same way the parked `src/legacy_procedural/macro_map.gd`
+does today.
 
-Rationale: local saves are the current persistence model through M4, but a
-lab-hosted server backend, a continuous world simulation that clients connect
-to over the network, is an explicit planned evolution targeted around the
-fauna milestone (M5+). A server has no viewport, no camera, and no player
-input; it only runs simulation and generation and streams results to clients.
-If simulation code never depended on rendering or input in the first place,
-lifting it onto a headless server process is a move of the `sim/` tree, not a
-rewrite. Rendering and UI code call into `sim/`/`core/` (one-directional
-dependency), never the reverse.
+Rationale: local saves are the current persistence model, but a lab-hosted
+server backend, a continuous world simulation that clients connect to over
+the network, is an explicit planned evolution targeted around the
+ecology/fauna milestone (see section 2a). A server has no viewport, no
+camera, and no player input; it only runs simulation and streams results to
+clients. If simulation code never depends on rendering or input in the first
+place, lifting it onto a headless server process is a move of the `sim/`
+tree, not a rewrite. Rendering and UI code call into `sim/`/`core/`
+(one-directional dependency), never the reverse. NPC schedules (an upcoming
+dispatch) are the first concrete sim-layer tick work under this rule.
 
 ## 6. CI runner choice
 
-The determinism workflow runs on `ubuntu-latest` (a GitHub-hosted runner) rather
-than the sentania-labs self-hosted runners. The self-hosted runners do not have
-Godot pre-installed, and this job needs to download the pinned Godot binary
-fresh. A GitHub-hosted runner can do that with no runner provisioning changes.
-The workflow caches the binary by pinned version to avoid re-downloading on
-every run. All jobs are fork-gated per the sentania-labs standard so PR jobs
-never run for forks.
+The headless test workflow runs on `ubuntu-latest` (a GitHub-hosted runner)
+rather than the sentania-labs self-hosted runners. The self-hosted runners do
+not have Godot pre-installed, and this job needs to download the pinned
+Godot binary fresh. A GitHub-hosted runner can do that with no runner
+provisioning changes. The workflow caches the binary by pinned version to
+avoid re-downloading on every run. All jobs are fork-gated per the
+sentania-labs standard so PR jobs never run for forks.
+
+There are no active-path tests as of this pivot dispatch (the starter-town
+prototype work in a later dispatch will add them); the parked
+`test/legacy_procedural/` suite still runs headless and stays green, but only
+manually via `tools/run_legacy_procedural_tests.sh`, not as part of the CI
+gate.

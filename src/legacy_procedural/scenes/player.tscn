@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://src/render/player_controller.gd" id="1"]
-[ext_resource type="Script" path="res://src/render/camera_rig.gd" id="2"]
+[ext_resource type="Script" path="res://src/legacy_procedural/render/player_controller.gd" id="1"]
+[ext_resource type="Script" path="res://src/legacy_procedural/render/camera_rig.gd" id="2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4

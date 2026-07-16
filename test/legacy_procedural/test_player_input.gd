@@ -21,10 +21,10 @@ extends SceneTree
 # controller on exactly the code path the export runs.
 #
 # Invocation (run by tools/run_tests.sh):
-#   godot --headless --script res://test/test_player_input.gd
+#   godot --headless --script res://test/legacy_procedural/test_player_input.gd
 
-const PlayerScene := preload("res://scenes/player.tscn")
-const InputActionsScript := preload("res://src/render/input_actions.gd")
+const PlayerScene := preload("res://src/legacy_procedural/scenes/player.tscn")
+const InputActionsScript := preload("res://src/legacy_procedural/render/input_actions.gd")
 
 
 func _initialize() -> void:

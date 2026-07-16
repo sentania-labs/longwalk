@@ -5,77 +5,87 @@ dispatch into this repo must honor these. This file is a summary. The full
 design writeup lives in [ARCHITECTURE.md](ARCHITECTURE.md), and the milestone
 ladder lives in [ROADMAP.md](ROADMAP.md).
 
-longwalk is a procedural planet-scale exploration game built in Godot 4
-(GDScript). Windows is the primary export target, but the project stays
-cross-platform-clean: no Windows-only paths, no backslash path separators in
-code, no platform-specific APIs, and no CRLF line-ending assumptions.
+longwalk is an isometric / top-down 2.5D persistent-world RPG built in Godot 4
+(GDScript), in the visual spirit of Warcraft 2, SimCity, and Theme Hospital,
+with an Ultima Online feel: the player is a person roaming a persistent world
+and developing skills (hunting, boat-building, and similar). Windows is the
+primary export target, but the project stays cross-platform-clean: no
+Windows-only paths, no backslash path separators in code, no
+platform-specific APIs, and no CRLF line-ending assumptions.
 
-## Determinism (hard rule)
+## Pivot notice (2026-07-15)
 
-The world is a pure function of (seed, position). There is NO sequential or
-stateful RNG in any placement decision. Every placement (terrain elevation,
-temperature, moisture, biome, and later flora and entities) is computed by
-sampling a value that depends only on the world seed and the integer
-coordinates of the cell. Generation order and visit order can never change the
-result.
+longwalk changed direction on 2026-07-15, away from a runtime procedural
+planet-scale exploration game and toward a finite, authored map: possibly
+generated once offline as a starting point, then hand-curated and frozen,
+rather than derived live from a seed at runtime. The M1/M2 runtime procedural
+generator and the walkable 3D world it streamed are parked, not deleted, under
+`src/legacy_procedural/` (see that directory's README.md) and
+`test/legacy_procedural/`. Nothing in those directories is wired into the
+active project. Game art is AI-generated; see `tools/art/` for the generation
+pipeline and prompts, not downloaded asset packs.
 
-The established pattern (see `src/macro_map.gd`) is seeded `FastNoiseLite`
-instances keyed off the world seed. Each layer uses `world_seed + fixed_offset`
-so the layers are decorrelated but still fully determined by the one seed.
-Positions are turned into noise coordinates deterministically (see the
-cylinder mapping below). Do not introduce `randi()`, `randf()`, `RandomNumber
-Generator` with an unseeded or time-based seed, or any accumulator that depends
-on iteration order.
+## Determinism (still load-bearing, now for the authoring path)
 
-Consequence and test: running the generator twice with the same seed produces
-byte-identical PNG and JSON. This is asserted by `test/test_determinism.gd`,
-which is what CI runs. Any change that breaks byte-for-byte reproducibility for
-a fixed seed is a regression.
+There is NO sequential or stateful RNG in any placement decision anywhere in
+this codebase, including any offline map-authoring tool. If a draft map is
+generated (in whole or in part) from a seed before being hand-curated, that
+generation step must be a pure function of (seed, position): every value
+sampled depends only on the world seed and the integer coordinates of the
+cell, and generation or visit order can never change the result. This is no
+longer a runtime requirement for the shipped game (the map is authored and
+frozen, not regenerated on every play session), but it is what makes
+regenerating or re-rolling a draft map for curation reproducible instead of a
+one-off accident. The parked `src/legacy_procedural/macro_map.gd` demonstrates
+the established pattern (seeded `FastNoiseLite` instances keyed off the world
+seed, each layer at `world_seed + fixed_offset` so layers are decorrelated but
+still fully determined by the one seed) and is the likely starting point if
+this tooling gets built. Do not introduce `randi()`, `randf()`,
+`RandomNumberGenerator` with an unseeded or time-based seed, or any
+accumulator that depends on iteration order, anywhere generation logic is
+reused or extended.
 
-## Hierarchical multi-scale generation
+`test/legacy_procedural/test_determinism.gd` still asserts byte-identical
+output for the parked generator; run it manually via
+`tools/run_legacy_procedural_tests.sh` if you touch that code. It is not part
+of the active CI gate (`tools/run_tests.sh`), since nothing in the active
+project depends on it yet.
 
-The macro planet map (continents, elevation, temperature, moisture, biomes) is
-the authoritative low-resolution source of truth. Local and chunk-level detail
-layers (future milestones) generate on demand from the same seed and must agree
-with what the macro map says at that location. A chunk that falls inside an
-ocean cell on the macro map must generate as ocean, not land. Detail layers
-refine the macro map, they never contradict it.
+## World topology (parked, was a runtime requirement, may inform authoring)
 
-## World topology
+The parked procedural world modeled a flat plane wrapped east-west
+(cylindrical) with sphere-consistent polar crossings, so that a future flight
+mechanic could cross a pole the way a real globe works, not a torus wrap. That
+constraint no longer applies to the shipped game: the authored map is finite
+and does not need to be a seamless cylinder. If the authoring tool reuses the
+parked generator to produce a draft map, the cylindrical wrap logic in
+`src/legacy_procedural/macro_map.gd` is still there and still correct, but the
+final authored/curated map is not required to preserve wrap-seamlessness once
+it is frozen and cropped to a finite play area.
 
-The world is a flat plane wrapped east-west (cylindrical, like a horizontally
-scrolling map), NOT a sphere. There is a north edge and a south edge that do
-not wrap. The map wraps only when you keep walking east or west.
+## Ecology and fauna direction (future sim-layer scope, not designed yet)
 
-To keep noise seamless across the east-west wrap, the x axis is mapped onto a
-circle and sampled with 3D noise: walking all the way around in x is one full
-loop around the cylinder, so the column at x=0 and the column at x=width-1 are
-neighbors with no seam. The y axis (north-south) is sampled linearly and does
-not wrap. See `_sample_cylinder()` in `src/macro_map.gd`.
+The sim layer is growing toward an ecology system: flora regrows unless
+overharvested, and fauna hunt, reproduce, and migrate, modeled all the way
+down to something as small as a fish, each as a minimal agent. This is not
+designed yet. It is recorded here so future dispatches (starting with NPC
+schedules, which run as sim-layer ticks) build with this direction in mind.
+See ROADMAP.md for how this supersedes the old M5 "fauna (deferred)" note.
 
-## Origin shifting (planned, not implemented in M1)
-
-Float precision degrades far from the origin. Once there is a walkable world
-(M2 onward), positions thousands of units from spawn will lose sub-unit
-precision and cause jitter in rendering and physics. The plan is to periodically
-re-base the world origin under the player and shift all rendered and physics
-objects back toward zero (a floating-origin, also called camera-relative
-rendering, approach). This is documented in ARCHITECTURE.md. It is NOT
-implemented in M1 because there is no walkable world yet.
-
-## Persistence design (documented only, not implemented in M1)
+## Persistence design (documented only, not implemented yet)
 
 Three layers, described in full in ARCHITECTURE.md:
 
-- (a) Formula layer: computed from (seed, position) with no stored state. This
-  is what the macro map generator produces today.
-- (b) Delta / override layer: records only the cells where the world has changed
-  from the deterministic baseline (for example the player dug a hole or chopped
-  a tree). Everything not in this layer falls back to the formula.
+- (a) Authored baseline layer: the frozen, hand-curated map data (whatever its
+  origin, hand-built or offline-generated-then-curated) ships as static game
+  data. No runtime computation, no stored player state.
+- (b) Delta / override layer: records only the cells where the world has
+  changed from the authored baseline (for example the player dug a hole or
+  chopped a tree). Everything not in this layer falls back to the baseline.
 - (c) Entity layer: things that are not derivable from position at all
   (inventory items, saved characters, quest state).
 
-Implementation of persistence is a later milestone (M4). Do not implement it
+Implementation of persistence is a later milestone. Do not implement it
 before then.
 
 ## Simulation/rendering separation (hard rule)
@@ -85,11 +95,13 @@ rendering and input. Generation and simulation code lives in its own module
 tree and has zero dependencies on viewport, camera, or UI nodes. It must be
 runnable headless.
 
-Rationale: local saves are the current persistence model through M4, but a
-lab-hosted server backend (a continuous world simulation that clients connect
-to) is an explicit planned evolution, targeted around the fauna milestone
-(M5+). This separation is what makes lifting the simulation onto a server a
-move, not a rewrite.
+Rationale: local saves are the current persistence model, but a lab-hosted
+server backend (a continuous world simulation that clients connect to) is an
+explicit planned evolution, targeted around the ecology/fauna milestone. This
+separation is what makes lifting the simulation onto a server a move, not a
+rewrite. NPC schedules (an upcoming dispatch) run as sim-layer ticks, so this
+constraint matters more now than it did under the old procedural-world plan,
+not less.
 
 ## Style rule: no em-dashes
 

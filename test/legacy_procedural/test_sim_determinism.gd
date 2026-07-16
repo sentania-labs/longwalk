@@ -4,7 +4,7 @@ extends SceneTree
 # finder). Runs headless, the same way the macro map determinism test does.
 #
 # Invocation (this is run by tools/run_tests.sh after the macro map test):
-#   godot --headless --script res://test/test_sim_determinism.gd
+#   godot --headless --script res://test/legacy_procedural/test_sim_determinism.gd
 #
 # It asserts:
 #   - The terrain sampler returns byte-identical heights for the same (seed,
@@ -16,9 +16,9 @@ extends SceneTree
 #     cell is land, and that it is adjacent to ocean.
 # Exit code 0 means pass, non-zero means fail.
 
-const MacroMap := preload("res://src/macro_map.gd")
-const TerrainSamplerC := preload("res://src/sim/terrain_sampler.gd")
-const SpawnFinderC := preload("res://src/sim/spawn_finder.gd")
+const MacroMap := preload("res://src/legacy_procedural/macro_map.gd")
+const TerrainSamplerC := preload("res://src/legacy_procedural/sim/terrain_sampler.gd")
+const SpawnFinderC := preload("res://src/legacy_procedural/sim/spawn_finder.gd")
 
 const SEED_A := 424242
 const SEED_B := 987654

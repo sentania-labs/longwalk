@@ -4,7 +4,7 @@ class_name TerrainSampler
 # Preloaded rather than referenced by global class name so this module resolves
 # in a headless `--script` run (the global class cache is only built by the
 # editor). The alias avoids clashing with the MacroMapGenerator global name.
-const MacroMapGen := preload("res://src/macro_map.gd")
+const MacroMapGen := preload("res://src/legacy_procedural/macro_map.gd")
 
 # TerrainSampler turns the authoritative low-resolution macro map into a smooth,
 # walkable local heightfield. It is a SIM-side module: it has zero dependency on

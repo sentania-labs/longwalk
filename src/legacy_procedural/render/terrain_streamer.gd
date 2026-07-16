@@ -10,7 +10,7 @@ class_name TerrainStreamer
 # (origin-independent) decides which chunk coordinates should be resident, so
 # streaming is stable across floating-origin rebases.
 
-const TerrainChunkScript := preload("res://src/render/terrain_chunk.gd")
+const TerrainChunkScript := preload("res://src/legacy_procedural/render/terrain_chunk.gd")
 
 # How many chunks out from the player's chunk to keep loaded, in each direction.
 # Radius 3 gives a 7x7 block of loaded chunks (about 336 world units across at
