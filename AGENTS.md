@@ -1,3 +1,15 @@
+<!--
+GENERATED FILE, DO NOT EDIT.
+
+Produced from CLAUDE.md by tools/generate_agents_md.sh. CLAUDE.md is the one
+canonical source for this constitution. To change anything below, edit
+CLAUDE.md and re-run:
+
+    tools/generate_agents_md.sh
+
+Hand edits here will be overwritten and are flagged by CI.
+-->
+
 # CLAUDE.md, longwalk
 
 Role-neutral constitution for the longwalk project. Every resident of this
