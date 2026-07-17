@@ -13,6 +13,7 @@ BLENDER_URL="https://ftp.nluug.nl/pub/graphics/blender/release/Blender${BLENDER_
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST_DIR="${SCRIPT_DIR}/blender"
 mkdir -p "${DEST_DIR}"
+touch "${DEST_DIR}/.gdignore"
 
 TARGET="${DEST_DIR}/${BLENDER_DIR_NAME}/blender"
 if [ -x "${TARGET}" ]; then

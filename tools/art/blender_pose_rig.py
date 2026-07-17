@@ -58,17 +58,18 @@ def set_facing(armature, facing_label):
     # To get SE (45 screen), rotate -90 from NE.
     
     facing_to_rot_z = {
-        "E":  -45.0,
-        "SE": -90.0,
-        "S":  -135.0,
-        "SW": -180.0,
-        "W":  135.0,
-        "NW": 90.0,
-        "N":  45.0,
-        "NE": 0.0
+        "SW": 0.0,
+        "S":  45.0,
+        "SE": 90.0,
+        "E":  135.0,
+        "NE": 180.0,
+        "N":  -135.0,
+        "NW": -90.0,
+        "W":  -45.0
     }
     
     rot_z_deg = facing_to_rot_z[facing_label]
+    armature.rotation_mode = 'XYZ'
     armature.rotation_euler[2] = math.radians(rot_z_deg)
     bpy.context.view_layer.update()
     
@@ -150,20 +151,29 @@ def render_frame(scene, out_dir, facing, pose_idx):
     file_output.file_slots['shadow'].path = f"{facing}_{pose_idx}_shadow_"
 
     # Render
-    bpy.ops.render.render(write_still=False)
+    result = bpy.ops.render.render(write_still=False)
+    if 'FINISHED' not in result:
+        sys.exit(f"Render failed for facing {facing} pose {pose_idx}!")
 
-    # Blender's FileOutput node automatically appends frame numbers (e.g., _0000.png).
-    # Rename them to strictly match the contract: {facing}_{pose_idx}_{pass}.png
-    frame_str = f"{scene.frame_current:04d}"
-    for slot in file_output.file_slots:
-        pass_name = slot.name
+    # Pass names we created:
+    pass_names = ["color", "z", "normal", "position", "uv", "shadow"]
+
+    import glob
+    for pass_name in pass_names:
         expected_path = os.path.join(out_dir, f"{facing}_{pose_idx}_{pass_name}.png")
-        # The file output node appends the frame number to the path
-        actual_path = os.path.join(out_dir, f"{facing}_{pose_idx}_{pass_name}_{frame_str}.png")
-        if os.path.exists(actual_path):
-            if os.path.exists(expected_path):
-                os.remove(expected_path)
-            os.rename(actual_path, expected_path)
+        search_pattern = os.path.join(out_dir, f"{facing}_{pose_idx}_{pass_name}_*.png")
+        actual_files = glob.glob(search_pattern)
+        
+        if not actual_files:
+            if pass_name == "shadow":
+                continue
+            else:
+                sys.exit(f"Expected pass {pass_name} missing for {facing} {pose_idx}! Searched: {search_pattern}")
+                
+        actual_path = actual_files[0]
+        if os.path.exists(expected_path):
+            os.remove(expected_path)
+        os.rename(actual_path, expected_path)
 
 def run_sanity():
     # Setup
@@ -174,15 +184,36 @@ def run_sanity():
     armature = load_character(filepath)
     
     out_dir = os.path.abspath("assets/art_src/pilot/sanity_render")
+    if os.path.exists(out_dir):
+        import shutil
+        shutil.rmtree(out_dir)
     os.makedirs(out_dir, exist_ok=True)
     
-    # We just render 1 facing, all 6 poses
-    facing = "SE"
-    set_facing(armature, facing)
-    
-    for i in range(6):
-        set_pose(armature, i, 6)
-        render_frame(scene, out_dir, facing, i)
+    facings_to_test = ["SE"]
+    for facing in facings_to_test:
+        set_facing(armature, facing)
+        
+        poses = range(6)
+        out = out_dir
+
+        for i in poses:
+            set_pose(armature, i, 6)
+            render_frame(scene, out, facing, i)
+
+    # Extra validation requested by Codex (NE and S).
+    # We output them to a separate directory so sanity_render stays at exactly 30 files.
+    validate_dir = out_dir + "_validate"
+    os.makedirs(validate_dir, exist_ok=True)
+    for facing in ["NE", "S"]:
+        set_facing(armature, facing)
+        set_pose(armature, 0, 6)
+        render_frame(scene, validate_dir, facing, 0)
+
+    # Verify sanity_render has exactly 30 files
+    expected_count = 30
+    actual_count = len([f for f in os.listdir(out_dir) if f.endswith(".png")])
+    if actual_count != expected_count:
+        sys.exit(f"Sanity render failed: expected {expected_count} files, found {actual_count}")
 
 if __name__ == "__main__":
     if "--sanity" in sys.argv:

@@ -14,13 +14,13 @@ The camera is kept stationary at the calibrated iso pose (azimuth 45 degrees, el
 
 | Facing Label | Screen Angle (Y-down) | Blender Z Rotation (degrees) |
 |--------------|-----------------------|------------------------------|
-| E            | 0                     | -45.0                        |
-| SE           | 45                    | -90.0                        |
-| S            | 90                    | -135.0                       |
-| SW           | 135                   | -180.0                       |
-| W            | 180                   | 135.0                        |
-| NW           | 225                   | 90.0                         |
-| N            | 270                   | 45.0                         |
-| NE           | 315                   | 0.0                          |
+| E            | 0                     | 135.0                        |
+| SE           | 45                    | 90.0                         |
+| S            | 90                    | 45.0                         |
+| SW           | 135                   | 0.0                          |
+| W            | 180                   | -45.0                        |
+| NW           | 225                   | -90.0                        |
+| N            | 270                   | -135.0                       |
+| NE           | 315                   | 180.0                        |
 
-*(Assuming the character faces +Y natively on import, which corresponds to NE in our calibrated iso projection).*
+*(Validation: A top-down render of the imported glTF at 0 rotation showed the character facing down in the image. Since the camera looks down -Z, the character faces -Y. In our camera setup, Blender -Y corresponds to Godot +Y (SW). Visual renders of N (-135) and NE (180) confirmed the character's back is to the camera for N, and faces away and right for NE. Therefore the base orientation is SW, not NE).*
