@@ -106,7 +106,7 @@ func _initialize() -> void:
 	for i in range(100):
 		camera._process(0.016)
 		
-	camera._state = CameraRigScript.State.DRAG
+	camera._state = CameraRigScript.State.FREE
 	camera.position = Vector2(500, 500)
 	
 	var middle_of_town = Vector2(layout.width * 128 / 2.0, layout.height * 128 / 2.0)
@@ -131,6 +131,34 @@ func _initialize() -> void:
 	camera._unhandled_input(drag_motion)
 	failures += _check(camera._state == CameraRigScript.State.DRAG, "Drag motion past threshold enters DRAG state")
 	
+	# Second gesture: Release, then new press with sub-threshold motion
+	var drag_release = InputEventMouseButton.new()
+	drag_release.button_index = MOUSE_BUTTON_RIGHT
+	drag_release.pressed = false
+	drag_release.position = Vector2(110, 110)
+	camera._unhandled_input(drag_release)
+	failures += _check(camera._state == CameraRigScript.State.FREE, "Drag release enters FREE state")
+	
+	var drag_start2 = InputEventMouseButton.new()
+	drag_start2.button_index = MOUSE_BUTTON_RIGHT
+	drag_start2.pressed = true
+	drag_start2.position = Vector2(110, 110)
+	camera._unhandled_input(drag_start2)
+	failures += _check(camera._state == CameraRigScript.State.FREE, "Subsequent drag press stays in FREE state")
+	
+	var drag_motion2 = InputEventMouseMotion.new()
+	drag_motion2.position = Vector2(112, 112) # Distance is 2.82, less than 5.0
+	drag_motion2.relative = Vector2(2, 2)
+	camera._unhandled_input(drag_motion2)
+	failures += _check(camera._state == CameraRigScript.State.FREE, "Sub-threshold motion does not enter DRAG state")
+	
+	# Release second gesture
+	var drag_release2 = InputEventMouseButton.new()
+	drag_release2.button_index = MOUSE_BUTTON_RIGHT
+	drag_release2.pressed = false
+	drag_release2.position = Vector2(112, 112)
+	camera._unhandled_input(drag_release2)
+	
 	# Test 3: center_on_player restores FOLLOW
 	var center_event = InputEventAction.new()
 	center_event.action = "center_on_player"
@@ -148,7 +176,7 @@ func _initialize() -> void:
 		camera._process(0.016)
 		
 	var out_of_bounds = Vector2(-5000, -5000)
-	camera._state = CameraRigScript.State.DRAG
+	camera._state = CameraRigScript.State.FREE
 	camera.position = camera._clamp_to_limits(out_of_bounds)
 	
 	var min_zoom_focus = camera.position
