@@ -116,7 +116,7 @@ def resize_to_longest_side(image, target_longest_side):
     width, height = image.size
     scale = target_longest_side / max(width, height)
     new_size = (max(1, round(width * scale)), max(1, round(height * scale)))
-    return image.resize(new_size, Image.LANCZOS)
+    return image.resize(new_size, Image.Resampling.NEAREST)
 
 
 def process_sprite(name, target_longest_side):
@@ -175,7 +175,7 @@ def process_appearance_variants():
 def process_tile(name, tile_size):
     src = OUT_DIR / name
     image = Image.open(src).convert("RGB")
-    image = image.resize((tile_size, tile_size), Image.LANCZOS)
+    image = image.resize((tile_size, tile_size), Image.Resampling.NEAREST)
     dest = PROCESSED_DIR / name
     image.save(dest)
     print(f"wrote {dest} ({tile_size}x{tile_size}, opaque)")

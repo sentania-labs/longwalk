@@ -12,14 +12,24 @@ const PlayerScene := preload("res://scenes/player.tscn")
 const ChimneySmokeScene := preload("res://scenes/chimney_smoke.tscn")
 
 const GROUND_TEXTURE_PATHS := {
-	TownLayoutScript.GroundTile.GRASS: "res://tools/art/out/processed/grass_ground_tile.png",
-	TownLayoutScript.GroundTile.PATH: "res://tools/art/out/processed/ground_path_tile.png",
+	TownLayoutScript.GroundTile.GRASS: "res://assets/kenney/roguelike-rpg-pack/grass.png",
+	TownLayoutScript.GroundTile.PATH: "res://assets/kenney/roguelike-rpg-pack/path.png",
 }
 
 const BUILDING_TEXTURE_PATHS := {
-	"building_facade": "res://tools/art/out/processed/building_facade.png",
-	"cottage_facade": "res://tools/art/out/processed/cottage_facade.png",
+	"building_facade": "res://assets/kenney/roguelike-rpg-pack/cottage.png",
+	"cottage_facade": "res://assets/kenney/roguelike-rpg-pack/cottage.png",
 }
+
+const FLORA := [
+	{"texture": "tree.png", "cell": Vector2i(8, 6), "scale": 0.5},
+	{"texture": "tree.png", "cell": Vector2i(10, 6), "scale": 0.5},
+	{"texture": "bush.png", "cell": Vector2i(8, 8), "scale": 0.5},
+	{"texture": "bush.png", "cell": Vector2i(10, 8), "scale": 0.5},
+	{"texture": "flowers.png", "cell": Vector2i(8, 7), "scale": 0.5},
+	{"texture": "flowers.png", "cell": Vector2i(10, 7), "scale": 0.5},
+]
+const KENNEY_ASSET_ROOT := "res://assets/kenney/roguelike-rpg-pack/"
 
 const TILE_SIZE := TownLayoutScript.TILE_SIZE
 const BOUNDARY_THICKNESS := 64.0
@@ -50,6 +60,7 @@ func _ready() -> void:
 	_layout = TownLayoutScript.build_starter_town()
 	_build_ground()
 	_build_buildings()
+	_build_flora()
 	_build_boundary()
 	_spawn_player()
 	_build_click_marker()
@@ -104,6 +115,7 @@ func _build_buildings() -> void:
 		var sprite := Sprite2D.new()
 		sprite.texture = texture
 		sprite.centered = true
+		sprite.scale = Vector2(0.5, 0.5)
 		# Y-sort (see _world.y_sort_enabled in starter_town.tscn) compares
 		# each direct child's own `position`, not where its texture is drawn.
 		# The player's sort key is its feet (the CharacterBody2D's own
@@ -122,11 +134,8 @@ func _build_buildings() -> void:
 		if building.sprite_key == "cottage_facade":
 			var smoke := ChimneySmokeScene.instantiate()
 			smoke.position = COTTAGE_SMOKE_OFFSET
-
-			# Compensate for the warm sunset CanvasModulate so the smoke reads as cool grey
 			var canvas_grade = Color(1.0, 0.95, 0.88)
 			smoke.modulate = Color(1.0 / canvas_grade.r, 1.0 / canvas_grade.g, 1.0 / canvas_grade.b)
-
 			sprite.add_child(smoke)
 
 		var body := StaticBody2D.new()
@@ -137,6 +146,21 @@ func _build_buildings() -> void:
 		body.add_child(shape)
 		body.position = footprint_center
 		_world.add_child(body)
+
+
+func _build_flora() -> void:
+	for placement in FLORA:
+		var texture: Texture2D = load(KENNEY_ASSET_ROOT + placement.texture)
+		var sprite := Sprite2D.new()
+		sprite.texture = texture
+		sprite.centered = true
+		sprite.scale = Vector2.ONE * placement.scale
+		# Direct World children sort on their ground-contact position. Drawing the
+		# texture upward from that point lets the traveller pass behind and in front.
+		sprite.position = Vector2(placement.cell) * TILE_SIZE + Vector2(TILE_SIZE / 2.0, TILE_SIZE)
+		sprite.offset = Vector2(0.0, -texture.get_height() / 2.0)
+		sprite.set_meta("flora", placement.texture)
+		_world.add_child(sprite)
 
 
 # Click feedback lives above the ground but is not y-sorted against the player:

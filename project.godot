@@ -30,18 +30,10 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/size/resizable=true
 
-; canvas_items, not viewport. The art here is NOT pixel art and does not want
-; integer pixel-perfect scaling: tools/art/style.md defaults the house style
-; to "a low-poly-flat 3D render look", and tools/art/process_assets.py resizes
-; every asset with LANCZOS (a smooth resample) onto arbitrary non-grid sizes
-; (66x160 for the player, 320x261 and 320x230 for the two building facades).
-; Nothing in the project or in any .import file sets nearest-neighbour
-; filtering, so textures already draw with Godot's default linear filter.
-; canvas_items scales the 2D transform and lets those textures resample
-; smoothly at any window size; viewport mode would instead render to a fixed
-; 1280x720 buffer and blit it, which only pays off for grid-aligned pixel art
-; and would soften this art at every non-integer scale.
-window/stretch/mode="canvas_items"
+; The ruled art model is a 16 px pack grid enlarged by an exact 8x to the
+; 128 px world tile. Render to the authored 1280x720 viewport and preserve hard
+; pixel edges when it is scaled to the window.
+window/stretch/mode="viewport"
 
 ; keep, not expand: the whole windowed resolution list is 16:9, so the intended
 ; framing holds at every offered size, and an arbitrary drag-resize letterboxes
@@ -70,6 +62,9 @@ zoom_out={
 
 
 [rendering]
+
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/canvas_textures/default_texture_filter=0
 
 ; gl_compatibility (OpenGL) rather than Forward+/Vulkan: it keeps headless CLI
 ; runs lightweight and maximizes compatibility for the downloadable Windows
