@@ -22,15 +22,15 @@ func _initialize() -> void:
 	var test_world_pos := Vector2(1000, 1000)
 	var base_nav_cell: Vector2i = player.world_to_cell(test_world_pos)
 	var base_nav_center: Vector2 = player.cell_to_world_center(base_nav_cell)
-	
+
 	# Test zoom in bounds
 	player._set_zoom_index(3)
 	failures += _check(player._zoom_index == 3, "Zoom index updated to 3")
-	
+
 	# Advance process to finish easing
 	for i in range(100):
 		player._process(0.016)
-	
+
 	failures += _check(camera.zoom == Vector2(1.25, 1.25), "Camera zoom updated to 1.25")
 	failures += _check(player.position == base_origin, "Node origin stayed pinned")
 	failures += _check(sprite.offset == base_sprite_offset, "Sprite anchor stayed pinned")

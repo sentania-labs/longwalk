@@ -122,11 +122,11 @@ func _build_buildings() -> void:
 		if building.sprite_key == "cottage_facade":
 			var smoke := ChimneySmokeScene.instantiate()
 			smoke.position = COTTAGE_SMOKE_OFFSET
-			
+
 			# Compensate for the warm sunset CanvasModulate so the smoke reads as cool grey
 			var canvas_grade = Color(1.0, 0.95, 0.88)
 			smoke.modulate = Color(1.0 / canvas_grade.r, 1.0 / canvas_grade.g, 1.0 / canvas_grade.b)
-			
+
 			sprite.add_child(smoke)
 
 		var body := StaticBody2D.new()
