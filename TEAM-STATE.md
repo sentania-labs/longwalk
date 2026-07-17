@@ -85,8 +85,39 @@ were seated in PR #17 and neither has been exercised.
 
 ## Phase
 
-**Status:** `proposal` (phase 1, blind), dispatched 2026-07-17T03:40Z to three
-doers in parallel into three isolated worktrees.
+**Status:** `proposal` (phase 1, blind), RE-dispatched 2026-07-17T03:35Z to
+three doers in parallel into three isolated worktrees.
+
+### The first phase 1 dispatch never ran. Read this before trusting a "dispatched" status.
+
+The dispatch this file previously claimed was in flight (03:28) produced
+nothing. Verified, not inferred: all three branches sat at the base `03b06db`
+with clean worktrees, no worker end markers existed anywhere, and no worker
+process was alive. The three start markers had no matching end markers, which is
+the signature the orchestrator brief names.
+
+Cause, from `.team/markers/orchestrator-run-20260717-032624-end.md`: that
+orchestrator run lived **170 seconds**. It launched all three workers at
+03:28:22 and exited at 03:29:14. The workers died with their parent, roughly one
+minute in, each in a way that looks like an independent harness failure but is
+not:
+
+- `claude`: `Execution error` (15 bytes of log)
+- `agy`: `Error: timeout waiting for response`
+- `codex`: cut off mid-reasoning at 50KB of log, having reached a real read on
+  the click-to-move sim/render boundary. It was working. It was killed.
+
+Three different error strings, one cause. **This is the exact failure
+`roles/orchestrator.md` names under "A dispatch is synchronous. Block on it."**
+The run narrated a dispatch, did not block on it, ended its turn, and left this
+file asserting in-flight work that did not exist. That assertion is what cost
+the next run its first ten minutes. Failed logs are archived at
+`/tmp/village-feel/logs-failed-032822/` as evidence.
+
+The lesson is already a rule in the brief, so the brief does not need editing.
+What is worth carrying forward is that a dead dispatch does **not** announce
+itself as dead: it announces itself as three plausible, unrelated harness
+errors. Verify from end markers and branch SHAs, per the brief, every time.
 
 | Worker | Branch | Worktree | Proposal file |
 | --- | --- | --- | --- |
