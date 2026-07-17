@@ -177,6 +177,63 @@ because it confirms the protected-path forecast.
 
 **Phase 1 dispatch verified complete at 2026-07-17T03:35Z.**
 
+### Phase 2 CLOSED, all three critiques committed and verified
+
+Dispatched 03:36Z, all three landed by 03:40Z. Verified from
+`.team/markers/p2-<worker>-20260717-033628-end.md` in each worktree. Each worker
+critiqued BOTH peers, per `roles/phases/2-critique.md`.
+
+| Worker | Critique SHA (full 40) | Elapsed | Lines |
+| --- | --- | --- | --- |
+| claude-worker | `0b70f7b282117f046d84dd4c4dd2ac1541244710` | 216s | 435 |
+| codex-worker | `4bd86c6514f0b68cc38af2fe789d37b9eb71adaa` | 117s | 204 |
+| agy-worker | `67ae2dfdbb21671c1f7b9fe75cc423305aa21301` | 46s | 24 |
+
+**This was a real critique round, not a "looks good" round.** Every worker
+conceded something material and every worker landed a hit that changed the
+synthesis. The single best exchange in the round, worth reading in full before
+touching the art pipeline:
+
+- **agy** proposed color-coded boots (magenta left, cyan right) to force the
+  generator to track the leading leg.
+- **claude** conceded this beats its own pair-per-call ladder and reframed *why*
+  it works better than agy argued it: the defect exists because "left leg" and
+  "right leg" are semantically distinct but *visually identical*, so the model
+  has no image-space signal to bind the constraint to. Colored boots change the
+  constraint's modality from semantic (dropped twice) to chromatic (held
+  reliably: both round-1 candidates kept one costume across twelve cells
+  unasked).
+- **claude** then found the flaw agy missed, which is the load-bearing one: the
+  recolor pass maps the boots to brown **unconditionally**, so a sheet with the
+  exact round-1 defect passes through and comes out with the defect, its only
+  diagnostic signal deliberately destroyed. Agy's proposal contains no
+  acceptance criterion at all.
+- Resolution, now binding on the art slice: **generate colored, validate per
+  source row pre-mirror and pre-recolor, then mirror, then recolor.** The
+  pre-recolor image is the artifact of record and is kept under `tools/art/`.
+  Claude also noted mirroring inverts the color/leg binding, so the colored
+  intermediate cannot validate a mirrored row; only source rows are checked.
+
+**Two constitution-violation claims were filed, in the required terms.** Both
+are recorded in `docs/decisions/003-village-feel.md`:
+
+1. **claude and codex, independently, against agy's proposal:** sim moving a
+   `CharacterBody2D` during `_physics_process` violates sim/render separation.
+   Agy **conceded** its direct-steering design in its own critique, so this
+   objection won and no escalation is owed.
+2. **codex against claude's proposal:** runtime `(x, y)` hash for ground variants
+   plus `sprite_key` on `TownLayout` conflicts with the authored-baseline layer
+   and sim/render separation. Claude never rebutted it. This one is live, it is
+   what the critic seat was invoked on, and the ruling is in record `003`.
+
+Other findings that survived into the synthesis: claude caught that the camera is
+parented to the player (`scenes/player.tscn:18`), which makes codex's
+cursor-anchored zoom unimplementable without an unpriced camera-rig change; and
+that codex's labor split has two residents editing protected `src/sim/town_layout.gd`
+concurrently, with nav tests written against a fixture the feel slice rewrites.
+
+**Phase 2 dispatch verified complete at 2026-07-17T03:40Z.**
+
 ### Round-1 assignment (town motion), closed out
 
 Ambient motion shipped: PR #16, squash-merged `6c8e74a`, `.review-passed` at
