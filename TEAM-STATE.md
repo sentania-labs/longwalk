@@ -26,9 +26,11 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**Status:** ACTIVE, phases 1-3 COMPLETE. Decision 003 signed by all three doers and
-pushed to `main` at `f4c7dc5`. Implementation dispatched for the nav slice.
-Round 2 of the team framework, and the first live three-doer round.
+**Status:** ACTIVE, phases 1-3 COMPLETE, implementation partly done on the round
+branch. Decision 003 signed by all three doers and on `main` at `f4c7dc5`.
+**Scott issued three steers mid-run that changed the protocol; see "Three steers
+landed mid-run" below and `docs/decisions/004-*.md`. Read them before doing
+anything.**
 
 **Assignment (goal statement, verbatim as Scott gave it, relayed through
 `.pka/inbound/orchestrator/2026-07-17-0110-dalinar-escalation-reply-50ceed18.md`):**
@@ -83,6 +85,70 @@ tiebreaker-grade, not advisory** (protected-path decision), so the mechanics in
 **Roster:** three doers (claude, codex, agy) plus the critic at synthesis. This
 is the first live three-way blind proposal and the first real critic vote. Both
 were seated in PR #17 and neither has been exercised.
+
+## Three steers landed mid-run and changed the protocol
+
+Scott steered three times through the `.pka` channel while this run was working,
+at 04:05, 04:30 and 04:35Z. `roles/orchestrator.md` says to treat a steer as
+authoritative mid-run, so all three are in force NOW, not next round. They are
+recorded in full in **`docs/decisions/004-round-branch-integration-and-voting-model.md`**
+(directive authority, no sign-offs owed) and the source files are preserved in
+`.pka/inbound/orchestrator/`.
+
+**1. Round-branch integration replaces per-doer PRs (0405). Effective this
+round's implementation phase, which means it applied to work already in flight.**
+Scott: "seems weird that each doer needs to do a PR for its piece versus a
+worktree-like approach that the orchestrator pulls back in the local dir." One
+round branch per round, doers branch off it and **never open PRs**, the
+orchestrator merges signed-off slices in **locally** and runs the suite on the
+integrated result, and the round ships **one** PR with **one** external Codex
+review round. A slice that fails integration bounces to its owning doer, not to
+GitHub.
+
+**Acted on already, not just recorded:** `round/003-village-feel` exists, the nav
+slice is integrated at `39fa6f7` (a `--no-ff` merge of the exact peer-signed
+commit `49a7b39`, so the sign-off marker still names a SHA that is still valid;
+integration was a merge, not a rebase, so it renumbered nothing), the integrated
+result passes the full suite (**106 checks**), and **PR #18 is CLOSED as
+superseded rather than abandoned**, with that reasoning in its closing comment.
+
+**2. The codex seat is gaining sprite skills (0430).** `$generate2dsprite` and
+`$generate2dmap` from `agent-sprite-forge`. **Verify the install before relying
+on it:** skills present under `~/.codex/skills/`. Teft was installing at 04:30Z
+and this run did not confirm. This strengthens the argument decision 003 already
+used to give codex the art slice; the slice's owner does not change.
+
+Also from that steer, and worth more than it looks: an **anchor-drift gate** (max
+anchor-y standard deviation 0.05, clamped/edge-touching frames are regeneration
+triggers rather than accepted variance). It composes with decision 003's
+colored-boot check along an orthogonal axis, and the pairing is the point:
+**boots verify foot ALTERNATION, anchor drift verifies GROUND CONTACT.** 003's
+gate can pass a sheet whose feet alternate correctly while the figure bobs off
+the baseline, which is exactly the "reads as a shuffle at 160px" failure
+claude-worker said its own check could not catch. Recommended for
+`process_assets.py` as part of this round's art validation. Team's call on
+implementation.
+
+**3. Four-ballot voting; the critic's standing vote is RESCINDED (0435).** Four
+ballots on contested synthesis questions: orchestrator, claude-worker,
+codex-worker, agy-worker. Every doer votes **including parties to the dispute**,
+and a party's vote and its interest are both recorded. 3-1 or 4-0 decides with no
+critic. **2-2 invokes the critic as tiebreaker**, with its existing rules intact.
+The standing synthesis-time vote from decision 002 / PR #17 is gone.
+
+**This is forward-looking and Scott said so explicitly: decision 003's process
+was valid under the rules in force at the time.** Do not reopen 003. Note for the
+record that 003's critic vote was not ceremony (it refused to over-read codex's
+constitution claim, and found what all three workers missed at
+`town_layout.gd:30`), and that under the new model that round would have been
+decided by four ballots without it. That tradeoff is Scott's to make and he made
+it after reading 003.
+
+**Codification of steers 1 and 3 into `roles/` and `roles/phases/` text is STILL
+OWED and is the next dispatch.** Both steers direct that it ride **this round's
+single PR** citing record `004`, rather than spawning another framework PR. It is
+not written yet because `roles/` is a protected path and the orchestrator does
+not write protocol text into one; it is a slice for a doer.
 
 ## Phase
 
@@ -516,8 +582,15 @@ the delta and write a new marker. Do not repoint the old one.
 - Questions put to Scott: (1) is the connector expected to be down or removed?
   (2) if so, may #18 merge on the peer sign-off plus green CI alone? (3) if it is
   gone for good, the constitution needs amending.
-- **Nothing is spinning while Scott decides.** No worker is dispatched on it. The
-  blocker is stated in PR #18's own body.
+- **Nothing is spinning while Scott decides.** No worker is dispatched on it.
+- **The 0405 steer changed this escalation's urgency, though not its merits.**
+  Under the round-branch model there was never going to be a per-slice external
+  review, so the bot no longer blocks anything today: the Codex review round now
+  happens once, at round end, on the round PR. The round cannot ship until
+  priority 1 lands anyway. So this is no longer urgent, and it is still real: if
+  the connector is dead, the round PR will hit the same wall, and the gate text
+  in `CLAUDE.md` needs amending, which is Scott's. Do not close it on the grounds
+  that it stopped hurting.
 
 **PREVIOUSLY OPEN, NOW CLOSED:** the round-1 escalation `50ceed18` (whether the
 procedural bob may ship as "the walk cycle") was **answered by Scott: option 2,
@@ -602,15 +675,17 @@ adapter comments describe did not occur.
 still the thing that has failed twice and it is NOT started: the art slice is
 dispatched to nobody yet. Sequence for the next run:
 
-1. **Finish PR #18.** It is open, green, peer-signed at its head, and blocked
-   only on the Codex review bot never posting. Check whether the bot has since
-   posted (`gh api repos/sentania-labs/longwalk/pulls/18/comments`, and
-   `gh pr view 18 --json reviews`). If it posted, address its findings in the
-   same PR, merge, commit `.review-passed` straight to `main` recording the merge
-   SHA, and delete `claude/village-feel` **after** confirming `refs/archive/003/*`
-   still resolves (it should; the pins exist precisely so the branch is
-   disposable). If the bot is still silent, that is an escalation to Scott about
-   an external service, not a licence to merge without the gate.
+1. **Dispatch the `roles/` codification slice.** This is the only thing the
+   steers explicitly direct and it is not done. Steers 0405 and 0435 must be
+   written into `roles/orchestrator.md`, the worker briefs, `roles/critic.md`,
+   and `roles/phases/*` text, citing `docs/decisions/004-*.md`. Both steers say
+   it rides **this round's single PR**, so commit it on a doer branch off
+   `round/003-village-feel` and integrate it locally like any other slice. It
+   needs a peer sign-off like any other slice. **The orchestrator must not write
+   it**: `roles/` is protected and protocol text is not the referee's to author.
+   Note the briefs currently contradict the steers in several places (the critic
+   seat is described as standing; PR hygiene describes one PR per owned slice),
+   so this is a real edit and not a footnote.
 2. **Produce the shared contract decision 003 requires** (one agreed player
    origin, feet anchor, world scale, test fixture). The art and feel slices are
    blocked behind it and this is why they were not dispatched this run.
