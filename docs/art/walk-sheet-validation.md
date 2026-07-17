@@ -147,6 +147,38 @@ their measured drift, in cell-height units, is down 0.0065 / up 0.0292 / side
 2. All are inside the 0.05 ceiling. The round-1 failure was alternation, not
 bobbing, and the gate reporting that faithfully is the gate working.
 
+## The suite is mutation-tested
+
+A gate only ever observed passing is indistinguishable from `return 0`. So each
+check was disabled in turn and the suite re-run, confirming `git diff --stat`
+was non-empty first, because a no-op mutation showing green proves nothing and
+is the exact error this project has hit before.
+
+| Mutation | Result |
+| --- | --- |
+| `if np.sign(first) == np.sign(second)` -> `if False` | caught |
+| `MAX_ANCHOR_STDEV` 0.05 -> 99.0 | caught |
+| `if missing:` -> `if False:` | caught |
+| `if edges:` -> `if False:` | caught |
+| `MIN_CONTACT_STRIDE_SIDE` 0.12 -> 0.0 | **SURVIVED, now caught** |
+
+The stride floor survived: it was calibrated from traced geometry and documented
+above, but nothing exercised it, so deleting it broke no test.
+`test_degenerate_stride_is_rejected` closes that gap with a side row whose lead
+genuinely reverses but whose contacts separate by only 0.10 figure heights. The
+reversal check therefore passes on that fixture (the test asserts this), which
+pins the rejection on the floor alone. That mutation now fails the suite.
+
+Two caveats worth keeping honest:
+
+- The `if missing:` mutant is caught only because removing the guard makes
+  `np.sign(None)` raise a `TypeError`, not because an assertion fires on a
+  clean rejection. The guard ships, so the shipped path is sound, but the test
+  is weaker than it looks.
+- The reversal mutant is caught by the redundant "same boot leads in every
+  frame" check rather than by the contact-frame check the test names. The two
+  overlap on this fixture.
+
 ## Running it
 
     tools/art/check_walk_sheet.py tools/art/out/walk_sheet.png

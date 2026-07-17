@@ -97,17 +97,34 @@ def _side_row_boots(near, far, reversed_lead):
     return [(MAGENTA_BOOT, near, "x"), (CYAN_BOOT, far, "x")]
 
 
-def build_sheet(side_defect=False, frontal_defect=False, anchor_drift_px=0, clip_row=None):
+# A degenerate side-row stride: the boots reverse which one leads, but by
+# only 0.10 figure heights, under the 0.12 floor. Chosen to sit above the
+# 26 px boot width (0.087 figure heights) so the two boot blobs stay
+# disjoint and their centroids are measured, not merged. This isolates the
+# floor: the lead genuinely reverses, so only the floor can reject it.
+DEGENERATE_SIDE_CONTACT = (0.25, 0.35)
+
+
+def build_sheet(
+    side_defect=False,
+    frontal_defect=False,
+    anchor_drift_px=0,
+    clip_row=None,
+    degenerate_stride=False,
+):
     """Build a colored-boot sheet.
 
-    side_defect     reproduce the traced round-1 defect on the side row
-                    (the same boot leads both contact frames)
-    frontal_defect  same failure on the down and up rows
-    anchor_drift_px bob the side row's sole line by this many pixels
-    clip_row        row index whose frames run off the bottom of the sheet
+    side_defect       reproduce the traced round-1 defect on the side row
+                      (the same boot leads both contact frames)
+    frontal_defect    same failure on the down and up rows
+    anchor_drift_px   bob the side row's sole line by this many pixels
+    clip_row          row index whose frames run off the bottom of the sheet
+    degenerate_stride side row alternates, but the feet barely separate
     """
     sheet = _blank_sheet()
-    near_contact, far_contact = TRACED_SIDE_CONTACT
+    near_contact, far_contact = (
+        DEGENERATE_SIDE_CONTACT if degenerate_stride else TRACED_SIDE_CONTACT
+    )
     near_pass, far_pass = TRACED_SIDE_PASSING
 
     for row, name in enumerate(("down", "up", "side")):

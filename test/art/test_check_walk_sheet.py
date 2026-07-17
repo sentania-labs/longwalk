@@ -81,6 +81,26 @@ def test_traced_round1_defect_is_rejected(tmpdir):
     )
 
 
+def test_degenerate_stride_is_rejected(tmpdir):
+    print("\ndegenerate side stride (lead reverses, but the feet barely part)")
+    rejections, report = _run(
+        fixtures.build_sheet(degenerate_stride=True), tmpdir, "degenerate.png"
+    )
+    side = report["rows"]["side"]["boot_alternation"]
+    check(
+        any("no committed stride" in r for r in rejections),
+        "a contact frame under the 0.12 stride floor is rejected",
+        f"got: {rejections}",
+    )
+    # The lead DOES reverse here, so the reversal check cannot be what
+    # rejects this. Asserting that pins the rejection on the floor alone.
+    check(
+        side["contact_reversed"],
+        "the reversal check passes, so only the stride floor rejects this",
+        f"separations={side['separations']}",
+    )
+
+
 def test_frontal_defect_is_rejected(tmpdir):
     print("\nfrontal (down/up) rows: same leg leads every frame")
     rejections, _ = _run(
@@ -188,6 +208,7 @@ def main():
     with tempfile.TemporaryDirectory() as tmpdir:
         test_corrected_sheet_is_not_rejected(tmpdir)
         test_traced_round1_defect_is_rejected(tmpdir)
+        test_degenerate_stride_is_rejected(tmpdir)
         test_frontal_defect_is_rejected(tmpdir)
         test_missing_markers_are_rejected(tmpdir)
         test_anchor_drift_is_rejected(tmpdir)
