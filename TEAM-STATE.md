@@ -62,86 +62,78 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 EXECUTION: 3 non-Meshy slices delivered + verified. TWO
-are clean and merge-ready (pending peer sign-off); the THIRD (camera calibration)
-surfaced a REAL cross-slice geometry/scale conflict that needs a reconciliation
-decision (010) before any 3D asset with height can be judged. Meshy pilot NOT yet
-reached.`
+**Status:** `ROUND 006 EXECUTION: all 3 non-Meshy slices DELIVERED, peer-signed,
+MERGED into round/006-two-rivers @ 22f8e4c (pushed to origin), FULL SUITE GREEN.
+Decision 010 (height reconciliation) accepted 4-0. The MESHY PILOT is the next
+phase and is UNBLOCKED (the credential blocker the prior run expected does NOT
+exist: a real key is provisioned). No PR yet (round not complete until the pilot).`
 
-**Slice results (all dispatched 20260717-204733, verified from end markers + tree):**
-- **claude** `claude/006-nullfix` @ `dd86f7e` (subst. commit; `b1ea34f` is a stray
-  marker commit to strip at merge): CLEAN + VERIFIED. Root cause of "Instance base
-  is null" = `character_creation.gd` `@onready _name_edit` node path was
-  `.../VBoxContainer/NameEdit` but the LineEdit is at `.../VBoxContainer/NameRow/
-  NameEdit` -> null base at play time. Old boot test stayed green because bare
-  `instantiate()` never fires `@onready` (resolves on `_ready()`/tree entry). Fix =
-  one-line path correction + a `_check_character_creation_handoff()` regression in
-  `test/active_path/test_boot_flow.gd` that fires `_ready()` and asserts the refs
-  resolve. Diagnosis matches constraint 9 (real origin, not a guessed load site).
-- **codex** `codex/006-scale-contract` @ `fd73f04`: CLEAN + VERIFIED (its
-  `test/art/test_check_scale_contract.py` runs green). Adds `docs/art/scale-contract.md`
-  + `tools/art/check_scale_contract.py` (build-failing validator) + test, wired into
-  `run_tests.sh`. Contract pins `pixels_per_meter = TILE_H = 64`, UPRIGHT basis
-  `(0,-64)` => 1 upright meter = 64 px STRAIGHT UP, un-foreshortened (player 1.75m
-  = 112px), 2px tolerance.
-- **agy** `agy/006-camera-calibration` @ `8168e65`: provisioned Blender 4.0.2
-  (`tools/fetch_blender.sh`, gitignored binary), `tools/art/blender_calibration.py`
-  + `render.sh`. GROUND-grid calibration is solid. But it surfaced THE FINDING (below).
+**Three non-Meshy slices, delivered + verified + signed + merged:**
+- **claude** `claude/006-nullfix` @ `dd86f7e` (peer-signed by codex `f880a6d`,
+  merged `06ca900`): fixed "Instance base is null". Root cause =
+  `character_creation.gd` `@onready _name_edit` node path was
+  `.../VBoxContainer/NameEdit` but the LineEdit is at `.../NameRow/NameEdit` -> null
+  base at play time; old boot test stayed green because bare `instantiate()` never
+  fires `@onready` (resolves on `_ready()`). Fix = one-line path correction + a
+  `_check_character_creation_handoff()` regression in `test/active_path/test_boot_flow.gd`
+  that fires `_ready()` and asserts refs resolve. Diagnosed from a clean-import
+  repro + real engine output (constraint 9), not a guessed load site.
+- **codex** `codex/006-scale-contract` @ `3b85b28` (peer-signed by agy `ce5cbe5`,
+  merged `a62ecc4`): `docs/art/scale-contract.md` + `tools/art/check_scale_contract.py`
+  (build-failing validator) + `test/art/test_check_scale_contract.py`, wired into
+  `run_tests.sh`. Per decision 010 the UPRIGHT rate is `32*sqrt(6)` (~78.3837 px/m),
+  table player 137.1714 / door 156.7673 / eaves 188.1208 / ridge 376.2416-438.9485.
+  GROUND projection (`TILE_W=128`, `TILE_H=64`) UNCHANGED; `projection.gd` untouched.
+- **agy** `agy/006-camera-calibration` @ `1fac9b0` (peer-signed by claude `7b419ab`,
+  merged `22f8e4c`): provisioned Blender 4.0.2 (`tools/fetch_blender.sh`, gitignored
+  binary), `tools/art/blender_calibration.py` + `render.sh`. Camera = 30 deg
+  (arcsin 0.5), azimuth 45, ortho; proves 2:1 ground agreement with `projection.gd`
+  (0.0002px) AND the physical upright rate `32*sqrt(6)` incl. a golden 2.0m-pole
+  check (measured 156.7674 vs contract 156.7673). `render.sh` PASSES (verified by
+  orchestrator re-run).
 
-**THE FINDING (non-Meshy scaffolding caught a defect that blocks the pilot):**
-Two facts, both verified by running agy's Blender calibration:
-1. *(clarification, not a decision change)* The 3D ortho camera elevation that
-   reproduces Godot's 2:1 `(64,32)` ground basis is **arcsin(0.5) = 30 deg**, NOT
-   `atan(0.5) = 26.565 deg`. Empirics: ground error 0.0002px @ 30 deg, 3-28px @
-   26.565 deg. Hand-derivation agrees (azimuth 45, ortho: `sin(theta)=0.5`). The
-   `atan(0.5)` in 009's phase-2 critique prose is the 2D DIAMOND SCREEN-SLOPE,
-   mislabeled as the camera elevation; 009 constraint 2 already says "VERIFY the
-   elevation rather than copying an angle into prose", so the verified 30 deg is
-   what the decision demanded. (Orchestrator erroneously forced atan(0.5) in the
-   first agy bounce; agy's evidence corrected it.)
-2. *(genuine contested design conflict -> decision 010)* Even at the correct 30
-   deg, a 3D ortho camera FORESHORTENS vertical height by `cos(30)` -> measured
-   ~78.4 px per upright meter (agy: 1.75m renders 141.67px @26.565, ~137px @30),
-   while codex's contract (009 constraint 3, adopted wholesale) pins 64 px/m
-   upright, un-foreshortened. These two SIGNED slices are inconsistent on vertical
-   scale. Reconciliation options: (a) pre-scale mesh Z by 64/78.4 before render to
-   hit codex's 64 px/m exactly (deterministic, cheats height like 2:1 pixel-art
-   often does); (b) adopt the physical foreshortened px/m into the contract
-   (re-derive codex's pixel-height table). Both defensible => contested, four-ballot.
+**DECISION 010 (accepted, on round branch @ `de0173f`): upright render-scale
+reconciliation, 4-0 Option B.** Execution's camera calibration proved the render
+camera must sit at 30 deg (arcsin 0.5, NOT atan(0.5) which is the 2D diamond
+screen-slope), where it foreshortens height to the exact analytic `32*sqrt(6)`
+px/m, conflicting with codex's signed 64 px/m contract. Orchestrator's coupling
+proof (ground-depth via sin, upright-height via cos, both on screen-Y, locked by
+the 30 deg elevation; needed ratio sqrt(2) vs actual cot(30)=sqrt(3)) showed no
+ortho projection scalar can keep both, so Option A reduces to mesh-Z squash
+(distorts normals/painterly lighting) or a brittle custom projection. Round-1
+ballots were A(claude),A(codex),B(agy),B(orch); after a CRITIQUE round put the
+coupling on the table, both A-voters WITHDREW A of their own accord and the team
+went 4-0 for Option B (accept the physical rate, revise the contract, no vertical
+correction step). No 2-2, critic correctly not invoked. Ballot rationales preserved
+in `/tmp/round006-exec/BALLOT1-*.txt` (round 1) and `BALLOT2-*.txt` (critique).
 
-**DECISION 010 (height reconciliation) IN PROGRESS. Round-1 blind ballots (stamp
-211241), verbatim rationales preserved in `/tmp/round006-exec/BALLOT1-{claude,
-codex,agy}.txt`:**
-- **claude: A** (keep 64 px/m; realize via a rig/projection-stage vertical
-  correction, NOT per-mesh; golden-pole acceptance test; flagged pitched-roof
-  flattening risk).
-- **codex: A** (keep 64; rig-level Z pre-correction from calibrated camera;
-  prefers projection-stage to avoid touching normals).
-- **agy: B** (accept the camera's physical ~78 px/m upright, revise the contract;
-  non-uniform mesh Z-scale distorts normals/painterly lighting; custom projection
-  brittle; camera = single source of truth).
+**MESHY IS PROVISIONED (corrects the prior run's assumption):** a real key is at
+`~/.claude/pka-secrets/longwalk/meshy.env` (`MESHY_API_KEY=msy_...`, len 40), and
+an MCP server `meshy` is wired in longwalk's `.mcp.json` -> `vault/scripts/mcp/
+meshy-launch.sh` (sources the key). README says the Claude Code doer seat and the
+Codex global config both point at that wrapper. CAVEAT TO VERIFY before dispatching
+generation: confirm the `meshy` MCP is actually reachable inside a dispatched doer
+(claude.sh uses `--dangerously-skip-permissions` but no explicit `--mcp-config`;
+agy harness MCP wiring for longwalk's .mcp.json is unconfirmed). Pilot is
+pre-authorized (1515); ADOPTING Meshy for production beyond the pilot still
+escalates to Scott (decision 009).
 
-**Orchestrator's decisive technical finding (verified by hand + agy's calibration):**
-screen-Y gets contributions from BOTH ground-depth (coeff sin(theta)) AND upright
-height (coeff cos(theta)), COUPLED by the fixed 30 deg elevation. Desired ratio
-upright/depth for (64 px/m upright + 2:1 ground) = sqrt(2); actual at 30 deg =
-cot(30) = sqrt(3). No ortho-camera projection scalar decouples them. So the A-voters'
-"clean projection-stage correction" is GEOMETRICALLY IMPOSSIBLE with a standard ortho
-camera; A necessarily = mesh-Z squash (the normal/lighting distortion agy warns of)
-OR a brittle custom sheared projection matrix. This premise flaw is why a critique
-re-ballot round is being run (it was compressed out of the one-shot proposal+ballot).
+**NEXT STEP = THE MESHY PILOT (round 006's actual art deliverable, the riskiest
+under-owned slice; decision 009 constraints 5-8 + division of labor).** Sequence:
+(1) agy generates ONE 2x2 half-timbered cottage + ONE player via the meshy MCP,
+commits models + a provenance manifest (service version, request params, license,
+source hashes) per constraint 8; (2) shared/sequenced Blender topology cleanup +
+armature weighting + 6-pose/8-facing gait tuning (least-owned, log the cleanup
+ledger per constraint 6); (3) render candidate A (deterministic NPR/composite,
+codex) AND candidate B (texture-space/whole-sheet fixed-seed generative, claude)
+from the 30 deg rig; (4) integrate onto the iso spine via `tools/art/` +
+`starter_town.gd` (claude); (5) the anonymized in-engine ACCEPTANCE GATE vs the
+SPIKE (constraint 7) with static + walk-GIF captures + the cleanup ledger. Start by
+verifying meshy MCP reachability in a doer, then dispatch agy generation. This
+phase is large and may span multiple orchestrator runs.
 
-**NEXT STEP: critique/re-ballot round dispatched (stamp TBD) with the coupling proof
-on the table; each doer critiques both A and B under the coupling constraint and
-re-ballots. Then orchestrator synthesizes + adds its ballot -> decision 010. If it
-converges A-premise-refuted it likely lands B; a genuine 2-2 invokes the critic
-(decision 004). THEN: agy restores 30 deg elevation + implements the chosen fix;
-codex updates contract if B; recalibrate to PASS; cross-sign all three slices
-(non-author); strip stray marker commits (`b1ea34f` claude, agy's were removed);
-merge `--no-ff` into round/006-two-rivers; full suite; THEN Meshy pilot (still gated
-on Meshy credentials -> likely BLOCKER for Scott).**
-
-Prompt files + round-1 ballots: `/tmp/round006-exec/`.
+Prompt files + all ballots: `/tmp/round006-exec/` (may not survive a reboot;
+substance is captured above and in decision 010).
 
 **Round 006 artifact SHAs (archived under refs/archive/006/*, pushed to origin):**
 | Worker | Proposal | Critique | Ballot |
@@ -204,13 +196,12 @@ Ordered execution steps:
    the ordinary gate, close-out sweep (delete branches + worktrees, archive already
    done under `refs/archive/006/*`, write `.review-passed`).
 
-**PROVISIONING FLAG (surface early):** the Meshy-dependent steps need a Meshy
-account/API key that likely does not exist in this environment yet. Directive 1515
-pre-authorized the PILOT, so provisioning credentials is within that authorization,
-but it is an external/manual step. Steps 1-2 do NOT need Meshy and should run first;
-if step 3 is reached with no Meshy access, that is a genuine BLOCKER to raise with
-Scott (a `.pka` cross-workspace request or inbox item), not a reason to fake the
-pilot. Do NOT introduce a second external dependency (e.g. Mixamo) by convenience.
+**PROVISIONING (RESOLVED):** Meshy IS provisioned. Real key at
+`~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in longwalk `.mcp.json` ->
+`vault/scripts/mcp/meshy-launch.sh`. Steps 1-2 (non-Meshy) are DONE, signed,
+merged, suite green. Step 3 (the Meshy pilot) is the next phase and is NOT
+blocked. Verify MCP reachability inside a dispatched doer first (see Phase
+section caveat). Do NOT introduce a second external dependency (e.g. Mixamo).
 
 ## Round 005 (COMPLETED + MERGED + SWEPT this run)
 
@@ -239,6 +230,13 @@ archived under `refs/archive/005/*` (pushed to origin).
 
 ## Active decision records
 
+- **`010-upright-render-scale-reconciliation.md`** (on round branch @ `de0173f`,
+  not yet on main). 4-0 Option B. Amends 009 constraint 3's upright numbers to the
+  `32*sqrt(6)` px/m rate; clarifies 009 constraint 2 (verified camera elevation =
+  30 deg). No protected path. Rides to main with the round PR.
+- **`009-3d-authored-2d-delivered-pipeline.md`** (on round branch, not yet on
+  main). 4-0/4-0. Path 3 (author 3D -> pre-render 2D). Authorizes `project.godot`.
+  Meshy production adoption escalates to Scott; pilot pre-authorized.
 - **`008-isometric-visual-identity.md`** (on main via PR #21). 4-0. Authorizes
   the `project.godot` protected path. Supersedes 005's cardinal facing SET.
 - **`007-isometric-and-own-art-override.md`** (main). Binding for iso + own-art.
@@ -250,21 +248,27 @@ archived under `refs/archive/005/*` (pushed to origin).
   four-ballot voting with critic tiebreaker on a 2-2 split. Governs round 006.
 - `005`/`003`/`001`/`002` accepted (002's standing critic vote rescinded by 004;
   001's SHAs pinned under `refs/archive/001/*`; 005's under `refs/archive/005/*`).
-  **Next free decision number is `009`** (round 006's production-fork decision).
+  **Next free decision number is `011`.**
 
 ## Branch and PR sweep (round 006 in flight)
 
-- **Zero open team PRs** (round 006 has no PR yet; execution not started).
-- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` (pushed to
-  protect decision 009, PR opens after execution); `origin/issue-4-world-eras` (a
-  HUMAN branch, author sentania, 2026-07-13, no resident prefix, predates the team
-  framework; NOT the team's to delete, retained). The three `<w>/006-proposal`
-  branches are LOCAL-ONLY (their artifact SHAs are archived under
-  `refs/archive/006/*` on origin, so the branches are disposable).
+- **Zero open team PRs** (round 006 has no PR yet; the round PR opens only after
+  the Meshy pilot completes, per decision 004's one-PR-per-round rule).
+- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` @ `22f8e4c`
+  (integration tree, 3 slices merged + decision 009/010, suite green; PR after the
+  pilot); `origin/issue-4-world-eras` (a HUMAN branch, author sentania, predates
+  the team framework; NOT the team's to delete, retained). The
+  `claude/006-proposal`/`codex/006-proposal` (+local `agy/006-proposal`) branches
+  are archived under `refs/archive/006/*`. The three EXECUTION branches
+  `claude/006-nullfix`, `codex/006-scale-contract`, `agy/006-camera-calibration`
+  are LOCAL-ONLY, already merged into the round branch (retained on purpose only
+  as worktree checkouts; disposable, their work is in the round branch).
 - **Worktrees (retained on purpose, round 006 in flight):** primary `longwalk`
-  (main); `lw-006-round` (round/006-two-rivers, the integration tree);
-  `lw-006-claude`, `lw-006-codex`, `lw-006-agy` (`<w>/006-proposal`, reuse for
-  execution doer branches off the round branch). All round-005 worktrees torn down.
+  (main); `lw-006-round` (round/006-two-rivers @ `22f8e4c`, the integration tree);
+  `lw-006-claude` (`claude/006-nullfix`), `lw-006-codex` (`codex/006-scale-contract`),
+  `lw-006-agy` (`agy/006-camera-calibration`) - reuse these for the pilot slices
+  (cut fresh pilot branches off the round branch in each). All round-005 worktrees
+  torn down.
 
 ## Open escalations to Scott
 
@@ -275,17 +279,20 @@ constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP:** begin round-006 EXECUTION (see the "Round 006 EXECUTION
-plan" above). Check the `.pka/inbound/orchestrator/` inbox FIRST (per-phase-boundary
-rule). Start with defect #4 (null bug, claude, no Meshy needed) and the non-Meshy
-scaffolding (agy camera-calibration on primitives + codex scale-contract
-validation), which can all proceed without Meshy access. Provision execution doer
-branches off `round/006-two-rivers` (the round branch, at `85dc620` + whatever
-`main` has advanced to; note main moved past the round-branch base with the
-round-005 `.review-passed` and the TEAM-STATE commits, but the round branch was cut
-from that same main so it is current). Dispatch, BLOCK/poll each end marker, verify
-from disk. If the Meshy-dependent pilot step is reached with no Meshy credentials,
-that is a real BLOCKER for Scott (`.pka` request), not a reason to fake the pilot.
+**IMMEDIATE NEXT STEP: the MESHY PILOT** (see the Phase section's "NEXT STEP =
+THE MESHY PILOT" for the 5-step sequence). Check the `.pka/inbound/orchestrator/`
+inbox FIRST (per-phase-boundary rule). The non-Meshy scaffolding is DONE (merged,
+signed, green). FIRST verify the `meshy` MCP is reachable inside a dispatched doer
+(the .mcp.json is claude-oriented; test a tiny meshy MCP call in a claude-worker
+dispatch before committing to a full generation). Then dispatch agy to generate
+the pilot cottage + player + provenance manifest. Cut fresh pilot branches off
+`round/006-two-rivers` @ `22f8e4c`. Dispatch DETACHED, poll end markers, verify
+from disk + re-run render/tests yourself. This phase is large and may span runs.
+Do NOT open the round PR until the pilot's acceptance gate passes (one PR per
+round). This is also the point where, if the pilot clears the acceptance gate vs
+the spike, you bring the result + cleanup ledger to Scott for the Meshy
+production-adoption call (decision 009 escalation) AND likely the vision-bar
+surface (directive 1500).
 
 **Watch the agy adapter's `--add-dir`** (the adapter now passes it internally at
 `adapters/agy.sh:88`; markers still catch a scratch no-op). Verify every dispatch
@@ -305,8 +312,13 @@ protocol.
 
 **RETRO GAP:** inbox-check convention only fires at spawn; directive 1500 asks
 for per-phase-boundary re-scans. Honor that every round-006 phase boundary.
-Inbox as of this run: 1500 + 1515 PROCESSED into round-006 scope; no unprocessed
-message remains.
+Inbox as of this run: 1500 + 1515 PROCESSED; newest inbox item is 1515 (14:26),
+no unprocessed message remains.
+
+**agy tends to commit stray `.team/markers/` files** (it hand-committed
+`006-camera-end.md` in its first pass; removed on the revision). Marker files ARE
+tracked in this repo by precedent (rounds 001-004 markers are on main), so a
+stray marker is untidy but not a merge blocker. Watch for it; ask agy to drop it.
 
 **Style-rule tension still on `main`, Scott's to rule on:** tracked files with
 em-dashes CLAUDE.md forbids (`.pka/CLAUDE.md`, an inbound steering message, a
@@ -318,18 +330,25 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-17T~20:40Z (orchestrator run
-`orchestrator-run-20260717-193928`). This run, end to end: (1) addressed Codex
-review rounds 3+4 on PR #21 (four P2s total: agy camera clampfix + drag-threshold,
-codex README walk-build + attribution; the walk-build fix bounced once on a
-`changes-requested` peer review and was re-fixed with a byte-reproducible
-`rebuild_player_walk_option_c.py`); round 5 CLEAN; MERGED PR #21 to main
-(`5d83f47`); full close-out sweep (all round+doer branches, worktrees, 9 archive
-refs under `refs/archive/005/*`, `.review-passed` at `2805f00`). (2) Ran round 006
-phases 1-3 in full: three blind proposals (unanimous Path 3), three adversarial
-critiques (genuinely attacking, converged the per-frame-repaint ban), phase-3
-synthesis + decision 009 (dual-candidate fidelity pilot + Blender headless, 4-0/4-0,
-no dissent, gate-validated), artifact SHAs archived under `refs/archive/006/*`,
-round branch pushed. Every dispatch verified from its end marker + the tree. NEXT:
-round 006 EXECUTION, starting with the no-Meshy slices (null bug + camera/scale
-scaffolding).
+**Last updated:** 2026-07-17T~21:35Z (orchestrator run
+`orchestrator-run-20260717-204425`). This run ran round-006 EXECUTION for all
+non-Meshy work, end to end: (1) dispatched 3 non-Meshy slices detached, verified
+each from its end marker + tree: claude null-fix (`dd86f7e`, real node-path root
+cause + regression), codex scale-contract (`fd73f04`), agy camera-calibration
+(`8168e65`). (2) Orchestrator VERIFICATION of agy's calibration caught a real
+cross-slice conflict: the render camera must be 30 deg (arcsin 0.5), not atan(0.5),
+and at 30 deg it foreshortens height to `32*sqrt(6)` px/m, conflicting with codex's
+signed 64 px/m. (Orchestrator initially mis-forced atan(0.5); agy's evidence + a
+hand-derivation corrected it.) (3) Ran the reconciliation as a four-ballot with an
+adversarial CRITIQUE round: round-1 A,A,B,B; the coupling proof (upright+depth share
+screen-Y, locked at 30 deg) refuted Option A's "clean projection scalar" premise;
+both A-voters withdrew; team went 4-0 Option B. Authored decision 010, committed to
+the round branch (`de0173f`). (4) Dispatched the 010 implementations (codex contract
+-> `3b85b28`, agy calibration -> `1fac9b0`), verified both (agy's render.sh now
+PASSES at 30 deg with the 32*sqrt(6) golden-pole check). (5) Orchestrated 3
+non-author cross-signs (codex->claude, agy->codex, claude->agy, all signed-off),
+merged all 3 --no-ff into `round/006-two-rivers` (`22f8e4c`), FULL SUITE GREEN,
+pushed. (6) Discovered Meshy IS provisioned (key + MCP wired) - the expected pilot
+blocker does NOT exist. Every dispatch verified from end marker + tree, never
+narration. NEXT: the Meshy pilot (round 006's art deliverable) - verify MCP
+reachability in a doer, then generate the cottage + player.
