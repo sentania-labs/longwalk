@@ -50,6 +50,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 echo "=== test_build_player_walk.py ==="
 python3 "${REPO_ROOT}/test/art/test_build_player_walk.py"
 
+echo "=== test_art_manifest.py ==="
+python3 "${REPO_ROOT}/test/art/test_art_manifest.py"
+
 echo "=== test_check_walk_sheet.py ==="
 python3 "${REPO_ROOT}/test/art/test_check_walk_sheet.py"
 

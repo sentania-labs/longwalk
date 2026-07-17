@@ -1,5 +1,20 @@
 # tools/art, AI art generation pipeline
 
+## Isometric board-led pipeline
+
+Round 005 uses manifests under `manifests/`. Generate a dressed style board
+first, then compact same-geometry category sheets, individual buildings, a
+neutral player master, and one compact six-frame grid per immutable facing.
+Run `ingest_generated_sheet.py` before `process_assets.py`. Ingestion rejects
+missing provenance, malformed grids, empty cells, edge contact, bad anchors,
+and undeclared runtime ids. Processing normalizes only by declared anchors and
+derives footprint-only cast masks plus tight contact masks under one fixed light
+vector. It never chooses frames.
+
+The fixed facing order is `E, SE, S, SW, W, NW, N, NE`. The full policy,
+including the exact sector boundary rule and distance-driven cycle contract,
+lives in `manifests/player-walk-policy.json`.
+
 All longwalk game art is AI-generated, not downloaded from asset packs. This
 directory is the source of truth for regenerating or extending it: prompts
 and style config are committed, not just the output images, so any asset can

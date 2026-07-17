@@ -1,0 +1,15 @@
+{
+  "version": "longwalk.player-walk.v1",
+  "facing_order": ["E", "SE", "S", "SW", "W", "NW", "N", "NE"],
+  "sector_centers_degrees_screen_y_down": [0, 45, 90, 135, 180, 225, 270, 315],
+  "sector_half_width_degrees": 22.5,
+  "boundary_convention": "exact boundaries round to the neighboring sector away from zero",
+  "frames_per_facing": 6,
+  "cycle_advance": "accumulated projected distance traveled",
+  "rest_policy": "neutral master at rest, hold last facing id",
+  "cell_size": 160,
+  "contact_anchor": [80, 159],
+  "mirroring": {"enabled": false, "declared_before_generation": true},
+  "regeneration_unit": "one complete six-frame facing grid",
+  "selection_policy": "no aesthetic frame selection or cross-facing relaundering"
+}

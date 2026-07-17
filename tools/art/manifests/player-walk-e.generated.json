@@ -1,0 +1,14 @@
+{
+  "version": "longwalk.generated-sheet.v1",
+  "provenance": {"prompt": "../prompts/iso/player_walk_e.prompt.txt", "style_board": "../out/iso/style_board.png", "generator": "openai.image_gen", "neutral_master": "../out/iso/player_neutral_raw.png"},
+  "sheet": {"source": "../out/iso/player_walk_e_raw.png", "rows": 2, "cols": 3, "cell_width": 512, "cell_height": 512, "expected_width": 1536, "expected_height": 1024, "magenta_key": "#FF00FF", "key_tolerance": 48},
+  "runtime_assets": ["E_0", "E_1", "E_2", "E_3", "E_4", "E_5"],
+  "cells": [
+    {"id": "E_0", "row": 0, "col": 0, "role": "walk_frame", "anchor": [256, 480], "output": "E_0.png", "runtime": true},
+    {"id": "E_1", "row": 0, "col": 1, "role": "walk_frame", "anchor": [256, 480], "output": "E_1.png", "runtime": true},
+    {"id": "E_2", "row": 0, "col": 2, "role": "walk_frame", "anchor": [256, 480], "output": "E_2.png", "runtime": true},
+    {"id": "E_3", "row": 1, "col": 0, "role": "walk_frame", "anchor": [256, 480], "output": "E_3.png", "runtime": true},
+    {"id": "E_4", "row": 1, "col": 1, "role": "walk_frame", "anchor": [256, 480], "output": "E_4.png", "runtime": true},
+    {"id": "E_5", "row": 1, "col": 2, "role": "walk_frame", "anchor": [256, 480], "output": "E_5.png", "runtime": true}
+  ]
+}

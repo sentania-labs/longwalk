@@ -1,0 +1,5 @@
+Use the style board to generate one neutral player master. Preserve the board's
+traveler identity: moss-green tunic, cream undershirt, brown belt and boots,
+dark trousers, short brown hair. Neutral south-facing isometric stance, both
+feet planted at one lower-center contact point. Solid #FF00FF, safe margins,
+no ground, shadow, effects, text, grid, UI, guides, or extra figures.

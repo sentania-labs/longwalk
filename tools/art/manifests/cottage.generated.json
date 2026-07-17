@@ -1,0 +1,7 @@
+{
+  "version": "longwalk.generated-sheet.v1",
+  "provenance": {"prompt": "../prompts/iso/cottage.prompt.txt", "style_board": "../out/iso/style_board.png", "generator": "openai.image_gen"},
+  "sheet": {"source": "../out/iso/cottage_raw.png", "rows": 1, "cols": 1, "cell_width": 1774, "cell_height": 887, "expected_width": 1774, "expected_height": 887, "magenta_key": "#FF00FF", "key_tolerance": 48},
+  "runtime_assets": ["cottage"],
+  "cells": [{"id": "cottage", "row": 0, "col": 0, "role": "building_2x2", "anchor": [887, 800], "output": "cottage.png", "runtime": true}]
+}
