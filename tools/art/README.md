@@ -117,21 +117,25 @@ output.
 
 ## Player walk-cycle build
 
-`build_player_walk.py` is the deterministic option C authoring and assembly
-path for the player walk cycle. It reads the committed colored-boot revision 3
-sheet, retains its passing side row, authors symmetric down and up half-cycles,
-and writes the pre-recolor artifact of record:
+The option C artifact predates the manifest-driven `build_player_walk.py`
+assembler. Its historical authoring operation is preserved separately in
+`rebuild_player_walk_option_c.py`. The script reads the committed colored-boot
+revision 3 sheet, retains its side row, completes the down and up rows as
+symmetric four-frame cycles, and writes the colored option C artifact:
 
 ```
-python3 tools/art/build_player_walk.py
-python3 tools/art/check_walk_sheet.py \
-  tools/art/out/player_walk_sheet_option_c_colored.png --json
+python3 tools/art/rebuild_player_walk_option_c.py \
+  --output tools/art/out/player_walk_sheet_option_c_colored.png
 ```
 
-Run the gate before using any processed output. After the source rows pass,
-the build mirrors side into the left-facing runtime row, aligns every frame to
-row 159 of its 160 px cell, recolors both boot markers to leather brown, and
-writes the three appearance atlases under `out/processed/`.
+The current `build_player_walk.py` has a different contract. It composites 48
+declared 160 px frame images into an eight-facing, six-frame atlas from a
+manifest with a top-level `frames` map. It does not author cycles, mirror rows,
+align subjects, or recolor pixels. No production frames manifest is committed
+yet, so it is tested with synthetic fixtures but is not the regeneration path
+for the historical option C artifact. The current `check_walk_sheet.py` also
+validates that newer 960 by 1280 atlas format, not the historical 1448 by 1086
+option C source sheet.
 
 The reproducible in-engine review montage uses the real starter town, player
 scene, atlas regions, camera, and one-to-one shipping scale:
