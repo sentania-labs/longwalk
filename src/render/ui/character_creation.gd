@@ -14,7 +14,7 @@ const APPEARANCE_LABELS := {
 }
 const PREVIEW_TEXTURE_PATH_FORMAT := "res://tools/art/out/processed/player_character_%s.png"
 
-@onready var _name_edit: LineEdit = $CenterContainer/VBoxContainer/NameEdit
+@onready var _name_edit: LineEdit = $CenterContainer/VBoxContainer/NameRow/NameEdit
 @onready var _preview: TextureRect = $CenterContainer/VBoxContainer/Preview
 @onready var _appearance_row: HBoxContainer = $CenterContainer/VBoxContainer/AppearanceRow
 
