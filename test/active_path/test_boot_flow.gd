@@ -21,6 +21,7 @@ func _initialize() -> void:
 	failures += _check_town_layout()
 	failures += _check_scene_instantiates(TitleScreenScene, "title_screen.tscn", Control)
 	failures += _check_scene_instantiates(CharacterCreationScene, "character_creation.tscn", Control)
+	failures += _check_character_creation_handoff()
 	failures += _check_player_scene()
 	failures += _check_starter_town_boot()
 
@@ -83,6 +84,38 @@ func _check_scene_instantiates(scene: PackedScene, label: String, expected_type)
 	failures += _check(instance != null and is_instance_of(instance, expected_type), "%s instantiates as %s" % [label, expected_type])
 	if instance != null:
 		instance.free()
+	return failures
+
+
+# Regression for the round-005 boot bug: character creation's name field lives
+# under a NameRow HBox in the scene (CenterContainer/VBoxContainer/NameRow/
+# NameEdit), but its @onready reference pointed one level too shallow
+# (.../VBoxContainer/NameEdit). @onready initializers only resolve on tree
+# entry (or an explicit _ready() call), so the plain instantiate()-and-check
+# above never fired them and the bad path stayed green in CI. In real play the
+# reference resolved to null, and the Enter Town handler then crashed
+# dereferencing it (an "Invalid access ... on a base object of type 'null
+# instance'" runtime error, printed at play time), so the town never loaded.
+#
+# Firing _ready() here reproduces what real tree entry does, exactly as the
+# starter-town check below calls town._ready() and for the same documented
+# reason: @onready initializers compile into _ready() and need only the child
+# nodes to exist (true right after instantiate()), not tree membership. With
+# the bug every scripted @onready node reference is null after this call; the
+# fix makes them resolve. Asserting the references directly catches the null at
+# its source rather than only as the downstream handler crash (which also needs
+# a live tree the --script harness cannot give it).
+func _check_character_creation_handoff() -> int:
+	var failures := 0
+
+	var scene: Control = CharacterCreationScene.instantiate()
+	scene._ready()
+
+	failures += _check(scene._name_edit is LineEdit, "character creation name field @onready resolves (round-005 null-instance boot bug)")
+	failures += _check(scene._preview is TextureRect, "character creation preview @onready resolves")
+	failures += _check(scene._appearance_row is HBoxContainer, "character creation appearance row @onready resolves")
+
+	scene.free()
 	return failures
 
 
