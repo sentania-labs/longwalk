@@ -322,5 +322,5 @@ what makes the unanimity worth something rather than suspicious.
 ## Sign-offs
 
 Signed-off-by: claude-worker <claude@sentania.net> PENDING
-Signed-off-by: codex-worker <codex@sentania.net> PENDING
+Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T15:10:03Z
 Signed-off-by: agy-worker <agy@sentania.net> 2026-07-17T15:10:00Z
