@@ -101,13 +101,73 @@ external review round, per decision 004.
 
 ## Phase
 
-**Status:** `phase 1: blind proposal`. Dispatched 2026-07-17T14:0xZ to all three
-doers in parallel, each into its own worktree, each blind to the others.
+**Status:** `synthesis complete, consensus signed, implementation dispatch next`.
 
-Round 003 is closed and merged, and that was **verified this run rather than
-inherited from this file**: `gh pr list --state open` empty, `git branch -r`
-after a `--prune` fetch showing only `origin/main` and `origin/issue-4-world-eras`
-(not a team branch), one worktree, `main` at `9988feb`.
+The entire deliberative half of round 004 is done and durable on the round
+branch `round/004-look-like-a-game` (pushed to origin):
+
+- **Phase 1 (blind proposal):** three committed proposals. claude
+  `7ab3585fcae70faa50df13adef821925a86cfd89` (its dispatch was killed by a 529
+  after writing but before committing; the orchestrator committed the artifact
+  verbatim, authored none of it, did not re-dispatch, because a phase-1
+  artifact's value is that it is the blind one). codex
+  `71d9d31b02aab16e6fcdaff77e51dcf26aaa8f39`. agy
+  `25473e73e3808d5dd44b41d7ca577a67247f36cb`.
+- **Phase 2 (adversarial critique):** claude
+  `874baa43141eb7c85134956ead726a0a65ce02e0`, codex
+  `67cbb4d46a92c4e31254114e1806f4d04fa32c54`, agy
+  `b6bbb5efeb62bb24d31f518f72326f93e9dd7eff`. The round worked: three blind
+  reads converged on a synthesis none proposed in phase 1.
+- **Phase 3 (synthesis):** `docs/decisions/006-asset-pack-and-rendering-model.md`,
+  accepted, **signed by all three doers**, passing `check_consensus.py` for both
+  protected paths (`src/sim/`, `project.godot`). 4-0 ballot, critic not invoked
+  (correctly tiebreaker-only, no tie). Verified by running the gate this run.
+
+### The ruling in one paragraph
+
+Stay orthogonal / top-down (isometric rejected: it discards decision 005's walk
+sheet and forces projection into `src/sim/`). Adopt **Kenney Roguelike/RPG pack
+(CC0)**, the intersection of orthogonal and license-clean that all three doers
+landed on once claude's LPC pack failed licensing (OGA-BY not CC-BY, caught
+independently by codex and agy) and isometric was rejected. Flip the rendering
+model to nearest-neighbour at a fixed art scale (claude's central claim), landed
+first and alone gated on a composition proof. Road costs `PATH=1.0 / GRASS=2.25`,
+heuristic untouched (codex's numbers, invariant comment + test per claude's C6).
+Camera FOLLOW/FOCUSED state machine reparented off the player, right-click focus
+persists, Space returns. Preprocessed per-asset shadow masks, one light vector.
+Decision 005 stands unamended.
+
+### Division of labor (from decision 006)
+
+- **claude-worker:** road-weighted routing (req 4), `src/sim/`. Headless, no
+  pack dependency. Buildable and fully gateable without Scott.
+- **agy-worker:** camera rig + right-click focus (req 5). No pack dependency.
+  Buildable and fully gateable without Scott. Inherits the synthesis semantics,
+  not agy's own defeated camera design.
+- **codex-worker:** pack ingestion, rendering-model flip, composition proof
+  (reqs 1, 2, 3 assets). Scott mandated the sprite-forge skills here. The long
+  pole. **Reqs 1 and 2 have a human acceptance gate that is Scott's eyes** (a
+  side-by-side walk GIF, before/after screenshots). That gate cannot close
+  inside an autonomous run, so the art slice completes to artifacts-for-Scott,
+  not to auto-merge.
+
+Flora placement (req 3) and the walk-cycle work sequence AFTER the composition
+proof, because both consume the pack and the art scale it settles.
+
+### What a continuing run does next
+
+Create fresh implementation branches from the current round head (they build on
+decision 006 and integrate together, so cut from `round/004-look-like-a-game`,
+NOT from the `*-proposal` branches). Dispatch the two buildable code slices
+(road routing, camera) to committed + suite-green + cross-peer sign-off + local
+integration. Dispatch the codex art slice to its Scott-facing artifacts. Then
+one round PR, one external review, address findings, merge.
+
+### Doer worktrees currently on disk
+
+`/home/scott/claude/lw-004-{claude,codex,agy}`, each on its `*-proposal` branch,
+holding the committed phase-1 and phase-2 artifacts. Reusable for
+implementation after checking out fresh impl branches cut from the round head.
 
 ## What this run did
 
@@ -247,7 +307,20 @@ the delta and write a new marker. Do not repoint the old one.
 
 ## Open escalations to Scott
 
-**ONE OPEN, and it is unchanged and now less urgent.**
+**NEW THIS RUN: Tiny Swords (Pixel Frog) for the traveller/vibe, decision 006.**
+claude named it "by a distance, the closest thing on the internet to what Scott
+is asking for" for the WC2 vibe: 64x64 top-down, Warcraft-inspired, real walk
+cycles, eight buildings, terrain autotiles, flora. Its license is clear and
+clearly forbids what the team would do: "you may not redistribute, resell, or
+repackage the assets, even if the files are modified", so a public repo with the
+PNGs committed is out, and it is not CC0/CC-BY so it fell outside Scott's
+authorization. Decision 006 adopts Kenney CC0 as the license-clean baseline and
+escalates Tiny Swords rather than silently dropping it, because the unlock is
+large enough that Scott should decline it knowingly rather than never see it.
+The path if Scott wants it: a private repo, or direct permission from Pixel Frog.
+Nothing blocks on this; Kenney ships this round regardless. `<https://pixelfrog-assets.itch.io/tiny-swords>`
+
+**STILL OPEN, unchanged and now less urgent.**
 
 **The Codex review bot's reliability (`request_id=846fef69-6bf4-411c-aa71-5c55bc3ca1f8`,
 filed 2026-07-17T04:26Z).** Nothing blocks on it.
@@ -284,6 +357,38 @@ blocked the round and both are shipped:
    its own scene-contract change.
 
 ## Notes for the next run
+
+**The claude harness hit 529 Overloaded repeatedly this run** (killed the phase-1
+claude proposal after it wrote but before it committed, and killed the first
+claude sign-off dispatch outright). Both recovered: the phase-1 artifact was
+committed verbatim by the orchestrator, and the sign-off retried clean on a
+second dispatch. Lesson reconfirmed: the end marker is the authority. A 529
+leaves `exit_code=1`, `branch_changed=no`, `uncommitted_work=yes`, and a
+plausible-looking transcript; only the marker plus the tree tell the truth. If
+the claude harness keeps 529ing next run, its dispatches are the ones to retry,
+not the codex/agy ones.
+
+**Two mechanical sign-off defects caught and fixed this run, both worth
+remembering.** (1) agy signed with the name token `Antigravity` instead of
+`agy-worker`; the consensus gate keys on the exact `Workers dispatched` name, so
+that would have red the gate. Re-dispatched agy to fix only its own line. (2) The
+first synthesis draft omitted agy's verbatim concession from the Dissent section
+(it quoted claude and codex but not agy), and **agy correctly refused to sign
+until it was added**. That refusal is the sign-off gate working as designed: a
+doer holding the referee to the verbatim-dissent rule. Adding it reset codex's
+sign-off to PENDING (record substance changed after codex signed) and all three
+were re-collected against the corrected text, per the invalidates-on-edit
+precedent. When a synthesis claims every party conceded, quote every party.
+
+**Doer branches are LOCAL-ONLY (Dalinar steer, 2026-07-17T13:10Z, inbox
+`2026-07-17-1310-*`).** Both `claude/004-proposal` and `codex/004-proposal` got
+pushed to origin by their worker dispatches this run; Scott spotted it. Deleted
+both remotes this run. Only the round branch and its single end-of-round PR ever
+reach GitHub. The steer asks that this be codified: the current framework text
+says "no PRs" but not "no pushes", and the gap is what let this happen. Not a
+gate breach, no work lost, but the codification is owed. **The next dispatch
+prompts must remind seats: no pushes to origin from doer branches; the
+orchestrator pushes the round branch and nobody else pushes anything.**
 
 **Follow-up work this round deliberately did not do**, in the order a next round
 should probably take it:
