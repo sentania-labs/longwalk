@@ -1,0 +1,9 @@
+# Python dependencies for the art pipeline (tools/art/) and its tests
+# (test/art/). Pinned rather than floating, matching how tools/godot/VERSION
+# pins the engine: an upstream release should never turn CI red on a day
+# nobody touched the repo.
+#
+# Install with:
+#   python3 -m pip install -r tools/art/requirements.txt
+numpy==2.4.3
+Pillow==12.1.1

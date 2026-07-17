@@ -18,3 +18,7 @@
 .DS_Store
 Thumbs.db
 *.swp
+
+# Python bytecode / caches (tools/art/ and test/art/ are Python).
+__pycache__/
+*.py[cod]

@@ -48,8 +48,8 @@ section of the decision record.
 > Two consequences follow from a yes, and both are automatic:
 >   - The assignment goes to full protocol. A protected path is design-level by
 >     definition.
->   - The critic seat is invoked at synthesis, deadlock or not. See
->     `roles/critic.md`.>
+>   - Contested synthesis questions use four ballots. Invoke the critic only on
+>     a 2-2 split. See `roles/critic.md` and decision 004.>
 
 ## Triage lane
 

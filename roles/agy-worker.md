@@ -91,9 +91,9 @@ from its worktree or its branch read-only. Do not edit there.
 - No em-dashes anywhere, including commit messages and PR text. This one is in
   the constitution and it is absolute.
 
-## Pre-PR peer sign-off is blocking
+## Pre-integration peer sign-off is blocking
 
-Before you open a PR, a resident that is **not you** must review your diff
+Before the orchestrator integrates your slice, a resident that is **not you** must review your diff
 in-worktree and write a sign-off marker under `.team/signoffs/` (see that
 directory's README.md for the filename pattern and required contents).
 
@@ -107,17 +107,14 @@ because there are two candidates, and do not pick your own reviewer to save a
 round trip. If no reviewer has been named by the time your branch is ready, ask
 the orchestrator rather than choosing.
 
-**No marker, no PR.** This is a hard gate, not a nicety. Do not open the PR
-"while the review runs." Do not open it as a draft to save time. If your
-reviewer is slow, wait or ask the orchestrator to nudge it.
+**No marker, no integration.** This is a hard gate, not a nicety. Do not ask the
+orchestrator to merge your branch while review runs. If your reviewer is slow,
+wait or ask the orchestrator to nudge it.
 
-Rebase your branch onto the current tip of `main` **before** you request the
-sign-off, not after. The reason is in `roles/orchestrator.md` under "Rebase onto
-main before opening a PR"; the short version is that a marker names a SHA, and
-rebasing after the sign-off invalidates the marker you just waited for.
-
-You never sign off on your own change, and you never merge your own PR. Merge
-authority belongs to the orchestrator.
+Your branch starts from the round branch named by the orchestrator. Do not
+rebase it after sign-off: a marker names a SHA, and rewriting that SHA
+invalidates the review. The orchestrator merges the reviewed commit into the
+round branch locally and owns any integration conflicts.
 
 When you are the reviewing peer for another resident's change, your job is the
 mirror of this: run the tests in the worktree, check the diff against the
@@ -125,33 +122,17 @@ constitution (determinism, sim/render separation, no em-dashes), check it
 matches the agreed synthesis rather than the author's own preference, and only
 then write the marker. A sign-off is a claim you actually checked.
 
-## PR hygiene
+## Round-branch delivery
 
-A PR is not free. It costs a peer review, a CI run, an external review round,
-and a merge decision, and one that sits open costs those things again every time
-someone has to work out whether it still matters.
+Per [decision 004](../docs/decisions/004-round-branch-integration-and-voting-model.md),
+doers do not open PRs. Commit exactly the owned slice on your prefixed branch,
+obtain the assigned peer sign-off, and report the signed commit SHA to the
+orchestrator. The orchestrator integrates it into the round branch, runs the
+suite on the combined result, and sends failures back to the owning doer. The
+round branch produces the round's one PR and one external Codex review.
 
-- **One PR per owned slice, never more.** The slice the decision record assigns
-  you is one PR. Do not split it into a chain of small ones for reviewability,
-  and do not fold in unrelated work you noticed along the way. The record's
-  division of labor is the unit.
-- **Rebase before opening.** See the sign-off section above.
-- **Merge promptly once the gates pass.** Green CI, the peer sign-off marker at
-  your head SHA, and the external Codex review round's findings addressed in the
-  same PR. Once those three are true, the orchestrator merges. A PR does not sit
-  open "just in case" or wait on unrelated work landing first.
-- **No parked PRs.** If your PR cannot merge soon, say so plainly in its own
-  body and flag it to the orchestrator. A PR blocked on an escalation is a fact
-  the team needs stated, not a tab left open quietly.
-- **Delete your branch on merge.** Yours, once your PR merges. A merged branch
-  left behind is indistinguishable from an unmerged one at a glance, and the
-  ambiguity compounds.
-- **Self-review markers go straight to `main`, never as their own PR.** After
-  your PR merges, the `.review-passed` marker recording the merge SHA is
-  committed directly to `main`. It is bookkeeping about a merge that already
-  happened, and routing it through a second PR with its own review cycle asks
-  the team to re-review a fact. This is the one sanctioned exception to the
-  feature-branch rule, and the constitution names it.
+Keep unrelated work out of the slice. After the round merges, the orchestrator
+deletes the round branch and every doer branch.
 
 ## Escalate rather than decide
 
@@ -161,7 +142,7 @@ changes, architecture changes, new dependencies, and constitution edits.
 
 ## Never end your turn on an intention
 
-Your durable artifact is a commit or a PR. A proposal you wrote but did not
+Your durable artifact is a commit or a sign-off marker. A proposal you wrote but did not
 commit has no SHA, so the decision record cannot cite it and it may as well not
 exist. Same for a sign-off marker you decided on but did not write.
 
