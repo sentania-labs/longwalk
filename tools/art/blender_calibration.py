@@ -38,12 +38,8 @@ def setup_camera(scene):
     scene.collection.objects.link(cam_obj)
     scene.camera = cam_obj
     
-    # 2:1 Dimetric requires elevation = arcsin(0.5) = 30 degrees.
-    # The prompt hints at atan(0.5), but the math for a true 2:1 pixel ratio
-    # given orthographic projection requires an elevation of exactly 30 degrees.
-    # Rotation X = 90 - elevation = 60 degrees.
-    # Azimuth = 45 degrees.
-    elevation_deg = 30.0
+    # Decision 009 constraint 2 PINNED atan(0.5)
+    elevation_deg = math.degrees(math.atan(0.5))
     azimuth_deg = 45.0
     
     cam_obj.rotation_euler = (
@@ -146,6 +142,42 @@ def run_calibration():
         print(f"  Blender Proj: ({px:.2f}, {py:.2f})")
         print(f"  Godot Proj:   ({godot_px:.2f}, {godot_py:.2f})")
         print(f"  Error:        {error:.4f} px")
+
+    print("\n--- HEIGHT CALIBRATION TESTS ---")
+    
+    # (height_in_meters, expected_pixels_above_contact)
+    test_heights = [
+        (1.75, 112.0),
+        (2.0, 128.0),
+        (2.4, 153.6),
+        (4.8, 307.2),
+        (5.6, 358.4)
+    ]
+    
+    # Test above origin (0, 0)
+    contact_loc = Vector((0.0, 0.0, 0.0))
+    contact_px, contact_py = get_pixel_coords(scene, cam_obj, contact_loc)
+    
+    for h, expected_px in test_heights:
+        # z in Blender corresponds to height
+        blender_loc = Vector((0.0, 0.0, h))
+        px, py = get_pixel_coords(scene, cam_obj, blender_loc)
+        
+        # We expect height to project straight up (pure screen-y, no screen-x change)
+        # In our pixel coords, Y goes down, so higher points should have smaller Y.
+        # expected_top_y = contact_y - expected_pixel_height
+        expected_py = contact_py - expected_px
+        expected_px_coord = contact_px
+        
+        diff_x = abs(px - expected_px_coord)
+        diff_y = abs(py - expected_py)
+        error = max(diff_x, diff_y)
+        max_error = max(max_error, error)
+        
+        print(f"Height {h}m:")
+        print(f"  Expected Proj: ({expected_px_coord:.2f}, {expected_py:.2f})")
+        print(f"  Blender Proj:  ({px:.2f}, {py:.2f})")
+        print(f"  Error:         {error:.4f} px")
 
     print(f"\nMax Pixel Error: {max_error:.4f} px")
     print("----------------------------------\n")
