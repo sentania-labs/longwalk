@@ -11,6 +11,9 @@
 #     the round-1 defect, missing chromatic markers, anchor drift, clipped
 #     figures, malformed grids) plus a corrected control proving the gate does
 #     not simply reject everything. See docs/art/walk-sheet-validation.md.
+#   - test_check_scale_contract.py: checks pre-render meter declarations and
+#     post-process contact and projected-height landmarks against the frozen
+#     isometric scale contract.
 #
 # Active-path tests (test/active_path/):
 #   - test_boot_flow.gd: the M3 starter-town prototype boot flow (title
@@ -55,6 +58,9 @@ python3 "${REPO_ROOT}/test/art/test_art_manifest.py"
 
 echo "=== test_check_walk_sheet.py ==="
 python3 "${REPO_ROOT}/test/art/test_check_walk_sheet.py"
+
+echo "=== test_check_scale_contract.py ==="
+python3 "${REPO_ROOT}/test/art/test_check_scale_contract.py"
 
 "${SCRIPT_DIR}/fetch_godot.sh"
 
