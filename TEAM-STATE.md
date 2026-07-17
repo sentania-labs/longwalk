@@ -806,12 +806,25 @@ disallowed sense. Its blocker (the Codex review bot never posting) is stated in
 its own body as a comment and diagnosed above. It is green, peer-signed at its
 head, and merges the moment the gate runs.
 
-Remote branches at end of run: `main`, the three `*/village-feel` (live round;
-`agy/village-feel` was pushed for the first time this run), `claude/town-motion`
-and `codex/town-motion` (retained: decision 001 cites SHAs reachable only from
-them, sweep once round 2's animation slice lands), `issue-4-world-eras` (not a
-team branch, no PR). Plus `refs/archive/003/*`, which are pins and not branches
-and must not be swept.
+Remote branches at end of run, all accounted for:
+
+| Branch | Status |
+| --- | --- |
+| `main` | `7497d9c` |
+| `round/003-village-feel` | **the live round**, `f9c7022`. Do NOT rebase it. |
+| `claude/village-feel` | doer branch, integrated, disposable at the sweep |
+| `codex/roles-codify` | doer branch, integrated, disposable at the sweep |
+| `codex/village-feel` | carries codex's proposal/critique/sign-off |
+| `agy/village-feel` | carries agy's proposal/critique. Pushed for the FIRST time this run; the agy adapter does not push the way codex's does. |
+| `claude/town-motion`, `codex/town-motion` | retained: decision 001 cites SHAs reachable only from them. Sweep once round 2's animation slice lands. |
+| `issue-4-world-eras` | not a team branch, no PR |
+
+Plus `refs/archive/003/*`: **six pins, not branches. Never sweep them.**
+
+**Both of this round's peer sign-off markers name SHAs that are reachable from
+the round branch** (verified: `49a7b39` and `8528603` are both ancestors of
+`f9c7022`, through the `--no-ff` merges). That is what makes the doer branches
+genuinely disposable at the sweep rather than only nominally so.
 
 Remember `git branch -r --merged` reports nothing useful here because the repo
 squash merges; check merged PRs' head branches instead. And `git branch -r`
