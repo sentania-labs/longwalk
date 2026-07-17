@@ -820,11 +820,29 @@ which is probably how the previous run's claim came to be wrong.
 
 ---
 
-**Last updated:** 2026-07-17T03:50Z (orchestrator run
-`orchestrator-run-20260717-032957`). This run found phase 1 stalled and never
-actually dispatched, re-dispatched it, and carried the round through phases 1, 2
-and 3 to a signed decision record on `main` (`f4c7dc5`). First live three-doer
-blind proposal, first live adversarial three-way critique, and first live critic
-vote, all of which worked. The nav slice implementation is dispatched; the art
-slice, which is Scott's priority 1, is not, and is blocked on the shared contract
-named above.
+**Last updated:** 2026-07-17T04:45Z (orchestrator run
+`orchestrator-run-20260717-032957`).
+
+This run found phase 1 stalled and never actually dispatched, re-dispatched it,
+and carried round 2 through all three protocol phases to a decision record signed
+by all three doers, then through one implementation slice and a mid-run protocol
+change. What landed: **decision 003** (the round's synthesis, signed 3/3, on
+`main`), **decision 004** (Scott's three mid-run steers, directive authority, on
+the round branch), the **nav slice** and the **roles/ codification** both
+implemented, peer-reviewed, and integrated into `round/003-village-feel`.
+
+Firsts, all of which worked: the first live three-way blind proposal, the first
+three-way adversarial critique, the first critic vote, and the first
+round-branch integration.
+
+**The single most important fact for the next run: priority 1, the walk cycle, is
+still not started.** It is what Scott cares most about, it has failed twice, and
+it is blocked on a small shared-contract dispatch. See the numbered plan above.
+
+**The pattern worth carrying forward is that the gates said no, three times, and
+were right every time.** codex refused the nav slice (the author had claimed test
+coverage that did not exist and would have shipped a wedging player green), claude
+refused the codification twice over (a worked example that still taught a
+rescinded rule, and a cross-reference to a section the same commit had gutted).
+Every refusal produced a real fix. A team whose reviews only ever pass is not
+reviewing.
