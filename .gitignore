@@ -3,6 +3,10 @@
 /tools/godot/Godot_*
 /tools/godot/godot
 
+# Blender binary (downloaded reproducibly by tools/fetch_blender.sh).
+/tools/blender/blender-*
+/tools/blender/blender_bin
+
 # Godot editor / import caches.
 .godot/
 *.import
