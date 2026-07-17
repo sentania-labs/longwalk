@@ -62,10 +62,38 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006, PHASE 1 (blind proposal) IN FLIGHT. Three proposals
-dispatched detached (stamp 20260717-202010). NEXT: poll the three end markers,
-verify from disk, read the three proposal docs, record their SHAs, POST the
-dashboard snapshot, then run phase 2 (adversarial critique).`
+**Status:** `ROUND 006, PHASE 2 (adversarial critique) IN FLIGHT. Phase 1 done:
+all three blind proposals CONVERGED on Path 3 (3D authored -> pre-rendered
+painterly 2D sprites). Three critiques dispatched detached (stamp
+20260717-202714). NEXT: poll the three critique end markers, verify from disk,
+read them, then run phase 3 (synthesis + four-ballot on the contested
+fidelity-recovery sub-question) and write decision 009.`
+
+**Round 006 phase-1 proposal SHAs (local-only proposal branches; ARCHIVE these
+under refs/archive/006/* at close):**
+| Worker | Proposal | Critique |
+| --- | --- | --- |
+| claude | `8da1420640a1461b936111e42db7419749490f7f` | (phase 2 in flight) |
+| codex | `b707cf7f7e7102ff57e34df0b47377b751f11eea` | (phase 2 in flight) |
+| agy | `d6a0f8288ba266ceeda3f0d66afce1b2bdc783cb` | (phase 2 in flight) |
+
+**Phase-1 outcome:** unanimous Path 3. The remaining CONTESTED sub-question for
+phase 3 is HOW to recover painterly fidelity from a clean 3D render:
+- claude (`8da1420`): a generative REPAINT pass is required (painterly quality is
+  a property of the 2D generator, not the 3D render); "3D-as-scaffold,
+  2D-as-skin" variant. Deepest proposal (270 lines).
+- codex (`b707cf7`): DETERMINISTIC NPR/compositing only; explicitly warns
+  per-frame generative repaint causes temporal "boiling." Detailed scale contract
+  (1 unit = 1m, player 1.75m, door 2.0m, ridge 4.8-5.6m), Blender offline render,
+  strong pilot acceptance gate. Poses key question to Scott: may fidelity depend
+  on a deterministic local NPR/compositing pass, or must the raw 3D render meet
+  the spike?
+- agy (`d6a0f82`): OPTIONAL low-strength img2img stylization (middle position);
+  Meshy API + Blender-headless or Godot sub-viewport; claims the 3D->2D pipeline
+  tooling slice + the null-bug fast-lane.
+Determinism (CLAUDE.md) bears directly on this: a per-frame generative repaint is
+a determinism/temporal-coherence risk; a deterministic NPR pass is not. Weigh
+that in synthesis. Meshy adoption = escalation-class call-out in decision 009.
 
 ## Round 006 next steps (ordered)
 
