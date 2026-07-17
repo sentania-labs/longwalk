@@ -39,6 +39,16 @@ func _capture() -> void:
 
 	var player = town.get_node("World/Player")
 
+	# Freeze the player's physics processing for the capture. With no route the
+	# controller's _physics_process() calls _update_walk_animation(_, false),
+	# which resets _walk_frame to zero and reapplies that region. Because the
+	# capture loop selects a frame and then awaits the next process/render frame,
+	# an intervening physics tick would overwrite the selection before the
+	# screenshot, repeating frame zero or dropping frames. Disabling physics
+	# processing removes the race entirely; nothing else drives the node here.
+	# (External Codex review of PR #21 round 2, P2.)
+	player.set_physics_process(false)
+
 	# Own camera in projected screen space, centered on the projected feet.
 	var camera := Camera2D.new()
 	camera.zoom = Vector2.ONE
