@@ -10,6 +10,7 @@ const NavGridScript := preload("res://src/sim/nav_grid.gd")
 const ClickMarkerScript := preload("res://src/render/town/click_marker.gd")
 const PlayerScene := preload("res://scenes/player.tscn")
 const ChimneySmokeScene := preload("res://scenes/chimney_smoke.tscn")
+const CameraRigScript := preload("res://src/render/town/camera_rig_2d.gd")
 
 const GROUND_TEXTURE_PATHS := {
 	TownLayoutScript.GroundTile.GRASS: "res://tools/art/out/processed/grass_ground_tile.png",
@@ -34,6 +35,7 @@ const COTTAGE_SMOKE_OFFSET := Vector2(80.0, -230.0)
 var _layout: TownLayoutScript
 var _player: CharacterBody2D
 var _click_marker: ClickMarkerScript
+var _camera_rig: CameraRigScript
 
 # Character choices from character creation. Public and settable directly
 # (a headless test sets these before calling _ready()/build() rather than
@@ -52,6 +54,7 @@ func _ready() -> void:
 	_build_buildings()
 	_build_boundary()
 	_spawn_player()
+	_build_camera_rig()
 	_build_click_marker()
 	_name_label.text = character_name
 
@@ -221,12 +224,11 @@ func _spawn_player() -> void:
 	_world.add_child(player)
 	_player = player
 
-	var camera: Camera2D = player.get_node("Camera2D")
-	var pixel_size := _layout.pixel_size()
-	camera.limit_left = 0
-	camera.limit_top = 0
-	camera.limit_right = int(pixel_size.x)
-	camera.limit_bottom = int(pixel_size.y)
+func _build_camera_rig() -> void:
+	_camera_rig = CameraRigScript.new()
+	_camera_rig.name = "CameraRig2D"
+	_world.add_child(_camera_rig)
+	_camera_rig.setup(_player, _layout)
 
 
 func _create_shadow_polygon(size: Vector2) -> Polygon2D:
