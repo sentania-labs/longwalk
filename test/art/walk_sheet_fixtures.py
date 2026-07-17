@@ -175,6 +175,26 @@ def build_brown_boot_sheet():
     return Image.fromarray(sheet, mode="RGB")
 
 
+def build_mirrored_side_row_sheet():
+    """A single mirrored side row, the artifact the gate must never judge.
+
+    This is the sheet codex-worker built to defeat the gate: take the
+    correct side row, mirror each frame in place (what the mirror pass
+    does to produce the west facing), and hand the gate that row alone.
+    Every check reads clean on it, because mirroring preserves the blobs
+    and the sign reversal while inverting the color/leg binding the
+    verdict rests on. Decision 003 says only source rows are checked, so
+    the correct outcome here is a parse failure, not a verdict.
+    """
+    sheet = np.asarray(build_sheet())
+    side = sheet[CELL * 2 : CELL * 3]
+    mirrored = np.concatenate(
+        [side[:, CELL * column : CELL * (column + 1)][:, ::-1] for column in range(4)],
+        axis=1,
+    )
+    return Image.fromarray(mirrored, mode="RGB")
+
+
 def write_fixture(image, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path)

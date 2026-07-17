@@ -21,8 +21,20 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "tools" / "art"))
 sys.path.insert(0, str(REPO_ROOT / "test" / "art"))
 
+import numpy as np  # noqa: E402
+from PIL import Image  # noqa: E402
+
 import walk_sheet_fixtures as fixtures  # noqa: E402
-from check_walk_sheet import SheetError, check_sheet  # noqa: E402
+from check_walk_sheet import (  # noqa: E402
+    SheetError,
+    check_boot_alternation,
+    check_sheet,
+    foreground_mask,
+    main as cli_main,
+    marker_masks,
+    measure_frame,
+    split_grid,
+)
 
 FAILURES = []
 
@@ -184,6 +196,61 @@ def test_malformed_grid_is_rejected(tmpdir):
         check("found 2" in str(exc), "a 2-row sheet raises SheetError", str(exc))
 
 
+def test_mirrored_row_cannot_earn_a_verdict(tmpdir):
+    print("\nmirrored side row (decision 003: only source rows are checked)")
+    image = fixtures.build_mirrored_side_row_sheet()
+    path = fixtures.write_fixture(image, pathlib.Path(tmpdir) / "mirrored_side.png")
+
+    # First prove the fixture is the dangerous case and not merely junk:
+    # run the gate's own checks against it as a one-row 'side' sheet and
+    # watch every one of them read clean. That is exactly why the layout
+    # cannot be an option. If this row could be rejected on its merits,
+    # the fixed layout would not be load-bearing.
+    rgb_image = Image.open(path).convert("RGB")
+    rgb = np.asarray(rgb_image).astype(np.int16)
+    hsv = np.asarray(rgb_image.convert("HSV")).astype(np.float64)
+    foreground = foreground_mask(rgb)
+    magenta, cyan = marker_masks(hsv, foreground)
+    (_, (top, bottom), column_bands), = split_grid(foreground, ("side",))
+    frames = [
+        measure_frame(
+            foreground[top : bottom + 1, left : right + 1],
+            magenta[top : bottom + 1, left : right + 1],
+            cyan[top : bottom + 1, left : right + 1],
+        )
+        for left, right in column_bands
+    ]
+    leaked = []
+    alternation = check_boot_alternation("side", frames, leaked)
+    check(
+        not leaked and alternation["contact_reversed"],
+        "the mirrored row reads clean on merit, so only the layout can stop it",
+        f"got: {leaked}",
+    )
+
+    # The actual gate must therefore refuse to parse it at all.
+    try:
+        check_sheet(path)
+        check(False, "a mirrored single row raises SheetError instead of a verdict")
+    except SheetError as exc:
+        check(
+            "found 1" in str(exc),
+            "a mirrored single row raises SheetError instead of a verdict",
+            str(exc),
+        )
+
+    # And no CLI override may reintroduce the hole.
+    try:
+        cli_main([str(path), "--rows", "side"])
+        check(False, "the CLI has no --rows override to aim at a mirrored row")
+    except SystemExit as exc:
+        check(
+            exc.code == 2,
+            "the CLI has no --rows override to aim at a mirrored row",
+            f"exit {exc.code}",
+        )
+
+
 def test_round1_candidates_are_rejected():
     print("\nreal round-1 candidate sheets")
     for n in (1, 2):
@@ -215,6 +282,7 @@ def main():
         test_anchor_drift_within_tolerance_is_not_rejected(tmpdir)
         test_clipped_figure_is_rejected(tmpdir)
         test_malformed_grid_is_rejected(tmpdir)
+        test_mirrored_row_cannot_earn_a_verdict(tmpdir)
     test_round1_candidates_are_rejected()
 
     print()

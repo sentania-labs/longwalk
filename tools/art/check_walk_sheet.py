@@ -40,6 +40,16 @@ now on the right of the image), so a mirrored row cannot be validated
 against the colored intermediate at all. Only the three SOURCE rows are
 checked here: down, up, side.
 
+That is why the row layout is fixed here and not configurable. The gate
+has no way to tell a mirrored row from a source one by looking at it: a
+per-frame mirrored side row still carries a magenta blob and a cyan blob
+and still reverses their signed separation, so every check below reads
+clean and the tool would report NO DEFECT DETECTED on a row it has no
+basis to judge. The only defense is that the shape of the artifact is
+not negotiable. This tool accepts exactly the 3x4 source sheet, in the
+order below, and anything else fails to parse (exit 2) rather than
+earning a verdict.
+
 ## Usage
 
     tools/art/check_walk_sheet.py tools/art/out/walk_sheet.png
@@ -59,9 +69,10 @@ import sys
 import numpy as np
 from PIL import Image
 
-# Source row order on the sheet, top to bottom. Diagonals are the first
+# Source row order on the sheet, top to bottom. Fixed, not configurable:
+# see the mirroring note in the module docstring. Diagonals are the first
 # stretch beyond this; four-cardinal snapping is not authorized.
-DEFAULT_ROW_NAMES = ("down", "up", "side")
+SOURCE_ROW_NAMES = ("down", "up", "side")
 EXPECTED_COLUMNS = 4
 
 # Background flood tolerance, matched to process_assets.py's BG_TOLERANCE so
@@ -397,11 +408,17 @@ def check_anchor_drift(row_name, frames, row_span, column_bands, image_shape, re
     }
 
 
-def check_sheet(path, row_names=DEFAULT_ROW_NAMES):
-    """Run every gate against one pre-recolor sheet.
+def check_sheet(path):
+    """Run every gate against one pre-recolor 3x4 source sheet.
 
     Returns (rejections, report). An empty rejections list means no defect
     was detected. It does not mean the sheet is good.
+
+    The row layout is SOURCE_ROW_NAMES and takes no override. A mirrored
+    row cannot be validated against the colored intermediate, and the gate
+    cannot recognize one on sight, so the only thing standing between this
+    tool and a confident verdict on a mirrored row is that it parses
+    nothing but the three-row source artifact.
     """
     try:
         image = Image.open(path)
@@ -414,7 +431,7 @@ def check_sheet(path, row_names=DEFAULT_ROW_NAMES):
 
     foreground = foreground_mask(rgb)
     magenta, cyan = marker_masks(hsv, foreground)
-    grid = split_grid(foreground, row_names)
+    grid = split_grid(foreground, SOURCE_ROW_NAMES)
 
     rejections = []
     report = {"sheet": str(path), "size": list(rgb_image.size), "rows": {}}
@@ -451,19 +468,11 @@ def main(argv=None):
         )
     )
     parser.add_argument("sheet", type=pathlib.Path, help="pre-recolor sheet PNG")
-    parser.add_argument(
-        "--rows",
-        default=",".join(DEFAULT_ROW_NAMES),
-        help="comma-separated source row names, top to bottom "
-        f"(default: {','.join(DEFAULT_ROW_NAMES)})",
-    )
     parser.add_argument("--json", action="store_true", help="emit the full report as JSON")
     args = parser.parse_args(argv)
 
-    row_names = tuple(name.strip() for name in args.rows.split(",") if name.strip())
-
     try:
-        rejections, report = check_sheet(args.sheet, row_names)
+        rejections, report = check_sheet(args.sheet)
     except SheetError as exc:
         if args.json:
             print(json.dumps({"error": str(exc), "rejected": True}, indent=2))
