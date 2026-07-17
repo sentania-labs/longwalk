@@ -7,8 +7,8 @@ prompting.
 | File | Who it goes to | When |
 | --- | --- | --- |
 | `0-assignment.md` | orchestrator's own working template | on receiving a goal statement, before anything else |
-| `1-proposal.md` | injected into each worker's dispatch | phase 1, both workers in parallel |
-| `2-critique.md` | injected into each worker's dispatch | phase 2, after both proposals are committed |
+| `1-proposal.md` | injected into each worker's dispatch | phase 1, every dispatched worker in parallel |
+| `2-critique.md` | injected into each worker's dispatch | phase 2, after every proposal is committed |
 | `3-synthesis.md` | orchestrator's own working template | phase 3 |
 
 `1-proposal.md` and `2-critique.md` are dispatched to workers, appended to the

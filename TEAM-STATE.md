@@ -128,7 +128,37 @@ as a clean linear replay that left `docs/decisions/` byte-identical to `main`.
 to `main` via PR #16. Both rejected candidates and both prompts are preserved
 under `tools/art/` as evidence.
 
-Next free decision number is `002`.
+**`docs/decisions/002-team-roster-and-critic-seat.md`, status accepted, no
+sign-offs and none owed.** It is a directive-authority record, not a converged
+synthesis: Scott directed the roster change on 2026-07-17, no worker round ran,
+so it cites the directive as its authority instead of worker signatures. It
+covers the `roles/` and `.github/protected-paths.txt` changes that landed in
+PR #17. Read its "Why this record has no proposals" section before writing
+another record of this kind; the category is narrow and is not a shortcut around
+the protocol.
+
+Next free decision number is `003`.
+
+**The record schema changed in PR #17 and a new field is required.** Every
+record now carries a machine-parseable `Workers dispatched` header line naming
+the workers the round actually dispatched, and `tools/check_consensus.py` builds
+its required-signer set from that line rather than from a hardcoded pair of
+names. Fill it in when you author a record, or the gate fails the record as
+unauditable. A record with no worker round writes
+`Workers dispatched: None (directive authority)` **and** an `Authority` line;
+both together or neither, the gate enforces it. `001-town-motion.md` was
+backfilled with the field (`claude-worker, codex-worker`) rather than the gate
+carrying a legacy fallback, so there is exactly one parsing path. See
+`docs/decisions/README.md`.
+
+**Known pre-existing gate bug, not fixed in PR #17, worth a future dispatch.**
+`covered_entries()` in `tools/check_consensus.py` scans the whole "Protected
+paths touched" section for protected-path strings, including explanatory prose.
+`001-town-motion.md` says "None" there and then discusses `src/sim/` in the
+paragraph below, so the gate reads it as covering `src/sim/`. That record could
+therefore be cited to wave a `src/sim/` change through the gate. It was found
+while verifying PR #17 and left alone deliberately: it is out of scope for that
+PR's review round, and it is not a regression from it.
 
 ## Outstanding sign-offs
 
@@ -188,34 +218,16 @@ silhouette variety, but columns 1 and 3 still failed to reverse the leading leg,
 A third attempt should constrain leading-leg reversal across all three rows at
 once rather than fixing one row and losing the others.
 
-**The dispatch wrapper is in the VAULT, not longwalk.**
-`/home/scott/claude/vault/scripts/team/dispatch.sh`, adapters for `claude`,
-`codex`, `cursor` (critic), `agy` alongside it. Read
-`/home/scott/claude/vault/scripts/team/README.md` before invoking. Two prior
-runs concluded it did not exist because they looked for `scripts/team/` relative
-to the longwalk checkout. It is harness-neutral by design and lives in the vault.
-
-Invocation that works (blocking, in your own turn):
-
-    D=/home/scott/claude/vault/scripts/team/dispatch.sh
-    "$D" codex <worktree> roles/codex-worker.md <prompt-file> \
-      --cap-seconds 2400 --label <slug>
-    "$D" claude <worktree> roles/claude-worker.md <prompt-file> \
-      --cap-seconds 2400 --model opus --label <slug>
-
-Parallel is fine with `&` plus `wait`, but only into *different* worktrees. For
-a round against `main` itself, pass `--allow-primary` and run SEQUENTIALLY.
-
-**A dispatch is synchronous. Block on it.** This killed two runs. Nothing an
-orchestrator launches survives its turn ending. `exit_code=0` on an orchestrator
-run says nothing about whether any worker ran. Blocking is cheap: every dispatch
-this run took 5-6 minutes.
-
-**Verify from the end markers, never the exit code.** Read `branch_sha_before`
-vs `branch_sha_after`, `branch_changed`, and `uncommitted_work`. This run also
-verified each claim against the tree itself (`git ls-tree`, `git diff --stat`,
-`gh pr view`), which is what caught that the sign-off SHA had gone stale after
-the rebase.
+**Five items that used to live here are now rules in the briefs, not retro
+notes.** The dispatch tooling's vault paths and working invocation shape,
+dispatches being synchronous, verifying from end markers rather than exit codes,
+rebasing worker branches onto `main` before opening a PR, and PR hygiene. All of
+them are in `roles/orchestrator.md` now (see "Dispatch mechanics", "Rebase onto
+main before opening a PR", "PR hygiene"), and the worker-facing halves are in
+each worker brief. Read the brief; it is the source of truth. They were removed
+from this file deliberately rather than kept in both places, because this file
+is overwritten every run and a rule that lives only here is a rule that lasts
+until someone forgets to copy it forward. Twice now, someone did.
 
 **The Codex review gate is the `chatgpt-codex-connector` bot, not codex-worker.**
 It posts automatically on PR open, roughly 2-3 minutes in, as a review with
@@ -227,8 +239,8 @@ codex-worker authored the PR.
 
 Both of its P1s on #16 were worth having, and one was a false positive with a
 real cause: it reported the decision record missing, because the branch was
-based on a pre-`001` commit and it reads the branch tree. **Rebase worker
-branches onto `main` before opening a PR** and that class of finding disappears.
+based on a pre-`001` commit and it reads the branch tree. This is now the
+recorded reason behind the rebase-before-PR rule in `roles/orchestrator.md`.
 
 **Grafting a fix onto a review finding is the orchestrator's call, and I made
 one:** the smoke-texture P1 offered two remedies, and the dispatch directed the
@@ -236,7 +248,19 @@ Godot-primitive one rather than routing a 24px gradient circle through an
 `image_gen` pipeline built for character art. Recorded here because it is a
 judgement, not a mechanical fix.
 
-**Still outstanding:** the Dashboard "Team" tab (build order step 5).
+**Still outstanding:** the Dashboard "Team" tab (build order step 5). It is the
+last unbuilt piece of the framework, and the three contract gaps below are its
+scope now rather than a footnote to it.
+
+**Stale team branches were swept on 2026-07-17** as part of the PR-hygiene
+dispatch, and the sweep is now a standing end-of-round duty in
+`roles/orchestrator.md`. Every merged PR's branch from #3 through #15 was still
+on the remote and is now deleted. Retained on purpose, and not to be swept:
+`claude/town-motion` and `codex/town-motion` (the pilot assignment is still
+open), and `issue-4-world-eras` (no PR, not a team branch). Note that
+`git branch -r --merged origin/main` reports nothing useful here: the repo squash
+merges, so a merged branch's commits are not ancestors of `main`. Check merged
+PRs' head branches instead.
 
 **Dashboard POST still 401s. Attempted this run, same failure:**
 `{"detail":"Invalid or missing X-Bridge-Token"}`. Cause unchanged: `deploy.sh`
@@ -253,18 +277,54 @@ Logged, not retried in a loop, every phase proceeded. **The Team tab has been
 stale for this entire assignment.** The truth is in this file, in
 `docs/decisions/001-town-motion.md`, and in PR #16.
 
-**Two known contract gaps against `POST /api/team`,** worked around in
+**Three known contract gaps against `POST /api/team`,** worked around in
 `roles/orchestrator.md`, worth closing dashboard-side: no `critic` author value,
-and the phase enum has no `implementation` or `done` (folded into `execution`
-and `review`, truth carried in `status_note`). This run's payload would have
-posted `phase: "review"` with a `status_note` distinguishing merged-but-blocked,
-which is exactly the lossy case the workaround warns about.
+no `agy` author value in either `DOCUMENT_AUTHORS` or `SIGNOFF_AUTHORS`, and the
+phase enum has no `implementation` or `done` (folded into `execution` and
+`review`, truth carried in `status_note`). This run's payload would have posted
+`phase: "review"` with a `status_note` distinguishing merged-but-blocked, which
+is exactly the lossy case the workaround warns about.
 
-**The critic seat was not invoked, deliberately.** Neither trigger fired: no
-deadlock (the round converged), and no protected path. The `cursor` adapter is
-built and ready.
+Two of those three got worse rather than staying flat, and a dashboard dispatch
+should know why. The critic is now a standing seat, so the missing `critic`
+author value bites every full-protocol round rather than the rare invoked one.
+And `agy` is now a seated doer whose sign-offs `signoffs[]` cannot express at
+all: there is no body field to carry the truth in the way a `documents[]` entry
+can, so the brief directs that an agy sign-off be named in `status_note` and
+left out of `signoffs[]` rather than posted under another resident's name. That
+is a workaround around a workaround, and it is the strongest argument yet for
+just adding the enum values.
+
+**The critic seat was not invoked during the pilot, and under the rule in force
+at the time that was correct:** neither trigger fired (no deadlock, no protected
+path). **That rule is gone.** The critic is now invoked at synthesis on every
+full-protocol assignment, with its vote recorded in the decision record every
+time; the old deadlock and protected-path triggers now set the vote's weight
+(tiebreaker-grade versus advisory) rather than gating invocation. Fast lane gets
+no critic vote, explicitly. See `roles/critic.md` and `roles/orchestrator.md`'s
+"The critic seat". The pilot is exactly why it changed: the seat's trigger was a
+judgment call by the one resident whose bias the seat exists to check, and it
+duly never fired. The `cursor` adapter is built and ready, and has still never
+served a real vote.
+
+**The `agy` seat is real now but has never run a live round.** `roles/agy-worker.md`
+exists, `.pka/team-config.yaml` lists it, `.pka/inbound/agy/` exists, and the
+adapter was smoke-tested in the vault. What has not happened is a
+three-way blind proposal with an actual Gemini-family read in it. The first
+full-protocol assignment after this one is that test, and the thing most worth
+watching is whether the third read is genuinely different or just a third way of
+saying what the other two said. Also unexercised: three-way worktree isolation,
+and the orchestrator naming a reviewer now that "the other resident" is two
+candidates.
 
 ---
 
-**Last updated:** 2026-07-17T00:53Z (ambient motion merged as `6c8e74a`, PR #16;
-walk cycle blocked on Scott, escalation `50ceed18` open)
+**Last updated:** 2026-07-17 (framework hygiene dispatch, closed out and merged
+as PR #17: agy seated as a third doer, critic made a standing synthesis-time
+voter, orchestrator brief given the pilot's retro lessons as rules, PR hygiene
+codified, stale branches swept. The review round on that PR added decision record
+`002`, generalized the phase 2 and phase 3 templates off a hardcoded two-worker
+shape, and moved the consensus gate to a per-record `Workers dispatched` signer
+set. The "seat agy, make the critic standing, codify PR hygiene" item is done and
+is no longer outstanding. The walk-cycle escalation `50ceed18` is untouched and
+still open; ambient motion remains merged as `6c8e74a`, PR #16.)
