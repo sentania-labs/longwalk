@@ -199,6 +199,16 @@ task ID) and flagged as an unexplained anomaly to the orchestrator. They are not
 counted as quality rejections because I did not author or evaluate them; they are
 orphan tasks whose origin I could not determine, spending 40 unaccounted credits.
 
+**Blender Cleanup Slice Ledger (agy-worker):**
+- **Cottage:**
+  - Mesh edits: 5 minutes (removed ~19,871 non-manifold/degenerate vertices, scaled to target metric height).
+  - UV/texture repair: 0 minutes.
+  - Rig repair: 0 minutes (not rigged).
+- **Player:**
+  - Mesh edits: 5 minutes (removed ~26,674 non-manifold/degenerate vertices, scaled to 1.75m target metric height).
+  - UV/texture repair: 0 minutes.
+  - Rig repair: 0 minutes (no rig edits required to extract the walk cycle poses).
+
 ## Binding-constraint compliance
 
 - `save_to` was NEVER passed to `meshy_download_model`; all downloads used the
