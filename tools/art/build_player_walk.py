@@ -86,6 +86,28 @@ def marker_residue_mask(image: Image.Image) -> np.ndarray:
     return marker_hue & (value >= MARKER_MIN_VALUE) & (alpha > 0)
 
 
+def marker_blend_residue_mask(image: Image.Image) -> np.ndarray:
+    """Return visible blue pixels produced by blended boot markers."""
+    rgba = image.convert("RGBA")
+    rgb = np.asarray(rgba)[:, :, :3].astype(np.int16)
+    hsv = np.asarray(rgba.convert("RGB").convert("HSV"), dtype=np.float64)
+    hue = hsv[:, :, 0] * (360.0 / 255.0)
+    saturation = hsv[:, :, 1] / 255.0
+    value = hsv[:, :, 2] / 255.0
+    alpha = np.asarray(rgba)[:, :, 3]
+    red_green_balance = np.abs(rgb[:, :, 0] - rgb[:, :, 1]) <= 55
+    blue_dominant = rgb[:, :, 2] > np.maximum(rgb[:, :, 0], rgb[:, :, 1])
+    return (
+        (hue >= 220.0)
+        & (hue <= 260.0)
+        & (saturation >= MARKER_MIN_SATURATION)
+        & (value >= MARKER_MIN_VALUE)
+        & red_green_balance
+        & blue_dominant
+        & (alpha >= 128)
+    )
+
+
 def _set_hue(image: Image.Image, mask: np.ndarray, hue_degrees: float) -> Image.Image:
     rgba = image.convert("RGBA")
     hsv = np.asarray(rgba.convert("RGB").convert("HSV"), dtype=np.uint8).copy()
@@ -198,6 +220,7 @@ def recolor_boots(image: Image.Image) -> Image.Image:
         _hue_mask(image, (260.0, 359.9))
         | _hue_mask(image, (140.0, 220.0))
         | marker_residue_mask(image)
+        | marker_blend_residue_mask(image)
     )
     rgba = image.convert("RGBA")
     hsv = np.asarray(rgba.convert("RGB").convert("HSV"), dtype=np.uint8).copy()
