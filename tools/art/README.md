@@ -123,7 +123,9 @@ sheet, retains its passing side row, authors symmetric down and up half-cycles,
 and writes the pre-recolor artifact of record:
 
 ```
-python3 tools/art/build_player_walk.py
+python3 tools/art/build_player_walk.py \
+  tools/art/manifests/player-walk-policy.json \
+  --output tools/art/out/player_walk_sheet_option_c_colored.png
 python3 tools/art/check_walk_sheet.py \
   tools/art/out/player_walk_sheet_option_c_colored.png --json
 ```
