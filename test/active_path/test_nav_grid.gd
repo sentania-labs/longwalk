@@ -5,8 +5,15 @@ extends SceneTree
 # construction rather than by runtime exception (decision record
 # docs/decisions/003-village-feel.md).
 #
-# No display server, no physics, no scene tree: NavGrid is a pure function of
-# (layout, from, to), and these tests exercise it as one.
+# NavGrid itself is a pure function of (layout, from, to), and the routing
+# tests exercise it as one: no display server, no physics, no scene tree.
+#
+# The agreement checks at the bottom are deliberately not like that. The claim
+# they test is that the render layer's colliders match the grid, and sim data
+# cannot testify about that on its own, so they boot the real starter town
+# scene headless and measure the collider nodes it actually built. They still
+# run no physics: the geometry is compared arithmetically, not by simulating a
+# body into a wall.
 #
 # Invocation (run by tools/run_tests.sh):
 #   godot --headless --script res://test/active_path/test_nav_grid.gd
@@ -14,6 +21,7 @@ extends SceneTree
 const TownLayoutScript := preload("res://src/sim/town_layout.gd")
 const NavGridScript := preload("res://src/sim/nav_grid.gd")
 const PlayerScene := preload("res://scenes/player.tscn")
+const StarterTownScene := preload("res://scenes/starter_town.tscn")
 
 const STREET_Y := 7
 
@@ -289,18 +297,14 @@ func _check_nav_collision_agreement() -> int:
 		failures += _check(reach < half_tile, "player collider stays inside its cell once its offset is applied (%.1f < %.1f)" % [reach, half_tile])
 	player.free()
 
-	# 2. Every building collider the render layer builds is exactly the
-	#    footprint the nav grid blocks. starter_town.gd sizes the rect
-	#    footprint * TILE_SIZE, so this asserts the footprints are whole cells
-	#    (no fractional cell a collider could cover but the grid could not).
-	var footprints_are_whole_cells := true
-	for building in layout.buildings:
-		if building.footprint.x <= 0 or building.footprint.y <= 0:
-			footprints_are_whole_cells = false
-	failures += _check(footprints_are_whole_cells, "every building footprint is a whole number of cells")
+	# 2 and 3 need the render layer's ACTUAL geometry, not the sim data it was
+	#    derived from: the claim under test is that the two agree, and sim data
+	#    cannot testify about itself.
+	failures += _check_building_colliders_match_footprints(layout)
+	failures += _check_boundary_walls_stay_outside(layout)
 
-	# 3. The blocked set and the walkable set are exact complements within
-	#    bounds: no cell is both, none is neither.
+	# The blocked set and the walkable set are exact complements within
+	# bounds: no cell is both, none is neither.
 	var complements := true
 	for y in range(layout.height):
 		for x in range(layout.width):
@@ -323,6 +327,158 @@ func _check_nav_collision_agreement() -> int:
 				unreachable += 1
 	failures += _check(unreachable == 0, "every walkable cell is reachable from the spawn (%d stranded)" % unreachable)
 	return failures
+
+
+# Boots the real starter town scene so the checks below can read the colliders
+# it actually built. Boots it the way test_boot_flow.gd does, by calling
+# _ready() directly rather than relying on add_child()-triggered tree entry;
+# see the comment on that file's _check_starter_town_boot() for why that is
+# both necessary here and safe for the @onready child references.
+func _build_town() -> Node2D:
+	var town := StarterTownScene.instantiate()
+	town.character_name = "Test Traveler"
+	town.appearance_variant = "moss"
+	town._ready()
+	return town
+
+
+# INVARIANT 1 (buildings). Each building's collider is a RectangleShape2D of
+# exactly footprint * TILE_SIZE, centred on exactly that footprint. This reads
+# the instantiated StaticBody2D nodes, so it fails if starter_town.gd stops
+# sizing the rect footprint * TILE_SIZE, mispositions the body, or builds a
+# collider for a footprint the nav grid does not block (and vice versa).
+func _check_building_colliders_match_footprints(layout: TownLayoutScript) -> int:
+	var failures := 0
+	var town := _build_town()
+	var world: Node2D = town.get_node("World")
+
+	# Authored footprints, keyed by the collider geometry they must produce.
+	# NPC placeholders are markers with no collision, so the grid does not block
+	# them and the render layer must not wall them off either.
+	var expected := {}
+	for building in layout.buildings:
+		if building.is_npc_placeholder:
+			continue
+		var size := Vector2(building.footprint) * float(TownLayoutScript.TILE_SIZE)
+		var center := Vector2(building.cell) * float(TownLayoutScript.TILE_SIZE) + size / 2.0
+		expected["%s|%s" % [center, size]] = building.id
+
+	var found := {}
+	var malformed := 0
+	for child in world.get_children():
+		if not (child is StaticBody2D):
+			continue
+		var shape_node := _first_collision_shape(child)
+		var rect: RectangleShape2D = null if shape_node == null else shape_node.shape as RectangleShape2D
+		if rect == null:
+			malformed += 1
+			continue
+		# The shape's own offset within the body counts: a body centred right
+		# with the shape shifted inside it is still a misplaced collider.
+		var center: Vector2 = child.position + shape_node.position
+		found["%s|%s" % [center, rect.size]] = true
+
+	failures += _check(malformed == 0, "every building body carries a RectangleShape2D collider (%d malformed)" % malformed)
+
+	var missing: Array = []
+	for key in expected:
+		if not found.has(key):
+			missing.append("%s at %s" % [expected[key], key])
+	failures += _check(missing.is_empty(), "every authored footprint has a collider of exactly footprint * TILE_SIZE centred on it (missing: %s)" % ", ".join(missing))
+
+	var extra: Array = []
+	for key in found:
+		if not expected.has(key):
+			extra.append(key)
+	failures += _check(extra.is_empty(), "the render layer builds no collider the nav grid does not block (extra: %s)" % ", ".join(extra))
+
+	# Belt and braces on the pairing above: the counts must match too, so a
+	# duplicate collider on one footprint cannot hide behind a dictionary key.
+	var body_count := 0
+	for child in world.get_children():
+		if child is StaticBody2D:
+			body_count += 1
+	failures += _check(body_count == expected.size(), "one building collider per authored footprint (%d bodies, %d footprints)" % [body_count, expected.size()])
+
+	town.free()
+	return failures
+
+
+# INVARIANT 2 (boundary). The four boundary walls sit wholly outside
+# [0, pixel_size], the exact region TownLayout.is_cell_in_bounds accepts. They
+# bound the walkable set from outside rather than overlapping its edge cells.
+# This reads the instantiated wall bodies, so it fails if a wall moves inward
+# over a walkable edge cell or grows to cover one.
+func _check_boundary_walls_stay_outside(layout: TownLayoutScript) -> int:
+	var failures := 0
+	var town := _build_town()
+	var boundary: Node2D = town.get_node("Boundary")
+	var pixel_size := layout.pixel_size()
+	var play_area := Rect2(Vector2.ZERO, pixel_size)
+
+	var walls: Array[Rect2] = []
+	var malformed := 0
+	for child in boundary.get_children():
+		var shape_node := _first_collision_shape(child)
+		var rect: RectangleShape2D = null if shape_node == null else shape_node.shape as RectangleShape2D
+		if rect == null:
+			malformed += 1
+			continue
+		var center: Vector2 = child.position + shape_node.position
+		walls.append(Rect2(center - rect.size / 2.0, rect.size))
+	failures += _check(malformed == 0, "every boundary wall carries a RectangleShape2D collider (%d malformed)" % malformed)
+	failures += _check(walls.size() == 4, "the boundary is four walls (%d)" % walls.size())
+
+	# Wholly outside the play area. Borders excluded: a wall's inner face is
+	# allowed to sit flush against the edge, that is the intended contact.
+	var intruding: Array = []
+	for wall in walls:
+		if wall.intersects(play_area, false):
+			intruding.append(str(wall))
+	failures += _check(intruding.is_empty(), "no boundary wall intrudes into [0, pixel_size] (%s)" % ", ".join(intruding))
+
+	# And the same claim stated over the cells that actually matter: no wall
+	# touches the interior of any walkable cell.
+	var overlapped := 0
+	for y in range(layout.height):
+		for x in range(layout.width):
+			var cell := Vector2i(x, y)
+			if not layout.is_cell_walkable(cell):
+				continue
+			var cell_rect := Rect2(Vector2(cell) * float(TownLayoutScript.TILE_SIZE), Vector2.ONE * float(TownLayoutScript.TILE_SIZE))
+			for wall in walls:
+				if wall.intersects(cell_rect, false):
+					overlapped += 1
+	failures += _check(overlapped == 0, "no boundary wall overlaps a walkable cell (%d overlaps)" % overlapped)
+
+	# The walls do enclose the play area rather than merely avoiding it: each
+	# edge is covered along its full span. Otherwise "outside" would be
+	# satisfiable by four walls parked in a corner.
+	var edges := {
+		"north": Rect2(Vector2(0.0, -1.0), Vector2(pixel_size.x, 1.0)),
+		"south": Rect2(Vector2(0.0, pixel_size.y), Vector2(pixel_size.x, 1.0)),
+		"west": Rect2(Vector2(-1.0, 0.0), Vector2(1.0, pixel_size.y)),
+		"east": Rect2(Vector2(pixel_size.x, 0.0), Vector2(1.0, pixel_size.y)),
+	}
+	for label in edges:
+		var strip: Rect2 = edges[label]
+		var sealed := false
+		for wall in walls:
+			if wall.encloses(strip):
+				sealed = true
+		failures += _check(sealed, "the %s edge is sealed along its full span" % label)
+
+	town.free()
+	return failures
+
+
+# The render layer builds its colliders in code (CollisionShape2D.new()), so
+# they are found by type rather than by an authored node name.
+func _first_collision_shape(body: Node) -> CollisionShape2D:
+	for child in body.get_children():
+		if child is CollisionShape2D:
+			return child
+	return null
 
 
 func _plot(id: String, cell: Vector2i, footprint: Vector2i) -> TownLayoutScript.BuildingPlacement:
