@@ -13,6 +13,8 @@
 #     nearest_walkable search contract (bounds clamping, Euclidean metric,
 #     cell-index tie-break), and the construction invariants that keep the
 #     render layer's colliders in agreement with the grid.
+#   - test_player_world_contract.gd: the shared decision 003 player origin,
+#     feet anchor, world scale, and unchanged starter-town fixture.
 #   - test_display_settings.gd: the display settings plumbing
 #     (src/render/display_settings.gd). Asserts the ConfigFile round-trip
 #     under user://, that a resolution this build does not offer is rejected
@@ -45,6 +47,9 @@ echo "=== test_boot_flow.gd ==="
 
 echo "=== test_nav_grid.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_nav_grid.gd
+
+echo "=== test_player_world_contract.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_player_world_contract.gd
 
 echo "=== test_display_settings.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_display_settings.gd
