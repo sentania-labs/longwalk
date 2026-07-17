@@ -76,6 +76,9 @@ var _destination_cell := NavGridScript.NO_CELL
 var _stall_frames := 0
 var _repathed_since_stall := false
 
+const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+var _zoom_index := 2
+
 
 func set_appearance(appearance_variant: String) -> void:
 	# get_node() rather than an @onready var: set_appearance() is meant to be
@@ -195,3 +198,24 @@ func _handle_stall() -> void:
 	# _route_to resets the guard, so re-arm it: the next stall on this route
 	# drops it rather than repathing forever.
 	_repathed_since_stall = true
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("zoom_in"):
+		_set_zoom_index(_zoom_index + 1)
+		var viewport := get_viewport()
+		if viewport:
+			viewport.set_input_as_handled()
+	elif event.is_action_pressed("zoom_out"):
+		_set_zoom_index(_zoom_index - 1)
+		var viewport := get_viewport()
+		if viewport:
+			viewport.set_input_as_handled()
+
+
+func _set_zoom_index(new_index: int) -> void:
+	_zoom_index = clampi(new_index, 0, ZOOM_LEVELS.size() - 1)
+	var camera: Camera2D = get_node_or_null("Camera2D")
+	if camera:
+		var z: float = ZOOM_LEVELS[_zoom_index]
+		camera.zoom = Vector2(z, z)
