@@ -129,14 +129,29 @@ func _check_starter_town_boot() -> int:
 	var world: Node2D = town.get_node("World")
 	var building_bodies := 0
 	var player_found := false
+	var cottage_sprites := 0
+	var cottage_smoke := 0
+	var smoke_on_other_facades := 0
 	for child in world.get_children():
 		if child is StaticBody2D:
 			building_bodies += 1
 		if child is CharacterBody2D:
 			player_found = true
+		if child is Sprite2D:
+			var sprite_key: String = child.get_meta("sprite_key", "")
+			var smoke := child.get_node_or_null("ChimneySmoke")
+			if sprite_key == "cottage_facade":
+				cottage_sprites += 1
+				if smoke is CPUParticles2D and smoke.position == town.COTTAGE_SMOKE_OFFSET:
+					cottage_smoke += 1
+			elif smoke != null:
+				smoke_on_other_facades += 1
 
 	failures += _check(building_bodies > 0, "starter town built building collision bodies (%d)" % building_bodies)
 	failures += _check(player_found, "starter town spawned the player")
+	failures += _check(cottage_sprites == 2, "starter town built 2 cottage sprites (%d)" % cottage_sprites)
+	failures += _check(cottage_smoke == cottage_sprites, "each cottage has CPU smoke at the shared render offset (%d/%d)" % [cottage_smoke, cottage_sprites])
+	failures += _check(smoke_on_other_facades == 0, "non-cottage facades have no chimney smoke")
 
 	var boundary: Node2D = town.get_node("Boundary")
 	failures += _check(boundary.get_child_count() == 4, "starter town built 4 boundary walls (%d)" % boundary.get_child_count())

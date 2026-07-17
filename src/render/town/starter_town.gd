@@ -7,6 +7,7 @@ extends Node2D
 
 const TownLayoutScript := preload("res://src/sim/town_layout.gd")
 const PlayerScene := preload("res://scenes/player.tscn")
+const ChimneySmokeScene := preload("res://scenes/chimney_smoke.tscn")
 
 const GROUND_TEXTURE_PATHS := {
 	TownLayoutScript.GroundTile.GRASS: "res://tools/art/out/processed/grass_ground_tile.png",
@@ -21,6 +22,7 @@ const BUILDING_TEXTURE_PATHS := {
 const TILE_SIZE := TownLayoutScript.TILE_SIZE
 const BOUNDARY_THICKNESS := 64.0
 const PLACEHOLDER_MARKER_COLOR := Color(0.9, 0.75, 0.2, 0.25)
+const COTTAGE_SMOKE_OFFSET := Vector2(80.0, -230.0)
 
 @onready var _ground_layer: Node2D = $GroundLayer
 @onready var _world: Node2D = $World
@@ -97,7 +99,12 @@ func _build_buildings() -> void:
 		# roughly the lower half of the building's height.
 		sprite.position = Vector2(footprint_center.x, footprint_origin.y + footprint_px.y)
 		sprite.offset = Vector2(0, -texture.get_height() / 2.0)
+		sprite.set_meta("sprite_key", building.sprite_key)
 		_world.add_child(sprite)
+		if building.sprite_key == "cottage_facade":
+			var smoke := ChimneySmokeScene.instantiate()
+			smoke.position = COTTAGE_SMOKE_OFFSET
+			sprite.add_child(smoke)
 
 		var body := StaticBody2D.new()
 		var shape := CollisionShape2D.new()

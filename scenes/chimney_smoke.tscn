@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://tools/art/out/processed/chimney_smoke_particle.svg" id="1_smoke"]
+
+[node name="ChimneySmoke" type="CPUParticles2D"]
+amount = 8
+lifetime = 3.0
+randomness = 0.35
+preprocess = 3.0
+local_coords = false
+texture = ExtResource("1_smoke")
+direction = Vector2(0, -1)
+spread = 16.0
+gravity = Vector2(0, -4)
+initial_velocity_min = 12.0
+initial_velocity_max = 20.0
+scale_amount_min = 0.7
+scale_amount_max = 1.35
+emission_shape = 1
+emission_sphere_radius = 3.0
