@@ -26,80 +26,94 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**Status:** BLOCKED ON SCOTT, half delivered. Pilot run of the multi-harness
-team framework (build order step 7).
+**Status:** ACTIVE, phase 1 (blind proposal) dispatched. Round 2 of the team
+framework, and the first live three-doer round.
 
-**Assignment (goal statement, verbatim as Scott gave it):**
+**Assignment (goal statement, verbatim as Scott gave it, relayed through
+`.pka/inbound/orchestrator/2026-07-17-0110-dalinar-escalation-reply-50ceed18.md`):**
 
-> Bring motion to the starter town: player walk cycle at minimum, ambient town
-> motion if cheap.
+> Goal: one round of updates delivering (in priority order):
+>
+> 1. **Quality character animations** - a real multi-facing walk cycle for the
+>    PC at minimum (beat the one named defect from spike round 1: foot
+>    alternation, judged at shipping size). More spike budget is authorized;
+>    different generator framing, more revisions, or hand-authored frames are
+>    all in bounds per decision 001's own option analysis.
+> 2. **Zoom control** - scroll-wheel plus keybindable zoom in/out on the
+>    overhead view.
+> 2b. **Click-to-move** (Scott, 2026-07-17 follow-up): NO more keyboard
+>    driving. Give the player a cursor; they click where they want to go
+>    and the PC walks there. This replaces WASD/arrow movement as the
+>    primary control scheme.
+> 3. **Visual-feel pass** - move the village view toward a Warcraft 2 /
+>    Ultima Online vibe, "but for 2026": that era's readable, warm, isometric
+>    character with modern rendering polish.
+>
+> Stretch goal (only after 1-3 are solid): **flora** - trees, bushes, ground
+> cover; make it feel like a real village.
+>
+> Explicit exclusions: NO NPCs this round. Focus is the graphics engine and
+> the base PC animation set.
 
-**Where it actually stands:**
+**Constraints beyond the constitution:**
 
-- **Ambient town motion: DONE and merged.** PR #16, squash-merged as `6c8e74a`.
-  `.review-passed` marker recorded on `main` at `225f03a`.
-- **Player walk cycle: NOT delivered, and cannot proceed without Scott.** The
-  art spike ran and FAILED. Per decision 001 step 4, taking the fallback is a
-  change to the assignment and is Scott's call, not the team's. Escalation is
-  filed and open (see "Open escalations").
+- Inspiration art at `/home/scott/claude/vault/tmp/longwalk-inputs/` (8 images,
+  Age of Empires 1/2, Warcraft-era, isometric references). Style reference for
+  the visual-feel pass and the art spike. READ-ONLY.
+- The procedural bob fallback from decision 001 step 4 is SUPERSEDED and out of
+  bounds. Scott ruled option 2 (more spike budget) on escalation `50ceed18`.
+- No NPCs.
+- Do not regress the chimney smoke shipped in PR #16. Scott called it out
+  specifically as "pretty cool and a good step."
 
-So the town moves, but the thing the assignment named as its *minimum* is the
-thing that is blocked. Do not read "PR merged" as "assignment done."
+**Lane:** `full protocol`. Directed by Scott in the escalation reply, and it is
+also what triage would have chosen independently: the animation approach
+continues decision 001's contested lineage, and camera/control/feel scoping is
+new design ground where three reasonable engineers would pick three different
+shapes.
 
-**Lane:** `full protocol`. Directed by Scott, not left to orchestrator triage.
+**Protected paths expected:** `src/sim/` and `project.godot`. A forecast, not a
+finding: click-to-move plausibly puts movement intent in the sim layer, and zoom
+keybinds plus click need input actions. Phase 3 corrects this against what the
+synthesis actually calls for. **Consequence: the critic vote this round is
+tiebreaker-grade, not advisory** (protected-path decision), so the mechanics in
+`roles/orchestrator.md` under "When the critic votes against you" bind.
 
-**Protected paths touched:** none. Settled, not forecast. Confirmed again at
-merge: PR #16 touches no protected path, so the consensus gate did not apply
-and the critic seat was not triggered.
+**Roster:** three doers (claude, codex, agy) plus the critic at synthesis. This
+is the first live three-way blind proposal and the first real critic vote. Both
+were seated in PR #17 and neither has been exercised.
 
 ## Phase
 
-**Status:** `review` COMPLETE for the ambient slice (merged). The assignment as
-a whole is **blocked**, not done.
+**Status:** `proposal` (phase 1, blind), dispatched 2026-07-17T03:40Z to three
+doers in parallel into three isolated worktrees.
 
-Phase history: triage, phase 1 (blind proposal), phase 2 (adversarial critique),
-phase 3 (synthesis, decision 001 signed by both), implementation (partial), peer
-sign-off, Codex review gate, merge. All complete for what shipped.
-
-- Claude worker: branch `claude/town-motion`, worktree
-  `/home/scott/claude/longwalk-worktrees/claude-town-motion`, head `17cf61e`
-  (proposal, critique, and two sign-off markers; **no implementation**).
-- Codex worker: branch `codex/town-motion`, worktree
-  `/home/scott/claude/longwalk-worktrees/codex-town-motion`, head `f6c7d77`
-  (merged into `main` via PR #16; branch retained deliberately, not deleted).
-
-### What shipped, verified from end markers rather than narration
-
-| Dispatch | Harness | Result | End marker |
+| Worker | Branch | Worktree | Proposal file |
 | --- | --- | --- | --- |
-| `art-spike` | codex | **FAIL** gate call, `4ab315e` -> `5eb92d0` | `art-spike-20260717-001757-end.md` |
-| `chimney-smoke` | codex | smoke landed, `5eb92d0` -> `552e153` | `chimney-smoke-20260717-002454-end.md` |
-| `peer-signoff` | claude | signed `552e153`, `6552e1d` -> `8323b54` | `peer-signoff-20260717-003107-end.md` |
-| `codex-review-round` | codex | both P1s fixed + rebase, `552e153` -> `f6c7d77` | `codex-review-round-20260717-004118-end.md` |
-| `peer-resignoff` | claude | re-signed `f6c7d77`, `8323b54` -> `17cf61e` | `peer-resignoff-20260717-004639-end.md` |
+| claude | `claude/village-feel` | `/home/scott/claude/longwalk-worktrees/claude-village-feel` | `docs/proposals/claude-village-feel.md` |
+| codex | `codex/village-feel` | `/home/scott/claude/longwalk-worktrees/codex-village-feel` | `docs/proposals/codex-village-feel.md` |
+| agy | `agy/village-feel` | `/home/scott/claude/longwalk-worktrees/agy-village-feel` | `docs/proposals/agy-village-feel.md` |
 
-All five: `exit_code=0`, `cap_expired=no`, `uncommitted_work=no`,
-`branch_changed=yes`. Every one of them blocked in the orchestrator's own turn.
-Elapsed was 304-348s each; the whole implementation-through-merge run was about
-35 minutes.
+All three branched from `main` at `03b06db`. Prompt files are at
+`/tmp/village-feel/phase1-<worker>.md` (ephemeral; regenerate from this file's
+goal statement plus `roles/phases/1-proposal.md` if a later run needs them).
 
-**What the next run does:** nothing on the walk cycle until Scott answers. See
-the escalation. If Scott's answer is in `.pka/inbound/orchestrator/`, act on it;
-it is authoritative mid-run.
+Results are recorded below as end markers land. **Verify from
+`.team/markers/<run_id>-end.md` in each worktree, never from narration.**
 
-Depending on the answer:
+### Round-1 assignment (town motion), closed out
 
-- **Fallback accepted:** dispatch claude-worker on the controller/animator slice
-  per decision 001's division of labor, built on the procedural pose function,
-  mechanics per record steps 5-10. Then codex-worker peer sign-off, PR, Codex
-  review gate, orchestrator merges. The record's mechanics bind regardless of
-  representation, so they do not need re-litigating.
-- **More spike budget:** dispatch codex-worker on a widened spike. See the note
-  under "Notes" about what the two failures had in common; a third attempt
-  should not repeat the second's mistake.
-- **Re-scoped to ambient only:** the assignment is already delivered under that
-  reading. Close it out and supersede decision 001's steps 1-4 with a new record
-  rather than editing 001, which is signed and append-only.
+Ambient motion shipped: PR #16, squash-merged `6c8e74a`, `.review-passed` at
+`225f03a`. The walk-cycle half was blocked on escalation `50ceed18`; **that
+escalation is now answered and the walk cycle is folded into round 2 above**, so
+round 1 is closed rather than open. `docs/decisions/001-town-motion.md` stays
+accepted and its mechanics (steps 5-10) still bind any walk-cycle work; only its
+step-4 fallback is superseded.
+
+Branches `claude/town-motion` (`17cf61e`) and `codex/town-motion` (`f6c7d77`)
+are retained until round 2's animation slice lands, because decision 001 cites
+proposal and critique SHAs reachable only from them. Sweep them once round 2
+merges.
 
 ## Active decision record
 
