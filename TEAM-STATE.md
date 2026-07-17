@@ -62,11 +62,58 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 EXECUTION: all 3 non-Meshy slices DELIVERED, peer-signed,
-MERGED into round/006-two-rivers @ 22f8e4c (pushed to origin), FULL SUITE GREEN.
-Decision 010 (height reconciliation) accepted 4-0. The MESHY PILOT is the next
-phase and is UNBLOCKED (the credential blocker the prior run expected does NOT
-exist: a real key is provisioned). No PR yet (round not complete until the pilot).`
+**Status:** `ROUND 006 MESHY PILOT: the GENERATION slice is DISPATCHED and IN
+FLIGHT (detached, ppid 1, survives orchestrator turns). Non-Meshy slices remain
+DELIVERED/signed/MERGED into round/006-two-rivers, now @ aa8eab5 (added .mcp.json,
+pushed). FULL SUITE GREEN as of 22f8e4c. Decision 010 accepted 4-0. No PR yet.`
+
+**MESHY MCP REACHABILITY: CONFIRMED in a claude-worker doer.** The dispatched
+doer connected the `meshy` MCP server (npm `@meshy-ai/meshy-mcp-server`, child
+proc verified) and progressed past the free `meshy_check_balance` probe into
+scaffolding (`.gitignore` += `/meshy_output/`, created
+`assets/art_src/pilot/{cottage,player}/`). So the `.mcp.json` + `--dangerously-
+skip-permissions` path works; no first-use approval block materialized.
+
+**CAPABILITY RE-DIVISION (orchestrator call, NOT contested/four-ballot):** the
+2026-07-17T16:20Z capability update ("meshy-live") confirms Meshy is wired ONLY
+for the codex and claude-worker seats, NOT agy. Decision 009's DoL table assigned
+the Meshy generation + provenance slice to agy; agy physically cannot reach Meshy.
+Agy's non-Meshy work (Blender render tool + camera calibration + ledger tooling)
+is already done/merged (1fac9b0). The remaining Meshy generation + provenance
+portion is REASSIGNED to claude-worker (project `.mcp.json` is claude-native;
+claude-worker owns the downstream integration that consumes the mesh). This is a
+capability-forced amendment recorded here; if agy objects it escalates.
+
+**INFRA: `.mcp.json` cherry-picked onto the round branch.** It landed on `main`
+via Scott's commit 9a0e2c8 AFTER the round branch was cut (at 2805f00), so a
+worktree off the round branch lacked the Meshy config. Cherry-picked 9a0e2c8
+(Scott's authorship preserved) onto `round/006-two-rivers` -> `aa8eab5`, pushed.
+Integration action, not orchestrator-authored code.
+
+**IN-FLIGHT DISPATCH (poll this):**
+- run_id `006-pilot-gen-20260717-214426`, harness claude, model opus, cap 3600s.
+- worktree `/home/scott/claude/lw-006-pilot-gen`, branch `claude/006-pilot-gen`
+  (cut from round branch @ aa8eab5).
+- prompt: `.pka/round006/pilot-gen-prompt.md` (generation ONLY: one 2x2
+  half-timbered cottage + one rigged player, provenance manifest, commit under
+  `assets/art_src/pilot/`; NEVER pass `save_to` to meshy_download_model).
+- POLL: `/home/scott/claude/lw-006-pilot-gen/.team/markers/006-pilot-gen-20260717-214426-end.md`.
+  Verify `branch_changed`/`uncommitted_work`/`cap_expired`, then inspect the tree
+  (models present? manifest? sha256s?) and re-derive, never trust narration.
+- Process root pid was 3356924 (`ps -o etimes= -p <pid>` to see if still alive).
+
+**DOUBLE-LAUNCH INCIDENT (resolved, lesson):** the first detached launch's setsid
+grandchild reparented to init but emitted no output for minutes (claude -p buffers
+until done) and wrote no end marker while running, so it LOOKED dead. A manual
+adapter probe (rc=143 at its own 15s cap) plus a second full launch were fired.
+Result: TWO claude+meshy sessions briefly ran in the SAME worktree (the exact
+corruption/double-spend hazard). The second tree was SIGKILLed (incl. its orphan
+`timeout claude -p` that reparented to init after its adapter died, plus its meshy
+MCP child). Only the first (3356924) survives. LESSON: a detached claude -p that
+is alive with ppid 1 but silent is NORMAL for minutes; verify liveness with
+`ps`/child-MCP-procs BEFORE concluding death or relaunching. Brief double-spend of
+Meshy credits is possible (the killed session may have made an early paid call);
+the surviving doer's PROVENANCE manifest + balance delta will reveal actual spend.
 
 **Three non-Meshy slices, delivered + verified + signed + merged:**
 - **claude** `claude/006-nullfix` @ `dd86f7e` (peer-signed by codex `f880a6d`,
