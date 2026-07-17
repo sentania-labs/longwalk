@@ -113,30 +113,30 @@ func set_layout(layout: TownLayoutScript) -> void:
 func _recompute_zoom_levels() -> void:
 	if _layout == null:
 		return
-	
+
 	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width")
 	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height")
 	var town_size: Vector2 = _layout.pixel_size()
-	
+
 	var min_zoom_x := vp_w / town_size.x
 	var min_zoom_y := vp_h / town_size.y
 	var min_zoom := maxf(min_zoom_x, min_zoom_y)
-	
+
 	var new_levels: Array[float] = [min_zoom]
 	for z in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]:
 		if z > min_zoom:
 			new_levels.append(z)
-	
+
 	var current_zoom := _zoom_levels[_zoom_index]
 	_zoom_levels = new_levels
-	
+
 	_zoom_index = 0
 	for i in range(_zoom_levels.size()):
 		if _zoom_levels[i] <= current_zoom:
 			_zoom_index = i
 		else:
 			break
-			
+
 	_target_zoom = _zoom_levels[_zoom_index]
 
 

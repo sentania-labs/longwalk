@@ -77,11 +77,11 @@ func _initialize() -> void:
 	# Test dynamic zoom bounds based on layout
 	var layout = preload("res://src/sim/town_layout.gd").build_starter_town()
 	player.set_layout(layout)
-	
+
 	player._set_zoom_index(-1)
 	for i in range(100):
 		player._process(0.016)
-		
+
 	var min_z: float = camera.zoom.x
 	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width")
 	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height")
@@ -89,7 +89,7 @@ func _initialize() -> void:
 	var vis_h = vp_h / min_z
 	var town_w = layout.pixel_size().x
 	var town_h = layout.pixel_size().y
-	
+
 	failures += _check(vis_w <= town_w, "Viewport width at min zoom fits within town")
 	failures += _check(vis_h <= town_h, "Viewport height at min zoom fits within town")
 
