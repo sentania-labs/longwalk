@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "meshy": {
+      "command": "/home/scott/claude/vault/scripts/mcp/meshy-launch.sh",
+      "args": []
+    }
+  }
+}
