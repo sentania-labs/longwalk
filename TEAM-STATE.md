@@ -26,8 +26,9 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**ROUND 004 IS MERGED AND CLOSED. ROUND 005 IS DISPATCHED (phase 1, blind
-proposals running).**
+**ROUND 004 IS MERGED AND CLOSED. ROUND 005 PHASE-3 SYNTHESIS IS COMPLETE:
+decision 008 authored and SIGNED 4-0 by all three workers on the round branch.
+NEXT PHASE IS IMPLEMENTATION (execution), not yet dispatched.**
 
 Round 004 (split) merged to `main` at merge commit **`7d6100e`** (PR #20), the
 projection-agnostic survivors only: road-weighted routing (req 4) and the camera
@@ -42,39 +43,83 @@ dispatches running. See Phase.
 
 ## Phase
 
-**Status:** `phase 1 (blind proposal), 3 dispatches RUNNING as of
-2026-07-17T~17:05Z. Poll the end markers; do NOT advance to phase 2 until all
-three end markers exist and each proposal SHA is verified on its branch.`
+**Status:** `phase-3 SYNTHESIS COMPLETE 2026-07-17T~17:33Z. Decision 008
+committed + signed 4-0 on round/005-isometric-art (e51d4d0 authored, 43459d4
+signed). NEXT: phase-3 IMPLEMENTATION, sequenced (see "Implementation plan").`
 
-Round branch **`round/005-isometric-art`** created off main at `7b0fb3d`. Three
-proposal branches created off it, all starting at `7b0fb3d` (verified identical
-blind start):
+**DECISION 008 is landed and gate-ready** on `round/005-isometric-art` (local
+only, not pushed per the doer-branch-local steer; reaches origin when the round
+PR opens). Ballots were 4-0 on all three contested questions, so the critic seat
+was correctly NOT invoked. Worker sign-offs on 008 (real timestamps, collected
+in a sign-off dispatch): claude `17:32:54Z`, codex `17:32:50Z`, agy `17:33:04Z`.
 
-| Worker | Branch | Worktree | run_id | Prompt |
-| --- | --- | --- | --- | --- |
-| claude-worker | `claude/005-proposal` | `/home/scott/claude/lw-004-claude` | `005-claude-proposal-20260717-170452` | `/tmp/round005-phase1-claude.md` |
-| codex-worker | `codex/005-proposal` | `/home/scott/claude/lw-004-codex` | `005-codex-proposal-20260717-170454` | `/tmp/round005-phase1-codex.md` |
-| agy-worker | `agy/005-proposal` | `/home/scott/claude/lw-004-agy` | `005-agy-proposal-20260717-170457` | `/tmp/round005-phase1-agy.md` |
+**Round 005 artifact SHAs (all local-only branches, shared object store):**
 
-Each dispatched with `--cap-seconds 2400` (detached + polled; a 2400s dispatch
-cannot block inside one 600s orchestrator tool call). Start markers confirmed for
-all three in each worktree's `.team/markers/`.
+| Worker | Proposal | Critique | Ballot |
+| --- | --- | --- | --- |
+| claude | `adb79abe62ee1e294bfc22dbe5365b7ac8e4f4dc` | `e54a3358348f09053f1df79355d73f1c807517d6` | `12c328a9fd902285b0784cdc1dd0c416c2d4f041` |
+| codex | `b42081c8a328b8caeb3d38b7d4d13fa8cc4f945c` | `dec9f002976d61ea3ff0745e6ef55025db015e1c` | `bdc5c005eaaf2149847787c41956579bb1286128` |
+| agy | `35d7d342399c634ad4f132f1600708d6694e6d6c` | `966c4381a0d0b367dc5ba75f1da62b66da68ac66` | `8bcb7c11963a62f3b298ce1e9bccee1886f6d57e` |
 
-**Next run (or this run's continuation) polling contract:** read
-`<worktree>/.team/markers/<run_id>-end.md` for each. Check `branch_sha_before`
-vs `branch_sha_after` + `branch_changed` + `uncommitted_work` + `cap_expired`.
-Then confirm the reported proposal commit actually exists on the branch
-(`git -C <worktree> log --oneline`, `git show <sha>:docs/proposals/...`). Do NOT
-trust the transcript. The `agy` end marker is the load-bearing check for agy (it
-silently no-ops into a scratch project if `--add-dir` is wrong; markers make
-that visible; `--add-dir` was passed correctly by the adapter).
+## Implementation plan (phase-3 execution, next run's job)
 
-When all three proposals are committed and verified, record each full 40-char
-SHA here, then dispatch **phase 2 (adversarial critique)**: each worker reads the
-other two proposals and attacks them. A round where everyone says "looks good" is
-a failed round; send it back.
+Decision 008 is the frozen authority. All slices branch from
+`round/005-isometric-art` (currently at `43459d4`). The slices have a real
+dependency order, so DO NOT fire all three in parallel blind:
 
-## Round 005 scope (dispatched this run)
+1. **claude first (render spine + frozen contracts).** iso projection module
+   under `src/render/...` (`cell_to_screen`, `screen_to_cell`,
+   `projected_bounds()` from the four projected diamond corners), footprint-aware
+   y-sort + stable placement-id tie key, KEEP-AUTHORITATIVE movement (retain
+   `move_and_slide`/collider contract, project a render proxy), `starter_town.gd`
+   render rework, `capture_player_walk.gd` acceptance-capture retarget. This
+   FREEZES the projection<->camera contract agy consumes and the anchor
+   convention codex generates against. Sim untouched (any `src/sim/` change =
+   wrong slice).
+2. **agy + codex in parallel, AFTER step 1's contract lands.**
+   - agy: camera drag-pan rework consuming `projected_bounds()`/`screen_to_cell()`
+     - DRAG state, click-vs-drag threshold, `relative/zoom` pan, RETIRE
+     `focus_view` primary verb, cursor-preserving zoom, clamp to projected bounds,
+     `project.godot` `pan_drag` binding. (project.godot is the ONE protected path;
+     008 authorizes it.)
+   - codex: BOARD-LED generation + pipeline - style board, category sheets,
+     individual buildings, 8 per-facing walk grids, NEW
+     `tools/art/ingest_generated_sheet.py`, manifest-drive `process_assets.py`/
+     `build_player_walk.py`, OFFLINE-DERIVED shadow masks (cast from
+     ground-contact silhouette, NOT the roof pixels), retarget `check_walk_sheet.py`,
+     author walk/before-after GIF producers fresh. Sprite-forge mandate; retro
+     reports whether `$generate2dsprite`/`$generate2dmap` helped.
+3. **Integration + gates.** Each slice needs a pre-PR peer sign-off marker under
+   `.team/signoffs/` from a NON-author resident naming the exact commit. Merge
+   the signed commits locally into the round branch (no rebase of a signed
+   branch), run the suite on the integrated branch, then open the ONE round PR to
+   main (008 rides it; consensus gate checks 008 covers project.godot). One
+   external Codex review round. THEN Scott's visual acceptance gate (iso
+   walk-cycle GIF + before/after vibe screenshots) - the taste gate no automated
+   check substitutes for; put one building + player + contact shadow in front of
+   Scott EARLY (the five-asset spike), not a full town late.
+
+De-risk before final generation: freeze the manifest/anchor contract between
+claude (consumer) and codex (generator). The round-004 P2 capture-tool node-path
+fix (`capture_player_walk.gd` calling `player.get_node("Camera2D")` after the
+camera moved to `World/CameraRig2D`) folds into claude's capture-retarget work.
+
+Round branch **`round/005-isometric-art`** off main at `7b0fb3d`. Three proposal
+branches off it, all started at `7b0fb3d` (verified identical blind start).
+
+Phases 1-3 detail (proposal spread, critique convergences, the phantom-files
+catch, the four-ballot arithmetic, verbatim dissents) is fully recorded in
+**decision 008** on the round branch; TEAM-STATE does not duplicate it. The
+artifact SHAs are in the table above. What 008 settled, in one breath: 8 facings
+(supersedes 005's cardinal set); BOARD-LED generation; KEEP-AUTHORITATIVE
+movement; OFFLINE-DERIVED shadows (cast from ground-contact silhouette, not roof
+pixels); camera split (agy owns the rig, consumes claude's frozen
+`projected_bounds()`/`screen_to_cell()`); the corrected pipeline file names (no
+`ingest_kenney_roguelike.py`/`build_walk_comparison.py`/`capture_art_acceptance.gd`
+exist; create a new generic ingest, retarget the real files). No constitution
+violation, so nothing escalated.
+
+## Round 005 scope
 
 Full-protocol, contested. Authority: decision 007 (isometric + own-art override)
 plus Scott's 2026-07-17T17:20Z playtest feedback (`1720-...-playtest-feedback`),
@@ -114,32 +159,33 @@ protected-path work merges). Its own PR, its own external review.
 
 ## What this run did
 
-1. Read TEAM-STATE and the new inbox message `1720-playtest-feedback` (art vibe
-   REJECTED emphatically, `seriously-this-is-terrible.png` added as reference;
-   pathfinding BETTER, earns merge; right-click focus "OK but not what he wants",
-   he wants drag-pan). Confirmed 1625/1645 already processed by decision 007.
-2. Verified PR #20 state directly: CLEAN/MERGEABLE, all four CI gates green, both
-   peer sign-offs present naming non-authors + exact reviewed SHAs (`49eb63a`
-   road signed by agy, `77846f8` camera signed by claude), both integrated
-   without rebase, decisions 006/007 authorize protected paths.
-3. Fresh external Codex review (16:51) raised one real P2: the capture tool
-   `capture_player_walk.gd:26` still calls `player.get_node("Camera2D")` after
-   req 5 moved the camera to `World/CameraRig2D`. DISPOSITION: deferred into
-   round 005's pipeline-repurpose slice (tool is moot in its orthogonal form,
-   round 005 repurposes that exact pipeline for iso; point-fixing now is churn).
-   Recorded on the PR as a comment; not silently swallowed. To be fixed in 008.
-4. Merged PR #20 as a merge commit (`7d6100e`, matching round-003/PR #19), per
-   the 1720 disposition (merge what survives, no Scott visual gate on this PR).
-5. Swept: pinned all decision-cited unreachable SHAs under `refs/archive/004/*`
-   and pushed them to origin (matching the 001/003 archive convention); deleted
-   all local doer + proposal + round branches and the origin round branch; wrote
-   `.review-passed` to main.
-6. Dispatched round 005 phase 1: created round branch + three proposal branches
-   off `7b0fb3d`, pointed the three reused worktrees at them, dispatched three
-   blind proposals detached (see Phase).
+Ran round 005 from a stalled phase-1 all the way through a signed phase-3
+synthesis.
 
-Did NOT advance round 005 past phase-1 dispatch in this write (polling for end
-markers is the immediate next step, may complete in-run or next run).
+1. Checked the inbox: nothing newer than 1720 (already folded into the phase-1
+   prompt by the prior run). Read TEAM-STATE.
+2. **Caught and repaired a phase-1 stall.** The prior run "detached" the claude
+   and codex proposal dispatches but they did NOT survive its turn (start markers,
+   no end markers, no live process, branches still at `7b0fb3d`); only agy's
+   proposal (`35d7d34`) had landed. Re-dispatched claude + codex in parallel,
+   blocking in one tool call; both landed (`adb79ab`, `b42081c`). Verified from
+   end markers, not transcripts. codex's `exit_code=1` was CLI noise on a clean
+   commit (`branch_changed=yes`, no uncommitted work).
+3. **Phase 2 (adversarial critique):** dispatched all three, blocking. Genuinely
+   adversarial round (`e54a335`/`dec9f00`/`966c438`), with real concessions
+   (claude conceded 8 facings + Y-sort + camera-bounds; camera-ownership split
+   went unanimous) and a load-bearing catch (all three named phantom pipeline
+   files; orchestrator-verified against the base).
+4. **Phase 3 (four-ballot vote)** on the three questions still contested after
+   critique. Result **4-0 on all three** (BOARD-LED, KEEP-AUTHORITATIVE,
+   OFFLINE-DERIVED). No 2-2 split, so the critic seat was correctly not invoked.
+5. **Authored decision 008** (synthesis + verbatim abandoned positions + all four
+   ballots + capability division of labor), committed to the round branch
+   (`e51d4d0`), then collected genuine worker sign-offs in a sign-off dispatch and
+   applied them (`43459d4`). 008 is signed 4-0 and gate-ready.
+6. Posted the phase-3 snapshot to the dashboard (200, 7 documents). Cleaned agy's
+   untracked scratch peer-copies. Did NOT dispatch phase-3 implementation (it is
+   sequenced claude-first and is the next run's job; see "Implementation plan").
 
 ## Active decision records
 
@@ -157,20 +203,26 @@ regenerate for iso), 7 (facing set superseded), 8 survive per 007's map.
 doers never open PRs, one PR + one external review per round, four-ballot voting
 with critic as tiebreaker on a 2-2 split. Governs round 005.
 
+**`008-isometric-visual-identity.md`** (on `round/005-isometric-art`, signed 4-0,
+NOT yet on main; reaches main via the round PR). Round-005 synthesis: 8 facings,
+BOARD-LED generation, KEEP-AUTHORITATIVE movement, OFFLINE-DERIVED shadows, the
+camera/projection split, the corrected pipeline file names. Authorizes the
+`project.godot` protected path. Supersedes decision 005's cardinal facing SET.
+
 **`005-walk-cycle-generation-topology.md`**: method stands (per-facing gen,
-colored boots, deterministic assembly); its cardinal facing SET is superseded by
-the isometric override and round 005's facing-count call (decision 008) will
-record that. **`003-village-feel`**, **`001-town-motion`**,
+colored boots, deterministic assembly); its cardinal facing SET is now superseded
+by decision 008 (8 facings). **`003-village-feel`**, **`001-town-motion`**,
 **`002-team-roster-and-critic-seat`** stay accepted (002's standing critic vote
 rescinded by 004; 001's SHAs pinned under `refs/archive/001/*`, never sweep).
-**Next free decision number is `008`** (round 005 uses it at synthesis).
+**Next free decision number is `009`.**
 
 ## Outstanding sign-offs
 
-**None owed right now.** Round 004 is merged. Round 005's blind proposals are
-artifacts (committed by their authors, cited by SHA, no peer sign-off needed at
-phase 1). Round 005's protected-path IMPLEMENTATION work will need four ballots +
-both non-author sign-offs before it merges.
+**None owed right now.** Decision 008 is signed 4-0 (claude/codex/agy, real
+timestamps on the record). Round 005's IMPLEMENTATION slices, when built, each
+need a pre-PR peer sign-off marker under `.team/signoffs/` from a NON-author
+resident naming the exact commit, before the round PR merges. Those do not exist
+yet because implementation is not dispatched.
 
 ## Branch and PR sweep (end-of-round-004 state)
 
@@ -181,17 +233,23 @@ branches). Round-004 artifacts preserved on origin under `refs/archive/004/*`
 007). PR #20 merged at `7d6100e`.
 
 **Round 005 branches now live (retained on purpose, round in flight):**
-- `round/005-isometric-art` (local, `7b0fb3d`): the round branch. NOT yet on
-  origin (per the Dalinar 2026-07-17T13:10Z steer, only the round branch reaches
-  GitHub, and only when its PR opens; doer branches are LOCAL-ONLY).
-- `claude/005-proposal`, `codex/005-proposal`, `agy/005-proposal` (local-only):
-  the three blind-proposal branches.
-- Three worktrees: `/home/scott/claude/lw-004-{claude,codex,agy}` (named for 004,
-  reused for 005; rename or leave, they are just checkouts).
+- `round/005-isometric-art` (local, now `43459d4`: 008 authored + signed). NOT
+  yet on origin (per the Dalinar 2026-07-17T13:10Z steer, only the round branch
+  reaches GitHub, and only when its PR opens; doer branches are LOCAL-ONLY).
+  Worktree: `/home/scott/claude/lw-005-round` (created this run for the
+  orchestrator to commit 008; retain until the round closes).
+- `claude/005-proposal` (`12c328a`), `codex/005-proposal` (`bdc5c00`),
+  `agy/005-proposal` (`8bcb7c1`) (local-only): each now carries its proposal +
+  critique + ballot commits. Worktrees `/home/scott/claude/lw-004-{claude,codex,agy}`
+  (named for 004, reused for 005).
+- Two `/tmp/lw-before.*` detached-HEAD worktrees also exist (before-shot
+  captures); harmless, left as-is.
 
-On the round-005 merge, sweep these the same way: delete branches, tear
-down/reuse worktrees, pin any 008-cited SHA reachable only from a deleting
-branch under `refs/archive/005/*` and push, write `.review-passed` to main.
+Zero open team PRs (the round PR does not open until implementation integrates).
+On the round-005 merge, sweep the same way: delete all round + doer branches,
+tear down the four worktrees, pin any 008-cited SHA reachable only from a
+deleting branch under `refs/archive/005/*` and push, write `.review-passed` to
+main.
 
 ## Open escalations to Scott
 
@@ -203,9 +261,15 @@ constitution violation or a critic-vs-orchestrator standoff escalates to Scott.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP: poll the three phase-1 end markers** (run IDs in Phase),
-verify each proposal SHA on its branch, record the SHAs, then dispatch phase 2
-(adversarial critique). Do not trust transcripts; verify from markers + tree.
+**IMMEDIATE NEXT STEP: dispatch phase-3 IMPLEMENTATION, sequenced** (see the
+"Implementation plan" section). claude first to freeze the projection<->camera
+and anchor contracts; THEN agy (camera) + codex (generation+pipeline) in
+parallel against them. Each slice into its own worktree, blocked-on or
+detached-and-polled, verified from end markers (not transcripts). Decision 008 is
+the frozen authority; it is already signed 4-0. Watch the agy adapter's
+`--add-dir` (silent scratch no-op otherwise; the markers catch it). Art
+generation is the long, Scott-gated pole; put the five-asset spike in front of
+Scott early.
 
 **RETRO GAP still open (do not fix mid-round):** the inbox-check convention only
 fires at spawn, so mid-run Scott steers can sit unread (this is how 1625/1645 sat
@@ -238,12 +302,12 @@ prose-scan bug; an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-17T~17:06Z (orchestrator run
-`orchestrator-run-20260717-165633`). This run: read the new 1720 playtest
-feedback; verified and merged PR #20 (round 004 split, `7d6100e`), deferring the
-one external-review P2 into round 005 with a recorded rationale; swept all
-round-004 branches, archived artifacts to `refs/archive/004/*` on origin, wrote
-`.review-passed`; then scoped and DISPATCHED round 005 phase 1 (three blind
-proposals running, folding Scott's 1720 drag-pan camera refinement into the
-prompt). Three dispatches are running in the background at write time; the
-immediate continuation is to poll their end markers and advance to phase 2.
+**Last updated:** 2026-07-17T~17:34Z (orchestrator run
+`orchestrator-run-20260717-170912`). This run: caught and repaired a phase-1
+stall (re-dispatched claude + codex proposals that the prior run never actually
+kept alive); ran phase 2 (adversarial critique, all three) and phase 3 (four-
+ballot vote, 4-0 on all three contested questions, critic seat correctly not
+invoked); authored decision 008 and collected + applied genuine worker sign-offs
+(signed 4-0, gate-ready on `round/005-isometric-art` at `43459d4`); posted the
+snapshot to the dashboard. Phase-3 SYNTHESIS is complete. The immediate
+continuation is to dispatch phase-3 IMPLEMENTATION, sequenced claude-first.
