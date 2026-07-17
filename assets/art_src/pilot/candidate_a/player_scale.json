@@ -1,0 +1,16 @@
+{
+  "asset_kind": "player",
+  "scene_geometry": {
+    "scene_units_per_meter": 1.0,
+    "contact_plane_z_m": 0.0,
+    "sole_to_crown_m": 1.75
+  },
+  "output": {
+    "resolution_px": [160, 160]
+  },
+  "projected_landmarks": {
+    "contact_px": [80, 144],
+    "top_px": [80, 6.828617]
+  },
+  "atlas_pivot_px": [80, 159]
+}
