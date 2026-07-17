@@ -204,6 +204,72 @@ single PR** citing record `004`, rather than spawning another framework PR. It i
 not written yet because `roles/` is a protected path and the orchestrator does
 not write protocol text into one; it is a slice for a doer.
 
+## CHECKPOINT (mid-run, orchestrator-run-20260717-044821)
+
+Written mid-run deliberately, because the two prior runs on this assignment died
+with their state only in memory. If you are reading this and no later section
+supersedes it, this run died too, and this is where it was.
+
+**Landed and pushed on `round/003-village-feel` (head `e78020e`):**
+
+- **The shared player/world contract EXISTS.** This was the gate on priority 1
+  and it is gone. `docs/contracts/player-world-contract.md`, authored by
+  codex-worker at `9113d63`, peer-signed by claude-worker (marker
+  `.team/signoffs/codex-contract-9113d6399545.md`, `authored_by: codex-worker`,
+  `reviewed_by: claude-worker`), integrated at `752fc59` with the marker
+  collected at `e78020e`. Full suite green on the integrated result.
+- It pins: player origin is the ground point between the feet; **row 159 (zero
+  based) of a 160x160 cell is the feet-contact row**; 128 px tiles; one source
+  pixel to one world pixel at zoom 1.0; a shared `PlayerWorldFixture` over the
+  real authored town; and that **zoom must not move the origin, anchor, cell
+  size, nav conversion, or collider**.
+- claude-worker verified every claimed value against real artifacts by mutation,
+  not against the prose (offset -80 to -70, collider 36x20 to 36x21, town width
+  18 to 19, each went red, each reverted), with `git diff --stat` before each run.
+
+**In flight at checkpoint time (verify from end markers, never from this file):**
+
+- `fix-validator`, claude-worker, worktree `claude-validator`, branch
+  `claude/validator`. Committed `ae2f7d8` (check_walk_sheet.py, ~1040 lines) on a
+  first dispatch that was **killed by an orchestrator-side tool timeout**, so it
+  has no end marker and is unverified. Re-dispatched to finish and self-verify,
+  and to remove a committed `.pyc`.
+- `fix-feel`, agy-worker, worktree `agy-feel`, branch `agy/feel` at `77bd324`.
+
+**codex-worker REFUSED agy's feel slice at `77bd324`. Fourth correct refusal
+this round.** No marker written. The finding that matters: codex mutated
+`_set_zoom_index()` to move the player origin by `(64,64)` on every zoom,
+confirmed the mutation live with `git diff --stat`, and **agy's zoom test still
+passed**, violating the contract codex itself authored. Also: no easing (003
+ruling 5 says "discrete steps WITH EASING, DELTA-CORRECT"), and trailing
+whitespace failing `git diff --check`. **The easing miss is the orchestrator's
+error, not agy's: my dispatch prompt dropped the easing clause from the ruling.**
+Codex confirmed as good: InputMap-not-remapping-UI, player-centered zoom, tile
+variants and shadows render-side, scope correct, suite green.
+
+**Not started: the art slice** (priority 1 proper). Worktree
+`/home/scott/claude/longwalk-worktrees/codex-art`, branch `codex/art`, is
+provisioned off the round branch and its prompt is written at
+`/tmp/village-feel/impl-art-codex.md`. It is sequenced behind the validator
+because codex's generation loop needs claude's gate to reject against. Both
+round-1 known-bad sheets are in the tree
+(`tools/art/out/player_walk_sheet_candidate_{1,2}.png`), so the gate has real
+calibration targets.
+
+**Verified this run, so the next run need not redo it:** codex's sprite skills
+ARE installed (`~/.codex/skills/`: `generate2dsprite`, `generate2dmap`), per the
+0430 steer. All six `refs/archive/003/*` pins resolve. Both prior sign-off SHAs
+(`49a7b39`, `8528603`) are ancestors of the round branch. Zero open PRs.
+
+**A tooling lesson worth more than it looks, and it cost this run one dispatch
+pair.** The orchestrator's Bash tool caps at 600 seconds. A dispatch with
+`--cap-seconds 2400` outruns it, the tool call is killed, and **the dispatched
+workers die with it**, which is the same class of failure as the 03:28 stall.
+The fix is to launch dispatches with `nohup ... & disown` and then block on the
+end markers with an `until` loop, rather than blocking on `dispatch.sh` itself.
+Both slices had already committed real work when they were killed, which is
+precisely why the end marker and not the commit is the thing to verify.
+
 ## Phase
 
 **Status:** `execution`. Phases 1, 2 and 3 are COMPLETE and their artifacts are
