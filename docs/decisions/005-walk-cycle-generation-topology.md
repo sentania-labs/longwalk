@@ -281,3 +281,77 @@ dispatch to answer while C remains available afterward.
 - The three rejected source sheets stay committed. They are the evidence that the
   single-composition topology was tried honestly and at a real cost, and the next
   reader deserves to see them rather than take this record's word for it.
+
+## Outcome: option B was dispatched, failed, and option C shipped
+
+Appended after execution, because a record that says "Decision: option B" while
+option C is in the tree would mislead every future reader. The decision above is
+left exactly as it was made. This section records what happened next.
+
+**Option B was falsified by its own evidence within the hour.** codex-worker ran
+it (`codex/art`, evidence at `1874ba7`) with the scoping this record mandates:
+side generated first from the accepted identity reference, locked prompt
+contract, three-revision cap, staged checkpoint.
+
+- **Identity and costume coherence PASSED.** The risk all four ballots
+  independently named, and scoped the dispatch around, **did not materialize.**
+- **Side FAILED across all three revisions.** Revisions 1 and 2 lost the
+  anatomical boot-color binding; revision 3 held one magenta and one cyan boot
+  but repeated the cyan-leading pose in every frame.
+
+**Side had passed under the 3x4 topology.** Per-facing generation did *worse* on
+the one facing that already worked, with the relational pressure removed
+entirely. That is the opposite of this record's central premise. The honest read
+is no longer "the single composition is the failure": two topologies and seven
+revisions have now failed on anatomical alternation itself, and the earlier side
+pass looks more like variance than a property of the sheet format.
+
+**Option C shipped**, per the reserve clause above and without a further ballot:
+the generated side row was kept, down and up were hand-authored in reproducible
+code, the sheet was assembled deterministically, and the unchanged gate ran on
+the assembled source rows. Integrated at `18e2a1b`, peer-signed by claude-worker.
+
+### What this says about the four-ballot model
+
+**Recorded plainly because it is the round's most useful lesson and it is not
+flattering to the process.** Four independent readers, each declaring an
+interest, each engaging the strongest case against their own vote, converged 4-0
+on a premise that one dispatch falsified. The vote was not careless: it reasoned
+carefully from real evidence, and it was wrong anyway. The ballots also
+unanimously predicted a risk (identity drift) that did not occur, while nobody
+predicted the failure that did.
+
+This is not an argument against the ballot. It is an argument for **cheap
+falsification over confident deliberation**: the vote cost four dispatches and
+the disproof cost one. What the vote genuinely bought was the reserve clause,
+which let C ship immediately without another round of deliberation. **The lesson
+worth carrying: when a ballot's premise is empirically testable, test it before
+you vote on it, or at minimum scope the dispatch to kill it fast.** This one was
+scoped to test the wrong thing, and that scoping came from the same 4-0
+consensus.
+
+### The honest state of the walk cycle
+
+claude-worker's peer review, quoted because it is the team's assessment and Scott
+should have it in the record rather than only in a PR body:
+
+> Side is genuinely good and deserves the kept-row suspicion being lifted:
+> `+0.22, +0.23, -0.26, -0.23` is a clean symmetric cycle, and it reads
+> unmistakably as striding at 160px. That's a property, not variance.
+>
+> Down and up are weaker than side, and codex's "restrained" is accurate rather
+> than hopeful... they read as grounded walking rather than round 1's shuffle, so
+> codex's self-report is honest, but they are visibly the weaker rows.
+>
+> My read: down/up clear the bar, but only just, and they will not get better
+> from more prompt iteration. Three revisions of generation plus a hand-authored
+> pass have converged here. If down/up need to be as good as side, that's a human
+> artist, not more agent budget.
+
+## Sign-offs
+
+All three doers voted in this decision and all three signed the record.
+
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T06:45:00Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T06:45:00Z
+    Signed-off-by: agy-worker <agy@sentania.net> 2026-07-17T06:45:00Z
