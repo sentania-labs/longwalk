@@ -2,6 +2,14 @@
 # Run the longwalk headless test suite. Fetches the pinned Godot binary first if
 # it is not already present. This is the exact entry point CI invokes.
 #
+# Art-pipeline tests (test/art/), plain Python, no Godot:
+#   - test_check_walk_sheet.py: the pre-recolor walk-sheet rejection gate
+#     (tools/art/check_walk_sheet.py). Asserts every rejection path fires
+#     against a fixture built to trip it (leading-leg non-reversal traced from
+#     the round-1 defect, missing chromatic markers, anchor drift, clipped
+#     figures, malformed grids) plus a corrected control proving the gate does
+#     not simply reject everything. See docs/art/walk-sheet-validation.md.
+#
 # Active-path tests (test/active_path/):
 #   - test_boot_flow.gd: the M3 starter-town prototype boot flow (title
 #     screen -> character creation -> starter town). Asserts the hand-authored
@@ -32,6 +40,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Art-pipeline tests run first: they are plain Python (PIL and numpy, the same
+# deps process_assets.py already needs), they need no Godot binary, and they
+# are fast, so a break here surfaces before the engine fetch.
+echo "=== test_check_walk_sheet.py ==="
+python3 "${REPO_ROOT}/test/art/test_check_walk_sheet.py"
 
 "${SCRIPT_DIR}/fetch_godot.sh"
 
