@@ -77,24 +77,26 @@ directly with the same prompt text to see the full transcript and error.
 
 ## Current output
 
-`out/` holds five raw generated assets: the three that proved the pipeline
-end to end (`ground_path_tile.png`, `building_facade.png`,
-`player_character.png`) plus two added for the starter-town prototype
-(`grass_ground_tile.png`, `cottage_facade.png`, a second building distinct
-from the general store). All five are raw generator output: high-resolution,
-uncropped, and (for the two building sprites and the player sprite) on a
-plain cream background rather than true alpha transparency.
+`out/` retains the five raw and processed assets from the starter-town
+prototype. They predate the manifest-driven isometric pipeline and are not
+inputs or outputs of `process_assets.py` now. The three player appearance
+variants under `out/processed/` are built by `build_player_walk.py`, as
+described below.
 
-## Post-processing: `out/` (raw) versus `out/processed/` (game-ready)
+The current manifest-driven assets live under `out/iso/`. Raw generated sheets
+use the `_raw.png` suffix, ingestion writes validated transparent assets to
+`out/iso/ingested/`, and processing writes normalized runtime images and shadow
+masks to `out/iso/processed/`.
 
-`out/<name>.png` is always raw codex output, committed as-is so every asset
-is regenerable and diffable against its prompt. `out/processed/<name>.png`
-is the game-ready version the actual scenes import from: `process_assets.py`
-does background removal (a corner-seeded flood fill, since every sprite
-prompt asks for one flat background color) and a crop-to-content pass for
-sprites, plus a resize to a small tile/sprite pixel size for everything.
-Ground tiles have no background to remove (the prompts ask for a full-bleed
-texture), so they only get resized.
+## Manifest-driven post-processing
+
+`process_assets.py` requires a processing manifest. Each asset entry names its
+ingested source, output path and size, source and target anchors, and optional
+scale and shadow generation. Processing normalizes the transparent source to
+the declared anchor. For assets with shadows enabled, it also derives cast and
+contact masks from the bottom footprint slice using the manifest's fixed light
+vector. It does not remove backgrounds, crop content, generate appearance
+variants, or choose animation frames.
 
 Run it locally with plain Python/PIL and numpy, not inside the codex
 sandbox (same caveat as image generation above, though this script has no
@@ -103,19 +105,15 @@ here; it is just kept out of `generate.sh` for the same separation of
 concerns):
 
 ```
-python3 tools/art/process_assets.py
+python3 tools/art/process_assets.py tools/art/manifests/process-iso.json
 ```
 
-It also generates the character-creation appearance presets: three
-`player_character_<name>.png` variants (`moss`, `slate_blue`, `burgundy`)
-that hue-shift only the tunic pixels of the processed player sprite, so
-character creation has a small set of visibly different choices without a
-separate AI generation per outfit color. See the script for the hue-range
-mask that isolates tunic pixels from skin/hair.
-
-Scenes reference `out/processed/`, never `out/` directly. Regenerating an
-asset means: edit or add a prompt file, rerun `generate.sh`, then rerun
-`process_assets.py` to refresh the processed copy.
+The canonical manifest reproduces the committed cottage, neutral player, six
+east-facing walk frames, and the cottage and player shadow masks under
+`out/iso/processed/`. Regenerating one of these assets means regenerating its
+raw sheet, running `ingest_generated_sheet.py` with the corresponding generated
+manifest, then running the command above to refresh every declared processed
+output.
 
 ## Player walk-cycle build
 
