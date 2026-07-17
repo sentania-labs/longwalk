@@ -3,7 +3,7 @@ class_name CameraRig2D
 
 const IsoProjection = preload("res://src/render/iso/projection.gd")
 
-enum State { FOLLOW, DRAG }
+enum State { FOLLOW, FREE, DRAG }
 
 var _state := State.FOLLOW
 var _player: CharacterBody2D
@@ -88,6 +88,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			vp.set_input_as_handled()
 	elif event.is_action_released("pan_drag"):
 		_pan_active = false
+		if _state == State.DRAG:
+			_state = State.FREE
 		var vp := get_viewport()
 		if vp:
 			vp.set_input_as_handled()
@@ -153,7 +155,7 @@ func _process(delta: float) -> void:
 			var screen_center_offset = _zoom_center_screen - vp_size / 2.0
 			var shift = screen_center_offset * (1.0 / old_z - 1.0 / new_z)
 			
-			if _state == State.DRAG:
+			if _state == State.DRAG or _state == State.FREE:
 				position += shift
 				position = _clamp_to_limits(position)
 		
