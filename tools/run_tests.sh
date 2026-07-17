@@ -7,6 +7,12 @@
 #     screen -> character creation -> starter town). Asserts the hand-authored
 #     town layout (src/sim/town_layout.gd) is deterministic and sane, and that
 #     every scene in the flow loads and instantiates headless.
+#   - test_nav_grid.gd: the sim-side navigation grid (src/sim/nav_grid.gd).
+#     Asserts the deterministic 8-connected A* (byte-identical output across
+#     repeated calls, corner-cutting refused, routes around buildings), the
+#     nearest_walkable search contract (bounds clamping, Euclidean metric,
+#     cell-index tie-break), and the construction invariants that keep the
+#     render layer's colliders in agreement with the grid.
 #   - test_display_settings.gd: the display settings plumbing
 #     (src/render/display_settings.gd). Asserts the ConfigFile round-trip
 #     under user://, that a resolution this build does not offer is rejected
@@ -36,6 +42,9 @@ GODOT="${SCRIPT_DIR}/godot/godot"
 
 echo "=== test_boot_flow.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_boot_flow.gd
+
+echo "=== test_nav_grid.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_nav_grid.gd
 
 echo "=== test_display_settings.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_display_settings.gd
