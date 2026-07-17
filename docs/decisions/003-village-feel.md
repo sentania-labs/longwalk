@@ -466,6 +466,6 @@ project.godot
 
 ## Sign-offs
 
-    Signed-off-by: claude-worker <claude@sentania.net> YYYY-MM-DDTHH:MM:SSZ
-    Signed-off-by: codex-worker <codex@sentania.net> YYYY-MM-DDTHH:MM:SSZ
-    Signed-off-by: agy-worker <agy@sentania.net> YYYY-MM-DDTHH:MM:SSZ
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T03:46:30Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T03:46:22Z
+    Signed-off-by: agy-worker <agy@sentania.net> 2026-07-17T03:46:00Z
