@@ -469,14 +469,27 @@ It posts automatically on PR open, roughly 2-3 minutes in. `gh pr view <n> --jso
 reviews` shows only wrapper text; the findings are at
 `gh api repos/sentania-labs/longwalk/pulls/<n>/comments`.
 
-**Branch and PR sweep, run this round:** zero open team PRs
-(`gh pr list --state open` empty). Retained on purpose: `claude/town-motion` and
-`codex/town-motion` (decision 001 cites SHAs reachable only from them; sweep once
-round 2's animation slice lands), `issue-4-world-eras` (not a team branch), and
-the three `*/village-feel` branches, which are the live round and carry every SHA
-decision 003 cites. Nothing to delete. Remember `git branch -r --merged` reports
-nothing useful here because the repo squash merges; check merged PRs' head
-branches instead.
+**Branch and PR sweep, run this round. The previous run's sweep claim was
+false and this is worth knowing about the sweep generally.** TEAM-STATE said
+"Every merged PR's branch from #3 through #15 was still on the remote and is now
+deleted." They were not deleted. This run found and removed six of them: PRs
+`#15` (team-framework-phase-prompts), `#14` (team-framework-conventions), `#13`
+(record-review-passed-display-settings), `#12` (display-settings), `#5`
+(feat/m2-walkable-world), `#3` (feat/continent-mask-layer). Only `#17`
+(team-framework-hygiene) had actually gone, and a stale local ref made it look
+present. A sweep that is recorded but not performed is worse than one that is
+skipped, because the next run reads the note and does not look.
+
+Zero open team PRs (`gh pr list --state open` empty). Remote branches now: `main`,
+the three `*/village-feel` (live round), `claude/town-motion` and
+`codex/town-motion` (retained: decision 001 cites SHAs reachable only from them,
+sweep once round 2's animation slice lands), `issue-4-world-eras` (not a team
+branch, no PR). Plus `refs/archive/003/*`, which are pins and not branches.
+
+Remember `git branch -r --merged` reports nothing useful here because the repo
+squash merges; check merged PRs' head branches instead. And `git branch -r`
+alone will lie to you about deleted remotes unless you `git fetch --prune` first,
+which is probably how the previous run's claim came to be wrong.
 
 ---
 
