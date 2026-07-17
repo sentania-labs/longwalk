@@ -80,8 +80,10 @@ directly with the same prompt text to see the full transcript and error.
 `out/` retains the five raw and processed assets from the starter-town
 prototype. They predate the manifest-driven isometric pipeline and are not
 inputs or outputs of `process_assets.py` now. The three player appearance
-variants under `out/processed/` are built by `build_player_walk.py`, as
-described below.
+variants under `out/processed/` are legacy runtime artifacts produced by an
+earlier version of `build_player_walk.py`. No committed clean-checkout path
+currently regenerates them: the preserved option C script rebuilds only the
+colored source artifact under `out/`, and the current builder does not recolor.
 
 The current manifest-driven assets live under `out/iso/`. Raw generated sheets
 use the `_raw.png` suffix, ingestion writes validated transparent assets to
