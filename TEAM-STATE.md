@@ -292,8 +292,25 @@ consolidated. Sign-off commits: claude `424460e`, codex `e040426`, agy `ce8acd5`
 The consensus gate was run locally against a PR touching `src/sim/` and
 `project.godot` and passes.
 
-Artifact SHAs the record cites (full 40 characters, all reachable on the worker
-branches, which is why those branches are retained):
+Artifact SHAs the record cites (full 40 characters). **All six are now pinned on
+the remote under `refs/archive/003/*`**, so a rebase cannot orphan them and the
+record's auditability no longer depends on a worker branch surviving:
+
+    git fetch origin 'refs/archive/003/*:refs/archive/003/*'
+    git show refs/archive/003/agy-proposal:docs/proposals/agy-village-feel.md
+
+This was done because round 1 already hit the near-miss: `codex/town-motion` was
+rebased mid-round and decision 001's cited SHAs survived only by luck of nothing
+having been garbage-collected. Two live holes were found during this run's sweep
+and both are now closed: `agy/village-feel` **had never been pushed at all** (the
+agy adapter does not push, unlike the codex one), so two SHAs decision 003 cites
+existed only in a local worktree; and `claude/village-feel` on the remote was
+still at its proposal, with its critique and sign-off local only, while an
+implementation dispatch was actively about to rebase that branch onto `main` and
+renumber them. A record whose citations cannot be checked is not an auditable
+record, which is the whole claim the SHAs exist to support.
+
+The branches are still retained as well:
 
 - Claude proposal: `b7faf4046a00871fdd0eb1a39f5bed623fdc4bc1`
 - Codex proposal: `5effb7dbf12ebc1ddbff624c8a6a6deeba96c324`
