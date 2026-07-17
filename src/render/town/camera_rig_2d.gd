@@ -145,6 +145,8 @@ func _process(delta: float) -> void:
 		if abs(new_z - _target_zoom) < 0.001:
 			new_z = _target_zoom
 			
+		zoom = Vector2(new_z, new_z)
+		
 		# Cursor-preserving zoom logic
 		if _zoom_center_screen != Vector2.ZERO:
 			var vp_size = get_viewport_rect().size
@@ -154,8 +156,6 @@ func _process(delta: float) -> void:
 			if _state == State.DRAG:
 				position += shift
 				position = _clamp_to_limits(position)
-		
-		zoom = Vector2(new_z, new_z)
 		
 		# Clear _zoom_center_screen when zoom completes
 		if new_z == _target_zoom:
