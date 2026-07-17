@@ -450,7 +450,7 @@ fail (break the constant, watch it go red, put it back) before trusting it
 passing. **codex must then re-review at the NEW head SHA.** The refusal stands
 against `bb30105` and does not transfer.
 
-### Re-review PASSED and PR #18 is open
+### Re-review PASSED. (PR #18 was opened here and is now CLOSED; see the steers section.)
 
 codex-worker re-reviewed at the new head `49a7b39` and **signed off**. Marker:
 `.team/signoffs/claude-village-feel-49a7b39.md` on `codex/village-feel` at
@@ -473,8 +473,11 @@ mutations go red now. This is worth carrying forward as a rule of thumb: **a
 mutation that changes nothing showing green is not a plausible result**, and
 `git diff --stat` before each run is the cheap check.
 
-**PR #18: https://github.com/sentania-labs/longwalk/pull/18** (open as of 04:04Z).
-**CI is fully green: all four checks pass, including the consensus gate.**
+**PR #18: https://github.com/sentania-labs/longwalk/pull/18, now CLOSED**, superseded
+by the round-branch model that landed at 04:05Z while it was open. It was green on
+all four checks including the consensus gate when it closed, and its work is
+integrated at `39fa6f7`. The paragraphs below describe why it was blocked while it
+was open; kept because the bot diagnosis is still live, not because the PR is.
 
 **BLOCKED ON THE CODEX REVIEW BOT, which has not posted.** This is the one merge
 gate not satisfied and it is why #18 did not merge this run. It is not a parked
@@ -643,7 +646,8 @@ the delta and write a new marker. Do not repoint the old one.
 
 ## Open escalations to Scott
 
-**ONE OPEN, filed this run. It blocks PR #18's merge and nothing else.**
+**ONE OPEN, filed this run. It will block the ROUND PR at step 6 of the plan
+below. (It was filed while it was blocking PR #18, which is now closed.)**
 
 **The Codex review bot has stopped posting.**
 
