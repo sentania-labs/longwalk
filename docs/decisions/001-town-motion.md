@@ -5,6 +5,14 @@
 - **Assignment:** "Bring motion to the starter town: player walk cycle at minimum, ambient town motion if cheap."
 - **Orchestrator run:** 2026-07-17T00:02Z run, the third attempt at phase 1 and the first to actually dispatch workers. See TEAM-STATE.md for why the first two produced nothing.
 - **Lane:** full protocol. Directed by Scott, not left to orchestrator triage: pilot run of the team framework, and the scoping fight was named as part of what the pilot was meant to test.
+- **Workers dispatched:** claude-worker, codex-worker
+
+> The `Workers dispatched` field was added to the record schema after this
+> record was written (see `002-team-roster-and-critic-seat.md`), and is
+> backfilled here rather than left to a fallback in the gate. It records what
+> this round actually was: agy was not seated yet, so the pilot ran two-doer.
+> The two names below are the two that signed, which is what the gate now
+> checks against.
 
 ## Context
 

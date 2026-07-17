@@ -1,9 +1,9 @@
 # Protected paths, longwalk.
 #
 # The single source of truth for which paths require a signed consensus
-# decision record (docs/decisions/NNN-*.md, signed by both agents) before a PR
-# touching them can merge. Read by tools/check_consensus.py, enforced by
-# .github/workflows/consensus.yml.
+# decision record (docs/decisions/NNN-*.md, signed by every worker the record
+# names as dispatched) before a PR touching them can merge. Read by
+# tools/check_consensus.py, enforced by .github/workflows/consensus.yml.
 #
 # Format: one path per line. Blank lines and lines starting with '#' are
 # ignored. A line ending in '/' matches that directory and everything under

@@ -128,7 +128,37 @@ as a clean linear replay that left `docs/decisions/` byte-identical to `main`.
 to `main` via PR #16. Both rejected candidates and both prompts are preserved
 under `tools/art/` as evidence.
 
-Next free decision number is `002`.
+**`docs/decisions/002-team-roster-and-critic-seat.md`, status accepted, no
+sign-offs and none owed.** It is a directive-authority record, not a converged
+synthesis: Scott directed the roster change on 2026-07-17, no worker round ran,
+so it cites the directive as its authority instead of worker signatures. It
+covers the `roles/` and `.github/protected-paths.txt` changes that landed in
+PR #17. Read its "Why this record has no proposals" section before writing
+another record of this kind; the category is narrow and is not a shortcut around
+the protocol.
+
+Next free decision number is `003`.
+
+**The record schema changed in PR #17 and a new field is required.** Every
+record now carries a machine-parseable `Workers dispatched` header line naming
+the workers the round actually dispatched, and `tools/check_consensus.py` builds
+its required-signer set from that line rather than from a hardcoded pair of
+names. Fill it in when you author a record, or the gate fails the record as
+unauditable. A record with no worker round writes
+`Workers dispatched: None (directive authority)` **and** an `Authority` line;
+both together or neither, the gate enforces it. `001-town-motion.md` was
+backfilled with the field (`claude-worker, codex-worker`) rather than the gate
+carrying a legacy fallback, so there is exactly one parsing path. See
+`docs/decisions/README.md`.
+
+**Known pre-existing gate bug, not fixed in PR #17, worth a future dispatch.**
+`covered_entries()` in `tools/check_consensus.py` scans the whole "Protected
+paths touched" section for protected-path strings, including explanatory prose.
+`001-town-motion.md` says "None" there and then discusses `src/sim/` in the
+paragraph below, so the gate reads it as covering `src/sim/`. That record could
+therefore be cited to wave a `src/sim/` change through the gate. It was found
+while verifying PR #17 and left alone deliberately: it is out of scope for that
+PR's review round, and it is not a regression from it.
 
 ## Outstanding sign-offs
 
@@ -289,8 +319,12 @@ candidates.
 
 ---
 
-**Last updated:** 2026-07-17 (framework hygiene dispatch: agy seated as a third
-doer, critic made a standing synthesis-time voter, orchestrator brief given the
-pilot's retro lessons as rules, PR hygiene codified, stale branches swept. The
-walk-cycle escalation `50ceed18` is untouched and still open; ambient motion
-remains merged as `6c8e74a`, PR #16.)
+**Last updated:** 2026-07-17 (framework hygiene dispatch, closed out and merged
+as PR #17: agy seated as a third doer, critic made a standing synthesis-time
+voter, orchestrator brief given the pilot's retro lessons as rules, PR hygiene
+codified, stale branches swept. The review round on that PR added decision record
+`002`, generalized the phase 2 and phase 3 templates off a hardcoded two-worker
+shape, and moved the consensus gate to a per-record `Workers dispatched` signer
+set. The "seat agy, make the critic standing, codify PR hygiene" item is done and
+is no longer outstanding. The walk-cycle escalation `50ceed18` is untouched and
+still open; ambient motion remains merged as `6c8e74a`, PR #16.)

@@ -4,15 +4,23 @@ Not dispatched to anyone. Phases 1 and 2 are injected into worker dispatches;
 this one is your own working template. You are the orchestrator and this is the
 phase you personally do.
 
-Inputs, all four, read before you write anything:
+Inputs, every one of them, read before you write anything. There are two per
+dispatched worker: its proposal, and its critique of the peers it was given.
+The round may have dispatched two workers or three, so fill in as many rows as
+you actually dispatched.
 
-- Claude worker's proposal: `<branch>` at `<full 40-char SHA>`
-- Codex worker's proposal: `<branch>` at `<full 40-char SHA>`
-- Claude worker's critique of Codex: `<full 40-char SHA>`
-- Codex worker's critique of Claude: `<full 40-char SHA>`
+- `<worker>`'s proposal: `<branch>` at `<full 40-char SHA>`
+- `<worker>`'s critique of its peers: `<full 40-char SHA>`
+- `<worker>`'s proposal: `<branch>` at `<full 40-char SHA>`
+- `<worker>`'s critique of its peers: `<full 40-char SHA>`
 
-Plus the critic's vote, if this synthesis is one that activates the seat. See
-"Invoke the critic" below.
+Each critique artifact covers every peer that worker was given, per
+`roles/phases/2-critique.md`, so a three-doer round produces three proposals and
+three critiques rather than one critique per pair. If a worker's critique
+engaged only some of its peers, that is a failed critique round for the peers it
+skipped: send it back rather than synthesizing over an untested proposal.
+
+Plus the critic's vote. See "Invoke the critic" below.
 
 ## Synthesis is not averaging
 
@@ -27,8 +35,8 @@ and what came across from the one that lost. "Both had merit" is not a
 synthesis. If both genuinely had merit on the same point, one of them had more,
 and naming which is your job.
 
-Do not run another critique round hoping for agreement. You have both
-proposals and both critiques. That is the input. Decide.
+Do not run another critique round hoping for agreement. You have every proposal
+and every critique. That is the input. Decide.
 
 ## Divide labor by capability, argued from the record
 
@@ -115,6 +123,10 @@ schema that drifts, and the template is the one the gate reads.
 
 Two things worth flagging because they are where synthesis records go wrong:
 
+- **The `Workers dispatched` field.** Name every worker you dispatched, and only
+  those. The gate reads this line to work out who has to sign, so a name you
+  leave off is a sign-off nobody will ever be asked for, and a name you add that
+  did not run is a record that can never pass.
 - **Every proposal SHA, full 40 characters.** One per dispatched worker. The
   whole auditability claim rests on them.
 - **The "Protected paths touched" section authorizes only what it lists.** List
@@ -125,8 +137,8 @@ Two things worth flagging because they are where synthesis records go wrong:
 Then: get a sign-off line on the record from every worker you dispatched. A
 worker whose objection lost still signs, and its dissent stays in the record;
 signing means "I read the synthesis and accept it as the team's decision," not
-"I agree with all of it." A record signed by one resident is not a consensus
-record.
+"I agree with all of it." A record missing a sign-off from a worker it names as
+dispatched is not a consensus record.
 
 ## Before you exit this phase
 
@@ -134,7 +146,7 @@ You are ephemeral and you are about to die. Nothing in your head survives.
 
 1. The record exists on disk at `docs/decisions/NNN-topic.md`, committed.
 2. `TEAM-STATE.md` is updated: phase, active decision record and its status,
-   outstanding sign-offs, both proposal SHAs.
+   outstanding sign-offs, every proposal SHA.
 3. The phase-transition snapshot is posted to the dashboard, per
    `roles/orchestrator.md`. A failed post does not block you; log it and move
    on.

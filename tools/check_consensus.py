@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Consensus gate: PRs touching protected paths need a both-agent decision record.
+"""Consensus gate: PRs touching protected paths need a signed decision record.
 
 Layer 3 of the review architecture (see docs/decisions/README.md). If a PR
 touches any path enumerated in .github/protected-paths.txt, it must reference a
-docs/decisions/NNN-topic.md record carrying sign-off lines from both residents.
+docs/decisions/NNN-topic.md record carrying a sign-off line from every worker
+that record says was dispatched for it. The record names its own worker set, so
+a two-worker round and a three-worker round are both checkable without this
+file knowing which residents are seated.
 
 A reference counts if either:
   - the PR body mentions the record path, or
@@ -38,8 +41,35 @@ DECISIONS_DIR = "docs/decisions"
 # TEMPLATE.md and README.md live in the same directory and are not records.
 DECISION_RECORD_RE = re.compile(r"docs/decisions/(\d{3})-([a-z0-9][a-z0-9-]*)\.md")
 
-# The residents that must both sign.
-REQUIRED_SIGNERS = ("claude-worker", "codex-worker")
+# Which residents must sign is a property of the record, not of this file. A
+# round dispatches whichever workers the assignment needs (two or three), so a
+# fixed list here is wrong in both directions: it lets a three-worker record
+# pass without the third worker's sign-off, and it blocks a legitimate
+# two-worker round that did not happen to include codex-worker.
+#
+# The record therefore names its own dispatched worker set, and the gate reads
+# that. The field is required: a record the gate cannot parse this from is not
+# auditable and does not pass.
+WORKERS_FIELD = "Workers dispatched"
+WORKERS_RE = re.compile(
+    r"^\s*[-*]?\s*\*\*" + re.escape(WORKERS_FIELD) + r":\*\*\s*(?P<workers>\S[^\n]*?)\s*$",
+    re.MULTILINE,
+)
+
+# A resident name as it appears in the workers field and in a sign-off line.
+WORKER_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+# A record naming no workers is a directive-authority record: Scott directed the
+# change rather than the team proposing and converging on it, so there is no
+# worker round to sign. That category is legitimate (see
+# roles/orchestrator.md's escalation rule), but it cannot be the default, or any
+# record could shed its sign-off requirement by leaving the workers field empty.
+# It has to make the claim explicitly and name what authorized it.
+AUTHORITY_FIELD = "Authority"
+AUTHORITY_RE = re.compile(
+    r"^\s*[-*]?\s*\*\*" + re.escape(AUTHORITY_FIELD) + r":\*\*\s*(?P<authority>\S[^\n]*?)\s*$",
+    re.MULTILINE,
+)
 
 # A sign-off line is validated in full, not just by name:
 #
@@ -133,6 +163,41 @@ def signers_of(record_text: str) -> set[str]:
     return {m.group("name") for m in SIGNOFF_RE.finditer(record_text)}
 
 
+def dispatched_workers(record_text: str) -> tuple[str | None, set[str]]:
+    """The record's own claim about which workers it was synthesized from.
+
+    Returns (raw field text, worker names). The raw text is None when the field
+    is absent entirely, which the caller treats as a malformed record rather
+    than as a record with no workers. A present field reading 'None' yields an
+    empty set: that is the directive-authority case, and it is a claim the
+    record makes deliberately, not the absence of one.
+    """
+    match = WORKERS_RE.search(record_text)
+    if not match:
+        return None, set()
+    raw = match.group("workers").strip()
+    if raw.split()[0].strip(".,").lower() == "none":
+        return raw, set()
+    names = set()
+    for part in raw.split(","):
+        token = part.strip().strip("`")
+        if WORKER_NAME_RE.match(token):
+            names.add(token)
+    return raw, names
+
+
+def authority_of(record_text: str) -> str | None:
+    """The stated authority for a record with no worker round, if it states one."""
+    match = AUTHORITY_RE.search(record_text)
+    if not match:
+        return None
+    text = match.group("authority").strip()
+    # The template's own angle-bracket placeholder is not an authority.
+    if text.startswith("<") and text.endswith(">"):
+        return None
+    return text
+
+
 def covered_entries(record_text: str, protected: list[str]) -> set[str]:
     """Protected-path entries this record's coverage section claims to cover."""
     match = COVERAGE_SECTION_RE.search(record_text)
@@ -147,22 +212,49 @@ def covered_entries(record_text: str, protected: list[str]) -> set[str]:
 
 
 def check_record(record_path: str, repo_root: Path, hit_entries: set[str], protected: list[str]) -> tuple[bool, str]:
-    """Is this record present, signed by both residents, and does it cover these paths?"""
+    """Is this record present, signed by the workers it names, and does it cover these paths?"""
     full = repo_root / record_path
     if not full.exists():
         return False, f"{record_path}: referenced but does not exist in the repo"
 
     text = full.read_text(encoding="utf-8")
 
-    signers = signers_of(text)
-    missing = [s for s in REQUIRED_SIGNERS if s not in signers]
-    if missing:
+    raw_workers, workers = dispatched_workers(text)
+    if raw_workers is None:
         return False, (
-            f"{record_path}: missing a valid sign-off from {', '.join(missing)} "
-            f"(found: {', '.join(sorted(signers)) or 'none'}). A sign-off line must "
-            f"carry a name, an email, and a real UTC timestamp; template placeholders "
-            f"do not count."
+            f"{record_path}: no '{WORKERS_FIELD}' field. Every record names the "
+            f"workers it was synthesized from, so the gate knows who has to sign. "
+            f"See docs/decisions/README.md."
         )
+    if raw_workers and not workers and not raw_workers.lower().startswith("none"):
+        return False, (
+            f"{record_path}: '{WORKERS_FIELD}: {raw_workers}' names no parseable "
+            f"resident. Give a comma-separated list of resident names, or 'None' "
+            f"for a directive-authority record."
+        )
+
+    if not workers:
+        authority = authority_of(text)
+        if not authority:
+            return False, (
+                f"{record_path}: names no dispatched workers, so it needs an "
+                f"'{AUTHORITY_FIELD}' field saying what authorized it instead. A "
+                f"record cannot shed its sign-off requirement by naming nobody and "
+                f"explaining nothing."
+            )
+        signed_by = f"directive authority ({authority})"
+    else:
+        signers = signers_of(text)
+        missing = sorted(w for w in workers if w not in signers)
+        if missing:
+            return False, (
+                f"{record_path}: missing a valid sign-off from {', '.join(missing)} "
+                f"(dispatched: {', '.join(sorted(workers))}; found: "
+                f"{', '.join(sorted(signers)) or 'none'}). A sign-off line must "
+                f"carry a name, an email, and a real UTC timestamp; template placeholders "
+                f"do not count."
+            )
+        signed_by = ", ".join(sorted(workers))
 
     covered = covered_entries(text, protected)
     uncovered = sorted(hit_entries - covered)
@@ -173,8 +265,8 @@ def check_record(record_path: str, repo_root: Path, hit_entries: set[str], prote
         )
 
     return True, (
-        f"{record_path}: signed by {', '.join(REQUIRED_SIGNERS)} and covers "
-        f"{', '.join(sorted(hit_entries))}"
+        f"{record_path}: signed by {signed_by} and covers "
+        f"{', '.join(sorted(hit_entries)) or 'nothing (none touched)'}"
     )
 
 
@@ -198,9 +290,9 @@ def run_check(changed_files: list[str], pr_body: str, repo_root: Path) -> int:
         print("FAIL: no decision record referenced.")
         print()
         print("A PR touching a protected path must reference a")
-        print("docs/decisions/NNN-topic.md record signed by both agents, either by")
-        print("adding/modifying the record in this PR or by naming its path in the")
-        print("PR body. See docs/decisions/README.md.")
+        print("docs/decisions/NNN-topic.md record signed by every worker it names as")
+        print("dispatched, either by adding/modifying the record in this PR or by")
+        print("naming its path in the PR body. See docs/decisions/README.md.")
         return 1
 
     results = [check_record(r, repo_root, hit_entries, protected) for r in records]
@@ -209,12 +301,12 @@ def run_check(changed_files: list[str], pr_body: str, repo_root: Path) -> int:
     print()
 
     if any(ok for ok, _ in results):
-        print("PASS: a referenced decision record is signed by both agents and covers")
-        print("every protected path this PR touches.")
+        print("PASS: a referenced decision record carries the sign-offs it needs and")
+        print("covers every protected path this PR touches.")
         return 0
 
-    print("FAIL: no referenced decision record both carries valid sign-offs from")
-    print("both agents and covers every protected path this PR touches.")
+    print("FAIL: no referenced decision record both carries valid sign-offs from every")
+    print("worker it names and covers every protected path this PR touches.")
     print("See docs/decisions/README.md.")
     return 1
 
@@ -310,10 +402,116 @@ def self_test() -> int:
             print(f"FAIL docs/decisions/TEMPLATE.md reads as signed by {template_signers!r}")
             failures += 1
 
+    # The workers field is what makes the required-signer set a property of the
+    # record instead of a constant in this file.
+    worker_field_cases = [
+        ("- **Workers dispatched:** claude-worker, codex-worker",
+         "claude-worker, codex-worker", {"claude-worker", "codex-worker"}, "two workers"),
+        ("- **Workers dispatched:** claude-worker, codex-worker, agy-worker",
+         "claude-worker, codex-worker, agy-worker",
+         {"claude-worker", "codex-worker", "agy-worker"}, "three workers"),
+        ("- **Workers dispatched:** claude-worker, agy-worker",
+         "claude-worker, agy-worker", {"claude-worker", "agy-worker"}, "claude plus agy"),
+        ("- **Workers dispatched:** `claude-worker`, `agy-worker`",
+         "`claude-worker`, `agy-worker`", {"claude-worker", "agy-worker"}, "backticked names"),
+        ("- **Workers dispatched:** None (directive authority)",
+         "None (directive authority)", set(), "directive-authority record"),
+        ("nothing here", None, set(), "field absent entirely"),
+    ]
+    for text, expected_raw, expected_names, label in worker_field_cases:
+        raw, names = dispatched_workers(text)
+        if raw != expected_raw or names != expected_names:
+            print(f"FAIL dispatched_workers [{label}] = {(raw, names)!r}, "
+                  f"expected {(expected_raw, expected_names)!r}")
+            failures += 1
+
+    authority_cases = [
+        ("- **Authority:** Scott directive, 2026-07-17", "Scott directive, 2026-07-17", "real authority"),
+        ("- **Authority:** <what authorized this>", None, "template placeholder"),
+        ("no authority field", None, "field absent"),
+    ]
+    for text, expected, label in authority_cases:
+        actual = authority_of(text)
+        if actual != expected:
+            print(f"FAIL authority_of [{label}] = {actual!r}, expected {expected!r}")
+            failures += 1
+
+    # The required-signer set now comes from the record. These four cases are
+    # the whole point of the change: a three-worker round must not pass without
+    # its third sign-off, and a two-worker round that did not include codex must
+    # not be blocked waiting for one.
+    def worker_record(workers: str, signers: list[str]) -> str:
+        lines = [f"- **Workers dispatched:** {workers}", ""]
+        stamps = {
+            "claude-worker": ("claude@sentania.net", "2026-07-16T14:22:05Z"),
+            "codex-worker": ("codex@sentania.net", "2026-07-16T14:31:40Z"),
+            "agy-worker": ("agy@sentania.net", "2026-07-16T14:38:12Z"),
+        }
+        for name in signers:
+            email, when = stamps[name]
+            lines.append(f"Signed-off-by: {name} <{email}> {when}")
+        lines += ["", "## Protected paths touched", "", "src/sim/", ""]
+        return "\n".join(lines)
+
+    signer_set_cases = [
+        (worker_record("claude-worker, codex-worker", ["claude-worker", "codex-worker"]),
+         True, "two-worker record, both signed (the pre-existing shape)"),
+        (worker_record("claude-worker, codex-worker, agy-worker",
+                       ["claude-worker", "codex-worker", "agy-worker"]),
+         True, "three-worker record, all three signed"),
+        (worker_record("claude-worker, codex-worker, agy-worker",
+                       ["claude-worker", "codex-worker"]),
+         False, "three-worker record missing agy's sign-off"),
+        (worker_record("claude-worker, agy-worker", ["claude-worker", "agy-worker"]),
+         True, "claude-plus-agy record passes without a codex sign-off"),
+        (worker_record("claude-worker, agy-worker", ["claude-worker"]),
+         False, "claude-plus-agy record missing agy's sign-off"),
+        ("- **Workers dispatched:** None (directive authority)\n"
+         "- **Authority:** Scott directive, 2026-07-17\n"
+         "\n## Protected paths touched\n\nsrc/sim/\n",
+         True, "directive-authority record needs no worker sign-off"),
+        ("- **Workers dispatched:** None\n\n## Protected paths touched\n\nsrc/sim/\n",
+         False, "record naming nobody and citing no authority"),
+        ("## Protected paths touched\n\nsrc/sim/\n" + signed,
+         False, "record with no workers field at all"),
+    ]
+    for text, expect_ok, label in signer_set_cases:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs" / "decisions").mkdir(parents=True)
+            (root / "docs" / "decisions" / "001-x.md").write_text(text, encoding="utf-8")
+            ok, message = check_record("docs/decisions/001-x.md", root, {"src/sim/"}, protected)
+            if ok != expect_ok:
+                print(f"FAIL check_record [{label}] ok={ok}, expected {expect_ok}: {message}")
+                failures += 1
+
+    # Every real record on disk must validate under the parsing logic above.
+    # 001-town-motion.md predates the workers field and was backfilled with it;
+    # this is what catches a backfill that was forgotten or got the names wrong.
+    for real in sorted((REPO_ROOT / "docs" / "decisions").glob("[0-9][0-9][0-9]-*.md")):
+        text = real.read_text(encoding="utf-8")
+        raw, names = dispatched_workers(text)
+        if raw is None:
+            print(f"FAIL {real.name} has no '{WORKERS_FIELD}' field")
+            failures += 1
+            continue
+        if names:
+            unsigned = sorted(n for n in names if n not in signers_of(text))
+            if unsigned:
+                print(f"FAIL {real.name} names {', '.join(unsigned)} as dispatched but they did not sign")
+                failures += 1
+        elif not authority_of(text):
+            print(f"FAIL {real.name} names no workers and states no authority")
+            failures += 1
+
     # Coverage: a signed record authorizes only the paths it says it covers,
     # so an old record cannot be cited to wave through an unrelated protected
     # change.
-    record = signed + "\n## Protected paths touched\n\nsrc/sim/\n"
+    record = (
+        "- **Workers dispatched:** claude-worker, codex-worker\n\n"
+        + signed
+        + "\n## Protected paths touched\n\nsrc/sim/\n"
+    )
     coverage_cases = [
         ({"src/sim/"}, True, "record covers the touched path"),
         ({"project.godot"}, False, "record does not cover the touched path"),
