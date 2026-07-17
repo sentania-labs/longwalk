@@ -304,5 +304,5 @@ on their own, unprompted, and for the correct reason.
 
 ## Sign-offs
 
-    Signed-off-by: claude-worker <claude@sentania.net> PENDING
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T00:13:00Z
     Signed-off-by: codex-worker <codex@sentania.net> PENDING
