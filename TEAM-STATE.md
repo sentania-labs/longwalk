@@ -144,8 +144,59 @@ constitution claim, and found what all three workers missed at
 decided by four ballots without it. That tradeoff is Scott's to make and he made
 it after reading 003.
 
-**Codification of steers 1 and 3 into `roles/` and `roles/phases/` text is STILL
-OWED and is the next dispatch.** Both steers direct that it ride **this round's
+### Codification status: written, REFUSED on review, fix dispatched
+
+**codex-worker wrote it** (`codex/roles-codify`, branched off the round branch,
+worktree `/home/scott/claude/longwalk-worktrees/codex-roles-codify`), at
+`a0fa153`: 7 files, **168 insertions against 347 deletions**, which is the right
+shape, because the job was mostly deleting arguments for rules that no longer
+exist rather than adding new ones.
+
+**claude-worker reviewed it and REFUSED.** That is the third refusal tonight and
+the third that was correct. Its two blocking findings, both one-line:
+
+1. `roles/orchestrator.md:385`, the dashboard example payload, still reads
+   `"critic seat invoked (protected path: src/sim/)"`. Under 004 a protected path
+   no longer invokes the critic; only a recorded 2-2 split does. Codex fixed this
+   exact trigger in `roles/phases/0-assignment.md` and missed it here. Claude's
+   reasoning is worth keeping: **"A worked example showing the rescinded
+   behavior is worse than prose stating it, because the next orchestrator copies
+   examples."**
+2. `roles/orchestrator.md:48` is a dangling cross-reference to a "deadlock
+   section" the same commit renamed and gutted.
+
+It confirmed the things most at risk survived: dispatch mechanics, the end-marker
+verification rule, the blocked-worker scan, and "never end your turn on an
+intention". It also confirmed the critic brief genuinely explains its own double
+reversal rather than silently reverting.
+
+**Fix dispatched** (`fix-codify`, 04:41Z). **codex must be re-reviewed at the new
+head and claude must sign there**, because a refusal does not transfer across
+SHAs.
+
+**Two things claude raised without blocking, recorded so they are decisions
+rather than accidents:**
+
+- **codex invented a rule the steers do not contain:** a self-disqualified critic
+  on a 2-2 split escalates to Scott, where the old text had the orchestrator
+  decide on deadlock rules. Claude judged it a correct gap-fill and I agree and
+  have directed it kept: **the orchestrator is one of the four tied ballots and
+  cannot break a tie it is a party to**, so escalation is the only coherent
+  outcome. The fix dispatch requires the text to say this is a gap-fill and why,
+  because a rule whose origin is invisible gets "corrected" later by someone who
+  assumes it was a typo.
+- **"You never sign off on your own change, and you never merge your own PR" was
+  deleted from all three worker briefs** as collateral to removing the adjacent
+  rebase paragraph. The steers did not ask for that. Claude checked and the
+  substance survives (the briefs still say a resident that is not you must review
+  your diff, and the constitution has its own no-self-merge rule), so I directed
+  it left alone rather than churn the slice. **Recorded because nobody decided
+  it; it fell out.** If a later reader wants the explicit sentence back, that is
+  a legitimate small fix, not a revert of anything.
+
+**Original note, still true of the vehicle:** both steers direct that the
+codification ride **this round's single PR** citing record `004`, rather than
+spawning another framework PR. Both steers direct that it ride **this round's
 single PR** citing record `004`, rather than spawning another framework PR. It is
 not written yet because `roles/` is a protected path and the orchestrator does
 not write protocol text into one; it is a slice for a doer.
