@@ -26,3 +26,8 @@ Thumbs.db
 # Python bytecode / caches (tools/art/ and test/art/ are Python).
 __pycache__/
 *.py[cod]
+
+# Meshy generation scratch. Raw drafts and rejected takes live here and are
+# never committed; only curated models under assets/art_src/pilot/ ship.
+# (decision 009 pilot, round 006)
+/meshy_output/
