@@ -73,8 +73,32 @@ seat.
 
 ## Phase
 
-**Status:** `phase 1: blind proposal`, re-dispatched 2026-07-17T00:00Z after the
-first dispatch was found never to have launched.
+**Status:** `phase 2: adversarial critique`, dispatched 2026-07-17T00:06Z.
+
+**Phase 1 is CLOSED.** Both proposals are committed; SHAs recorded under "Active
+decision record" below. Verified from the wrapper's end markers, not from an exit
+code: `branch_changed: yes` on both, `uncommitted_work: no` on both, and the
+proposal files exist on both branches.
+
+The third dispatch attempt is the one that worked, and what made it work was the
+steer in `.pka/inbound/orchestrator/2026-07-17-0001-dalinar-steer-dispatch-mechanics.md`:
+the dispatch wrapper **does** exist, at `/home/scott/claude/vault/scripts/team/dispatch.sh`
+in the **vault** repo, not the longwalk checkout. Two prior runs (and this file's
+own prior text) concluded it was never built because they looked for it at
+`scripts/team/dispatch.sh` relative to longwalk. It is not there and never will
+be; it lives in the vault and is harness-neutral by design. Adapters for `claude`,
+`codex`, `cursor` (the critic seat), and `agy` are in
+`/home/scott/claude/vault/scripts/team/adapters/`. Read
+`/home/scott/claude/vault/scripts/team/README.md` before invoking it.
+
+The second lesson, which is the one that actually killed two runs: **a dispatch is
+synchronous and you must block on it.** Nothing an orchestrator launches survives
+its turn ending. Launch in background and `wait` within the same turn, or run them
+sequentially, but do not narrate a dispatch and exit. The wrapper runs a worker to
+completion in the foreground. Phase 1's real dispatch took 143s (Claude) and 59s
+(Codex) with both running in parallel, so blocking costs almost nothing.
+
+### History of phase 1 (leave intact, per the steer)
 
 - Claude worker: branch `claude/town-motion`, worktree
   `/home/scott/claude/longwalk-worktrees/claude-town-motion`
@@ -125,8 +149,10 @@ currently holds only `README.md` and `TEMPLATE.md`.
 
 Proposal SHAs (full 40 characters, cited by the decision record):
 
-- Claude proposal: not yet reported.
-- Codex proposal: not yet reported.
+- Claude proposal: `00a717edb5f1d12d9f3a322ee0a680ed9868785d` on `claude/town-motion`,
+  at `docs/proposals/claude-town-motion.md`.
+- Codex proposal: `ad0a0b3c77c930b6a5ac3306dad2c20766319f95` on `codex/town-motion`,
+  at `docs/proposals/codex-town-motion.md`.
 
 ## Outstanding sign-offs
 
