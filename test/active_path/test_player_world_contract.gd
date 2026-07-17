@@ -44,6 +44,29 @@ func _initialize() -> void:
 		failures += _check(sprite.texture != null, "appearance '%s' loads" % variant)
 		if sprite.texture != null:
 			failures += _check(sprite.texture.get_height() == Fixture.SPRITE_CELL_SIZE.y, "appearance '%s' keeps the 160 px shipping height" % variant)
+			failures += _check(sprite.texture.get_width() == Fixture.SPRITE_CELL_SIZE.x, "appearance '%s' keeps the 160 px shipping width" % variant)
+			var atlas_texture := sprite.texture as AtlasTexture
+			failures += _check(atlas_texture != null, "appearance '%s' uses an atlas region" % variant)
+			if atlas_texture != null:
+				failures += _check(atlas_texture.atlas.get_size() == Vector2(640, 640), "appearance '%s' provides four facings and four frames" % variant)
+
+	player.set_appearance("moss")
+	for facing in range(4):
+		player._facing = facing
+		for frame in range(4):
+			player._walk_frame = frame
+			player._apply_walk_frame()
+			var region: Rect2 = (sprite.texture as AtlasTexture).region
+			failures += _check(region == Rect2(frame * 160, facing * 160, 160, 160), "facing %d frame %d selects its 160 px atlas cell" % [facing, frame])
+
+	player._update_facing(Vector2.DOWN)
+	failures += _check(player._facing == player.Facing.DOWN, "downward movement selects the down walk row")
+	player._update_facing(Vector2.UP)
+	failures += _check(player._facing == player.Facing.UP, "upward movement selects the up walk row")
+	player._update_facing(Vector2.RIGHT)
+	failures += _check(player._facing == player.Facing.RIGHT, "rightward movement selects the source side row")
+	player._update_facing(Vector2.LEFT)
+	failures += _check(player._facing == player.Facing.LEFT, "leftward movement selects the mirrored side row")
 	player.free()
 
 	if failures == 0:

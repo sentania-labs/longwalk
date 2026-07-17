@@ -55,6 +55,11 @@ const NavGridScript := preload("res://src/sim/nav_grid.gd")
 
 const SPEED := 220.0
 const TILE_SIZE := TownLayoutScript.TILE_SIZE
+const WALK_CELL_SIZE := Vector2(160, 160)
+const WALK_FRAME_SECONDS := 0.14
+const WALK_FRAME_COUNT := 4
+
+enum Facing { DOWN, UP, RIGHT, LEFT }
 
 # A waypoint counts as reached inside this radius. Comfortably under the 46px
 # of clearance a cell centre has, so retiring a waypoint early never steers the
@@ -75,6 +80,11 @@ var _waypoints: PackedVector2Array = PackedVector2Array()
 var _destination_cell := NavGridScript.NO_CELL
 var _stall_frames := 0
 var _repathed_since_stall := false
+var _walk_atlas: Texture2D
+var _walk_texture := AtlasTexture.new()
+var _facing := Facing.DOWN
+var _walk_frame := 0
+var _walk_elapsed := 0.0
 
 const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 var _zoom_index := 2
@@ -87,8 +97,11 @@ func set_appearance(appearance_variant: String) -> void:
 	# never adds the node to a live SceneTree (see test/active_path/), and
 	# @onready resolution only fires on tree entry.
 	var sprite: Sprite2D = get_node("Sprite2D")
-	var path := "res://tools/art/out/processed/player_character_%s.png" % appearance_variant
-	sprite.texture = load(path)
+	var path := "res://tools/art/out/processed/player_walk_%s.png" % appearance_variant
+	_walk_atlas = load(path)
+	_walk_texture.atlas = _walk_atlas
+	sprite.texture = _walk_texture
+	_apply_walk_frame()
 
 
 # The render layer hands the controller the sim data it routes over. Same
@@ -156,10 +169,11 @@ func _route_to(goal: Vector2i) -> Vector2i:
 	return goal
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if _waypoints.is_empty():
 		velocity = Vector2.ZERO
 		move_and_slide()
+		_update_walk_animation(delta, false)
 		return
 
 	var target: Vector2 = _waypoints[0]
@@ -168,13 +182,45 @@ func _physics_process(_delta: float) -> void:
 		if _waypoints.is_empty():
 			clear_path()
 			move_and_slide()
+			_update_walk_animation(delta, false)
 			path_finished.emit()
 			return
 		target = _waypoints[0]
 
 	velocity = position.direction_to(target) * SPEED
+	_update_facing(velocity)
 	move_and_slide()
+	_update_walk_animation(delta, get_real_velocity().length() > STALL_SPEED_EPSILON)
 	_handle_stall()
+
+
+func _update_facing(direction: Vector2) -> void:
+	if abs(direction.x) > abs(direction.y):
+		_facing = Facing.RIGHT if direction.x > 0.0 else Facing.LEFT
+	else:
+		_facing = Facing.DOWN if direction.y > 0.0 else Facing.UP
+
+
+func _update_walk_animation(delta: float, moving: bool) -> void:
+	if not moving:
+		_walk_elapsed = 0.0
+		_walk_frame = 0
+		_apply_walk_frame()
+		return
+	_walk_elapsed += delta
+	while _walk_elapsed >= WALK_FRAME_SECONDS:
+		_walk_elapsed -= WALK_FRAME_SECONDS
+		_walk_frame = (_walk_frame + 1) % WALK_FRAME_COUNT
+	_apply_walk_frame()
+
+
+func _apply_walk_frame() -> void:
+	if _walk_atlas == null:
+		return
+	_walk_texture.region = Rect2(
+		Vector2(_walk_frame * WALK_CELL_SIZE.x, int(_facing) * WALK_CELL_SIZE.y),
+		WALK_CELL_SIZE
+	)
 
 
 # The residual backstop described at the top of this file, NOT the answer to

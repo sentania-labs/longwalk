@@ -101,3 +101,29 @@ mask that isolates tunic pixels from skin/hair.
 Scenes reference `out/processed/`, never `out/` directly. Regenerating an
 asset means: edit or add a prompt file, rerun `generate.sh`, then rerun
 `process_assets.py` to refresh the processed copy.
+
+## Player walk-cycle build
+
+`build_player_walk.py` is the deterministic option C authoring and assembly
+path for the player walk cycle. It reads the committed colored-boot revision 3
+sheet, retains its passing side row, authors symmetric down and up half-cycles,
+and writes the pre-recolor artifact of record:
+
+```
+python3 tools/art/build_player_walk.py
+python3 tools/art/check_walk_sheet.py \
+  tools/art/out/player_walk_sheet_option_c_colored.png --json
+```
+
+Run the gate before using any processed output. After the source rows pass,
+the build mirrors side into the left-facing runtime row, aligns every frame to
+row 159 of its 160 px cell, recolors both boot markers to leather brown, and
+writes the three appearance atlases under `out/processed/`.
+
+The reproducible in-engine review montage uses the real starter town, player
+scene, atlas regions, camera, and one-to-one shipping scale:
+
+```
+xvfb-run -a tools/godot/Godot_v4.3-stable_linux.x86_64 \
+  --path . --script res://tools/art/capture_player_walk.gd
+```
