@@ -22,23 +22,27 @@ or completed sprite to evade these dimensions is prohibited.
 ## Projection and pixel scale
 
 `src/render/iso/projection.gd` freezes a 128 by 64 pixel, 2:1 dimetric diamond.
-Its horizontal ground basis vectors are `(64, 32)` and `(-64, 32)`. The upright
-basis is therefore `(0, -64)`: one upright meter spans the diamond height, or
-two vertical half-steps. This pins `pixels_per_meter` to `TILE_H = 64`, derived
-from the projection geometry rather than selected independently.
+Its horizontal ground basis vectors remain `(64, 32)` and `(-64, 32)`. The
+standard orthographic render camera is fixed at 30 degrees elevation to reproduce
+that ground projection. Its world-unit scale is `P = 64*sqrt(2)` pixels, so the
+upright basis is `(0, -32*sqrt(6))`, derived exactly as
+`P*cos(30 degrees) = 32*sqrt(6)`. One upright meter therefore renders at
+`32*sqrt(6)` pixels, approximately 78.3837 px/m. `TILE_H = 64` remains the
+ground tile module and is not the upright pixels-per-meter rate.
 
 For a landmark `h` meters above the contact plane, the expected raster height
 is:
 
 ```text
-expected_pixel_height = h * 64
+expected_pixel_height = h * 32*sqrt(6)
 expected_top_y = contact_y - expected_pixel_height
 ```
 
 The validator permits at most 2 pixels of raster landmark error. The canonical
-player therefore renders 112 pixels sole-to-crown. A 2.0 m door renders 128
-pixels, 2.4 m eaves render 153.6 pixels, and a 4.8 m to 5.6 m ridge renders
-307.2 to 358.4 pixels above contact.
+player therefore renders approximately 137.1714 pixels sole-to-crown. A 2.0 m
+door renders 156.7673 pixels, 2.4 m eaves render 188.1208 pixels, and a 4.8 m
+to 5.6 m ridge renders 376.2416 to 438.9485 pixels above contact. These values
+are rounded only for display. Validation computes with the exact closed form.
 
 ## Canvas and anchor policy
 
@@ -49,6 +53,12 @@ declared contact landmark is the pixel where the subject meets the ground plane.
 | --- | --- | --- | --- |
 | player frame | 160 by 160 | `(80, 144)` | 16 px below the soles; center the canonical figure horizontally |
 | 2 by 2 cottage | 512 by 512 | `(256, 448)` | 64 px below the front-edge contact; center the frozen front-edge anchor horizontally |
+
+The existing canvases accommodate the revised physical upright rate. For the
+player, `144 - 1.75*32*sqrt(6)` leaves approximately 6.83 px above the crown,
+with 16 px below contact. For the tallest permitted cottage,
+`448 - 5.6*32*sqrt(6)` leaves approximately 9.05 px above the ridge, with 64 px
+below contact. The canvas sizes and contact anchors therefore remain unchanged.
 
 The cottage anchor represents `building_contact_cell(origin_cell, footprint)`
 from `src/render/iso/projection.gd`: the center of the footprint's front,

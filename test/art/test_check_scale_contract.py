@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import math
 import pathlib
 import subprocess
 import sys
@@ -20,7 +21,10 @@ def write_fixture(path: pathlib.Path, **changes: object) -> None:
             "sole_to_crown_m": 1.75,
         },
         "output": {"resolution_px": [160, 160]},
-        "projected_landmarks": {"contact_px": [80, 144], "top_px": [80, 32]},
+        "projected_landmarks": {
+            "contact_px": [80, 144],
+            "top_px": [80, 144 - 1.75 * 32 * math.sqrt(6)],
+        },
     }
     for dotted_key, value in changes.items():
         target = fixture
@@ -43,7 +47,7 @@ def main() -> int:
         write_fixture(good)
         rejections, report = check_manifest(good)
         assert rejections == []
-        assert report["expected_pixel_height"] == 112.0
+        assert report["expected_pixel_height"] == 1.75 * 32 * math.sqrt(6)
 
         cottage = root / "cottage.json"
         cottage.write_text(json.dumps({
@@ -56,7 +60,10 @@ def main() -> int:
                 "ridge_height_m": 5.0,
             },
             "output": {"resolution_px": [512, 512]},
-            "projected_landmarks": {"contact_px": [256, 448], "top_px": [256, 128]},
+            "projected_landmarks": {
+                "contact_px": [256, 448],
+                "top_px": [256, 448 - 5.0 * 32 * math.sqrt(6)],
+            },
         }), encoding="utf-8")
         assert check_manifest(cottage)[0] == []
 
@@ -81,7 +88,7 @@ def main() -> int:
         assert_rejected(drifted_anchor, "contact anchor drift")
 
         off_pixel_height = root / "off_pixel_height.json"
-        write_fixture(off_pixel_height, projected_landmarks__top_px=[80, 28])
+        write_fixture(off_pixel_height, projected_landmarks__top_px=[80, 3])
         assert_rejected(off_pixel_height, "projected pixel height drift")
 
         command = [sys.executable, str(ROOT / "tools/art/check_scale_contract.py"), str(drifted_anchor)]

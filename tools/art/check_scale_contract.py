@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 from typing import Any
 
 
-PIXELS_PER_METER = 64.0
+PIXELS_PER_METER = 32.0 * math.sqrt(6.0)
 HEIGHT_TOLERANCE_PX = 2.0
 ANCHOR_TOLERANCE_PX = 2.0
 METER_TOLERANCE = 0.01
