@@ -26,8 +26,9 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**Status:** ACTIVE, phase 1 closed, phase 2 (adversarial critique) dispatched. Round 2 of the team
-framework, and the first live three-doer round.
+**Status:** ACTIVE, phases 1-3 COMPLETE. Decision 003 signed by all three doers and
+pushed to `main` at `f4c7dc5`. Implementation dispatched for the nav slice.
+Round 2 of the team framework, and the first live three-doer round.
 
 **Assignment (goal statement, verbatim as Scott gave it, relayed through
 `.pka/inbound/orchestrator/2026-07-17-0110-dalinar-escalation-reply-50ceed18.md`):**
@@ -85,8 +86,11 @@ were seated in PR #17 and neither has been exercised.
 
 ## Phase
 
-**Status:** `proposal` (phase 1, blind), RE-dispatched 2026-07-17T03:35Z to
-three doers in parallel into three isolated worktrees.
+**Status:** `execution`. Phases 1, 2 and 3 are COMPLETE and their artifacts are
+on `main`. Decision `003-village-feel.md` is signed by all three doers and pushed
+at `f4c7dc5`; the consensus gate passes against a PR touching `src/sim/` and
+`project.godot`. The nav slice implementation is dispatched (see "Implementation"
+below). Phase 1 was re-dispatched at 03:35Z after the stall recorded below.
 
 ### The first phase 1 dispatch never ran. Read this before trusting a "dispatched" status.
 
@@ -234,6 +238,31 @@ concurrently, with nav tests written against a fixture the feel slice rewrites.
 
 **Phase 2 dispatch verified complete at 2026-07-17T03:40Z.**
 
+### Implementation dispatched (nav slice only, deliberately)
+
+**Dispatched 2026-07-17T03:48Z:** `impl-nav`, claude-worker, into
+`/home/scott/claude/longwalk-worktrees/claude-village-feel` on
+`claude/village-feel`, cap 2400s.
+
+Only one of the three slices is dispatched this run, and that is a judgement
+worth stating rather than leaving as an apparent omission. The nav slice is the
+only one with no dependency on the art spike, and its contract is the one thing
+in the round both peers independently endorsed (codex: "Claude's navigation core
+is the right basis"; agy conceded to it). The other two slices are NOT dispatched
+because decision 003 records a real prerequisite from codex that has not been
+produced yet: **all three slices need one agreed player origin, feet anchor,
+world scale, and test fixture before implementation begins.** Dispatching the art
+and feel slices before that contract exists would be dispatching them into a
+conflict.
+
+The worker was told explicitly **not to open a PR**. Its branch carries this
+round's proposal and critique artifacts alongside the implementation, and the PR
+needs sequencing behind a peer sign-off marker. Next run opens it. This is not a
+parked PR; it is a branch with no PR yet.
+
+**Next run: verify this from `.team/markers/impl-nav-20260717-034815-end.md` in
+that worktree before believing anything about it.**
+
 ### Round-1 assignment (town motion), closed out
 
 Ambient motion shipped: PR #16, squash-merged `6c8e74a`, `.review-passed` at
@@ -250,74 +279,75 @@ merges.
 
 ## Active decision record
 
-**`docs/decisions/001-town-motion.md`, status accepted, signed by both.**
+**`docs/decisions/003-village-feel.md`, status accepted, signed by all three
+doers.** This is the round's durable output and the thing to read before touching
+any slice. Committed `c0e26d0`, sign-offs consolidated and pushed at `f4c7dc5`.
 
-    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T00:13:00Z
-    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T00:13:44Z
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T03:46:30Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T03:46:22Z
+    Signed-off-by: agy-worker <agy@sentania.net> 2026-07-17T03:46:00Z
 
-Commits: record `236dde3`, claude sign-off `7bd5311`, codex sign-off `282c521`.
+Each worker signed on its own branch editing only its own line; the orchestrator
+consolidated. Sign-off commits: claude `424460e`, codex `e040426`, agy `ce8acd5`.
+The consensus gate was run locally against a PR touching `src/sim/` and
+`project.godot` and passes.
 
-Artifact SHAs the record cites (full 40 characters, all still valid on the
-worker branches):
+Artifact SHAs the record cites (full 40 characters, all reachable on the worker
+branches, which is why those branches are retained):
 
-- Claude proposal: `00a717edb5f1d12d9f3a322ee0a680ed9868785d`
-- Codex proposal: `ad0a0b3c77c930b6a5ac3306dad2c20766319f95`
-- Claude critique: `6552e1df50434ab2a036db2181d71ba0a9c50573`
-- Codex critique: `4ab315e37da0d44413b75009c01959d87952865d`
+- Claude proposal: `b7faf4046a00871fdd0eb1a39f5bed623fdc4bc1`
+- Codex proposal: `5effb7dbf12ebc1ddbff624c8a6a6deeba96c324`
+- Agy proposal: `05e62658a1a6b0a650328e5e29c921392378dfd8`
+- Claude critique: `0b70f7b282117f046d84dd4c4dd2ac1541244710`
+- Codex critique: `4bd86c6514f0b68cc38af2fe789d37b9eb71adaa`
+- Agy critique: `67ae2dfdbb21671c1f7b9fe75cc423305aa21301`
 
-Note: `codex/town-motion` was rebased onto `main` during the review round, so
-the *spike* commit is now `3d98b8f` (was `5eb92d0`) and the smoke is `a901bcb`
-(was `552e153`). The proposal and critique SHAs above are the pre-rebase ones
-the record cites; they remain reachable. The rebase was verified by claude-worker
-as a clean linear replay that left `docs/decisions/` byte-identical to `main`.
+**Every worker signed something it lost, which is the sign the round worked.**
+Codex accepted the split ruling on its own constitution claim. Claude accepted
+losing both the art argument and the art slice, and independently verified its
+own dissent quote had not been softened. Agy accepted that winning the round's
+central argument did not win it the slice.
 
-**Spike outcome, recorded:** `docs/proposals/codex-spike-walk-sheet.md`, merged
-to `main` via PR #16. Both rejected candidates and both prompts are preserved
-under `tools/art/` as evidence.
+**Rulings that bind any implementation of this round.** Do not re-litigate these;
+they are decided and signed:
 
-**`docs/decisions/002-team-roster-and-critic-seat.md`, status accepted, no
-sign-offs and none owed.** It is a directive-authority record, not a converged
-synthesis: Scott directed the roster change on 2026-07-17, no worker round ran,
-so it cites the directive as its authority instead of worker signatures. It
-covers the `roles/` and `.github/protected-paths.txt` changes that landed in
-PR #17. Read its "Why this record has no proposals" section before writing
-another record of this kind; the category is narrow and is not a shortcut around
-the protocol.
+- Art: agy's colored boots on the 3x4 sheet. Pipeline order is binding, because
+  the natural implementation does exactly the wrong thing: **generate colored,
+  validate per source row pre-mirror and pre-recolor, then mirror, then
+  recolor.** The pre-recolor image is the artifact of record.
+- Gate: claude's hue-centroid sign-flip check may only **reject**, never pass.
+  Codex's in-game capture at 160px is the accept authority.
+- Three source rows (down, up, side). Diagonals are the first stretch.
+  Four-cardinal snapping is **not authorized at all**.
+- Nav: deterministic grid A* in `src/sim/`, physics and steering render-side.
+- Zoom: player-centered discrete steps. Cursor-anchored is cut.
+- No building moves this round. Flora cut.
 
-Next free decision number is `003`.
+**`docs/decisions/001-town-motion.md`** stays accepted; its mechanics (steps
+5-10) still bind walk-cycle work, and only its step-4 bob fallback is superseded.
+**`docs/decisions/002-team-roster-and-critic-seat.md`** stays accepted, directive
+authority, no sign-offs owed.
 
-**The record schema changed in PR #17 and a new field is required.** Every
-record now carries a machine-parseable `Workers dispatched` header line naming
-the workers the round actually dispatched, and `tools/check_consensus.py` builds
-its required-signer set from that line rather than from a hardcoded pair of
-names. Fill it in when you author a record, or the gate fails the record as
-unauditable. A record with no worker round writes
-`Workers dispatched: None (directive authority)` **and** an `Authority` line;
-both together or neither, the gate enforces it. `001-town-motion.md` was
-backfilled with the field (`claude-worker, codex-worker`) rather than the gate
-carrying a legacy fallback, so there is exactly one parsing path. See
-`docs/decisions/README.md`.
+Next free decision number is `004`.
 
-**Known pre-existing gate bug, not fixed in PR #17, worth a future dispatch.**
-`covered_entries()` in `tools/check_consensus.py` scans the whole "Protected
-paths touched" section for protected-path strings, including explanatory prose.
-`001-town-motion.md` says "None" there and then discusses `src/sim/` in the
-paragraph below, so the gate reads it as covering `src/sim/`. That record could
-therefore be cited to wave a `src/sim/` change through the gate. It was found
-while verifying PR #17 and left alone deliberately: it is out of scope for that
-PR's review round, and it is not a regression from it.
+**The gate bug from the last run is still there and is still worth a dispatch.**
+`covered_entries()` in `tools/check_consensus.py` scans the whole "Protected paths
+touched" section for protected-path strings including prose, so a record that
+says "None" and then discusses `src/sim/` in a nearby paragraph reads as covering
+`src/sim/`. Record 003 is not exposed to this (it lists its paths bare, exactly as
+they appear in `.github/protected-paths.txt`, with no prose in that section, which
+was deliberate). Not fixed here: out of scope for this round and not a regression.
 
 ## Outstanding sign-offs
 
-**Status:** none owed.
+**None owed on decision 003.** All three doers signed.
 
-- Decision 001: signed by both.
-- PR #16: signed by claude-worker (the non-author), twice. The first marker
-  `.team/signoffs/codex-town-motion-552e153d009f.md` covers the pre-rebase head;
-  the second `.team/signoffs/codex-town-motion-f6c7d77908d0.md` covers the
-  merged head and supersedes it. The first was deliberately NOT rewritten to
-  point at the new SHA: it records a real review of a real commit, and editing
-  it would have laundered a review that did not happen.
+**One owed before the nav slice can open a PR:** a pre-PR peer sign-off marker
+under `.team/signoffs/` from a resident that did **not** author it. Claude
+authored the nav slice, so the reviewer is codex-worker or agy-worker; check the
+marker's `reviewed_by` against `authored_by` rather than assuming by elimination,
+per `roles/orchestrator.md`. One marker from one non-author resident clears the
+gate.
 
 **Precedent worth keeping:** a rebase or a review-round fix invalidates a
 sign-off, because the marker names a SHA and the gate checks that SHA. Re-review
@@ -325,153 +355,119 @@ the delta and write a new marker. Do not repoint the old one.
 
 ## Open escalations to Scott
 
-**ONE OPEN, and it blocks the assignment's stated minimum.**
+**NONE OPEN.** The round-1 escalation `50ceed18` (whether the procedural bob may
+ship as "the walk cycle") was **answered by Scott: option 2, spend more spike
+budget**. That answer is folded into this round's assignment and the bob fallback
+is out of bounds. Nothing is waiting on Scott and nothing is blocked.
 
-**The art spike failed. Whether the procedural fallback may ship is Scott's.**
+**Two things Scott should know, neither of which is a blocker and neither of
+which stopped the round:**
 
-- Filed 2026-07-17T00:24Z via the `.pka` channel,
-  `request_id=50ceed18-9978-4a82-857d-ffbd06bc59e3`, urgency high, to `scott`.
-  Response lands in `.pka/inbound/orchestrator/`.
-- Trigger: decision 001 step 4, which armed exactly this and was conditional
-  until now. It is open now.
-- Why it is not the team's call: the assignment said "walk cycle at minimum."
-  Both workers agree on the record that a bob on a rigid billboard is not a walk
-  cycle (Claude conceded the crux in phase 2; Codex asked for explicit
-  acceptance in its critique). Granting that acceptance redefines the minimum
-  Scott set.
-- Options put to Scott: (1) accept the fallback and ship the bob, (2) spend more
-  spike budget, (3) re-scope this assignment to ambient motion only and make the
-  walk cycle its own assignment with a real art budget. The referee's read,
-  stated as a read and not a decision: option 2, because both spike failures
-  share one specific defect that looks addressable.
-- **Nothing is spinning while Scott decides.** No worker is dispatched on that
-  slice and no urgency is manufactured.
+1. **"Keybindable" does not mean what it looks like it means, and the team
+   interpreted rather than escalated.** Codex found that the repo has no
+   control-remapping UI to extend: the settings screen exposes window mode and
+   resolution, and input actions are static entries in `project.godot`. Decision
+   003 interprets "keybindable zoom" as **InputMap actions ready for a later
+   remapping UI**, not a remapping UI this round. Codex was explicit that this
+   "should be escalated as a requirement interpretation, not silently presented
+   as complete", and the second half of that sentence is the part being honored
+   here: it is written down loudly rather than smuggled. If Scott meant a real
+   rebinding UI, that is its own dispatch and this interpretation is wrong.
+2. **Cursor-anchored zoom was cut**, because the camera is a child of the player
+   node (`scenes/player.tscn:18`) and anchoring a zoom to the cursor needs either
+   a camera reparent or a drag-pan system, neither of which anyone priced. If
+   Scott wants it, it is a camera-rig dispatch with its own scene-contract
+   change.
 
 ## Notes for the next run
 
-**The gate said no, and that is the pilot's most useful result.** Codex was
-given an explicit licence to fail the spike and it used it, on its own generated
-art, against its own preferred representation, having won that argument in phase
-3. Claude then independently viewed both candidates during sign-off rather than
-accepting the verdict, and concurred. A gate that can only pass is not a gate;
-this one demonstrably says no. Do not treat the FAIL as the pilot going wrong.
+**THE DASHBOARD POST WORKS NOW. Stop assuming it 401s.** Three consecutive runs
+recorded it as broken with `{"detail":"Invalid or missing X-Bridge-Token"}` and
+this run posted successfully, HTTP 200, twice, using the token already in
+`/home/scott/.claude/pka-secrets/dashboard-config.md` unmodified. Nothing was
+rotated or fixed; the value in that file is simply valid again, presumably
+because `deploy.sh` has not rotated it since it was last written. The full
+snapshot went up (7 documents: three proposals, three critiques, decision 003).
+**The Team tab is live and true for the first time this assignment.** Treat the
+token as working until a POST actually fails, and re-read this note before
+inheriting the old assumption: a stale "known broken" note cost three runs a
+narration they could have had for free.
 
-**What the two spike failures had in common, for whoever runs a widened spike.**
-Both failed the same way: the feet do not reliably alternate. Candidate 1 failed
-in the side row (columns 1 and 3 repeated the same contact silhouette).
-Candidate 2's revised prompt attacked the side row specifically and did fix its
-silhouette variety, but columns 1 and 3 still failed to reverse the leading leg,
-*and the down and up rows regressed* because the revision left them unattended.
-A third attempt should constrain leading-leg reversal across all three rows at
-once rather than fixing one row and losing the others.
+**The three contract gaps are unchanged and two of them bit this run for real.**
+`DOCUMENT_AUTHORS` still has no `critic` and no `agy`, and `SIGNOFF_AUTHORS` has
+no `agy`. This round posted agy's proposal and critique as `author: orchestrator`
+with a first line naming the real author, per the brief's workaround. The agy
+sign-off was **left out of `signoffs[]` entirely** and named in `status_note`
+instead, because `signoffs[]` has no body field to carry the truth in and a
+sign-off attributed to the wrong resident is worse than an absent one. The phase
+enum still has no `implementation`/`done`. Closing these dashboard-side is worth
+more than it was: the critic is now a standing seat, so the missing `critic`
+author bites every full-protocol round.
 
-**Five items that used to live here are now rules in the briefs, not retro
-notes.** The dispatch tooling's vault paths and working invocation shape,
-dispatches being synchronous, verifying from end markers rather than exit codes,
-rebasing worker branches onto `main` before opening a PR, and PR hygiene. All of
-them are in `roles/orchestrator.md` now (see "Dispatch mechanics", "Rebase onto
-main before opening a PR", "PR hygiene"), and the worker-facing halves are in
-each worker brief. Read the brief; it is the source of truth. They were removed
-from this file deliberately rather than kept in both places, because this file
-is overwritten every run and a rule that lives only here is a rule that lasts
-until someone forgets to copy it forward. Twice now, someone did.
+**The critic seat's first live vote happened and it earned its cost.** Model:
+Composer (Cursor Auto). It established independence from all three doers, did not
+disqualify, voted WITH the orchestrator on both questions, and **found something
+all three workers missed**: `BuildingPlacement.sprite_key` already exists at
+`src/sim/town_layout.gd:30`, so the sim/render leak codex named is pre-existing
+debt rather than hypothetical. Verified against the tree. It also refused to
+over-read codex's constitution claim while explicitly preserving codex's
+bake-over-hash preference as a losing design preference. Note for future
+invocations: it was given the orchestrator's reasoning and told to vote the
+argument, and the vote is visibly not a rubber stamp. That framing is worth
+reusing.
+
+**The agy seat's first live round: the third read is genuinely different.** This
+was the open question from the last run and the answer is yes. Agy's proposal was
+the shortest by far (47 lines against claude's 417) and it **won the round's
+central argument** on the merits, against two better-resourced proposals, because
+it was the only one that questioned whether the constraint had to be semantic at
+all. Do not read agy's brevity as low effort; read it as a different search. Its
+critiques were also genuinely adversarial and it conceded both of its own
+contested positions unprompted. Its runs are fast (81s, 46s, ~60s) which is worth
+watching but has not yet correlated with worse output.
+
+**Verifying agy's `--add-dir` behaviour, since the adapter warns about it:** it
+worked. Every agy dispatch this round produced real commits in the real worktree,
+confirmed by branch SHA movement. The throwaway-scratch-project failure the
+adapter comments describe did not occur.
+
+**What is left of this round, in priority order.** Priority 1 (the walk cycle) is
+still the thing that has failed twice and it is NOT started: the art slice is
+dispatched to nobody yet. Sequence for the next run:
+
+1. Verify `impl-nav` from its end marker. Get a **non-author** peer sign-off
+   marker for it, rebase onto `main`, then open ONE PR and shepherd it: Codex
+   review bot, findings addressed in the same PR, merge, `.review-passed`
+   straight to `main`, delete the branch.
+2. **Produce the shared contract decision 003 requires** (one agreed player
+   origin, feet anchor, world scale, test fixture). The art and feel slices are
+   blocked behind it and this is why they were not dispatched this run.
+3. Dispatch the art slice to **codex** (colored boots, 3 source rows, pipeline
+   order binding) and the check to **claude**. This is priority 1 and it is the
+   one Scott most cares about.
+4. Dispatch zoom + visual feel to **agy**.
 
 **The Codex review gate is the `chatgpt-codex-connector` bot, not codex-worker.**
-It posts automatically on PR open, roughly 2-3 minutes in, as a review with
-inline comments. `gh pr view <n> --json reviews` shows only the wrapper text;
-the actual findings are at
-`gh api repos/sentania-labs/longwalk/pulls/<n>/comments`. It being a separate
-identity is what keeps the gate clear of the no-self-review rule when
-codex-worker authored the PR.
+It posts automatically on PR open, roughly 2-3 minutes in. `gh pr view <n> --json
+reviews` shows only wrapper text; the findings are at
+`gh api repos/sentania-labs/longwalk/pulls/<n>/comments`.
 
-Both of its P1s on #16 were worth having, and one was a false positive with a
-real cause: it reported the decision record missing, because the branch was
-based on a pre-`001` commit and it reads the branch tree. This is now the
-recorded reason behind the rebase-before-PR rule in `roles/orchestrator.md`.
-
-**Grafting a fix onto a review finding is the orchestrator's call, and I made
-one:** the smoke-texture P1 offered two remedies, and the dispatch directed the
-Godot-primitive one rather than routing a 24px gradient circle through an
-`image_gen` pipeline built for character art. Recorded here because it is a
-judgement, not a mechanical fix.
-
-**Still outstanding:** the Dashboard "Team" tab (build order step 5). It is the
-last unbuilt piece of the framework, and the three contract gaps below are its
-scope now rather than a footnote to it.
-
-**Stale team branches were swept on 2026-07-17** as part of the PR-hygiene
-dispatch, and the sweep is now a standing end-of-round duty in
-`roles/orchestrator.md`. Every merged PR's branch from #3 through #15 was still
-on the remote and is now deleted. Retained on purpose, and not to be swept:
-`claude/town-motion` and `codex/town-motion` (the pilot assignment is still
-open), and `issue-4-world-eras` (no PR, not a team branch). Note that
-`git branch -r --merged origin/main` reports nothing useful here: the repo squash
-merges, so a merged branch's commits are not ancestors of `main`. Check merged
-PRs' head branches instead.
-
-**Dashboard POST still 401s. Attempted this run, same failure:**
-`{"detail":"Invalid or missing X-Bridge-Token"}`. Cause unchanged: `deploy.sh`
-rotates the token on every deploy, so the value in
-`/home/scott/.claude/pka-secrets/dashboard-config.md` is stale. Not fixed here,
-for the same reason as the prior two runs: rotating a shared token other
-services depend on is an outward change taken as a side effect of narration, and
-narration is not allowed to bend the protocol or reach outside the repo on its
-own initiative. Needs Scott, or a run whose actual assignment is the dashboard:
-re-run `deploy.sh` and update the secrets file, or read the live value from
-`/srv/services/dashboard/dashboard.env` on docker.int.
-
-Logged, not retried in a loop, every phase proceeded. **The Team tab has been
-stale for this entire assignment.** The truth is in this file, in
-`docs/decisions/001-town-motion.md`, and in PR #16.
-
-**Three known contract gaps against `POST /api/team`,** worked around in
-`roles/orchestrator.md`, worth closing dashboard-side: no `critic` author value,
-no `agy` author value in either `DOCUMENT_AUTHORS` or `SIGNOFF_AUTHORS`, and the
-phase enum has no `implementation` or `done` (folded into `execution` and
-`review`, truth carried in `status_note`). This run's payload would have posted
-`phase: "review"` with a `status_note` distinguishing merged-but-blocked, which
-is exactly the lossy case the workaround warns about.
-
-Two of those three got worse rather than staying flat, and a dashboard dispatch
-should know why. The critic is now a standing seat, so the missing `critic`
-author value bites every full-protocol round rather than the rare invoked one.
-And `agy` is now a seated doer whose sign-offs `signoffs[]` cannot express at
-all: there is no body field to carry the truth in the way a `documents[]` entry
-can, so the brief directs that an agy sign-off be named in `status_note` and
-left out of `signoffs[]` rather than posted under another resident's name. That
-is a workaround around a workaround, and it is the strongest argument yet for
-just adding the enum values.
-
-**The critic seat was not invoked during the pilot, and under the rule in force
-at the time that was correct:** neither trigger fired (no deadlock, no protected
-path). **That rule is gone.** The critic is now invoked at synthesis on every
-full-protocol assignment, with its vote recorded in the decision record every
-time; the old deadlock and protected-path triggers now set the vote's weight
-(tiebreaker-grade versus advisory) rather than gating invocation. Fast lane gets
-no critic vote, explicitly. See `roles/critic.md` and `roles/orchestrator.md`'s
-"The critic seat". The pilot is exactly why it changed: the seat's trigger was a
-judgment call by the one resident whose bias the seat exists to check, and it
-duly never fired. The `cursor` adapter is built and ready, and has still never
-served a real vote.
-
-**The `agy` seat is real now but has never run a live round.** `roles/agy-worker.md`
-exists, `.pka/team-config.yaml` lists it, `.pka/inbound/agy/` exists, and the
-adapter was smoke-tested in the vault. What has not happened is a
-three-way blind proposal with an actual Gemini-family read in it. The first
-full-protocol assignment after this one is that test, and the thing most worth
-watching is whether the third read is genuinely different or just a third way of
-saying what the other two said. Also unexercised: three-way worktree isolation,
-and the orchestrator naming a reviewer now that "the other resident" is two
-candidates.
+**Branch and PR sweep, run this round:** zero open team PRs
+(`gh pr list --state open` empty). Retained on purpose: `claude/town-motion` and
+`codex/town-motion` (decision 001 cites SHAs reachable only from them; sweep once
+round 2's animation slice lands), `issue-4-world-eras` (not a team branch), and
+the three `*/village-feel` branches, which are the live round and carry every SHA
+decision 003 cites. Nothing to delete. Remember `git branch -r --merged` reports
+nothing useful here because the repo squash merges; check merged PRs' head
+branches instead.
 
 ---
 
-**Last updated:** 2026-07-17 (framework hygiene dispatch, closed out and merged
-as PR #17: agy seated as a third doer, critic made a standing synthesis-time
-voter, orchestrator brief given the pilot's retro lessons as rules, PR hygiene
-codified, stale branches swept. The review round on that PR added decision record
-`002`, generalized the phase 2 and phase 3 templates off a hardcoded two-worker
-shape, and moved the consensus gate to a per-record `Workers dispatched` signer
-set. The "seat agy, make the critic standing, codify PR hygiene" item is done and
-is no longer outstanding. The walk-cycle escalation `50ceed18` is untouched and
-still open; ambient motion remains merged as `6c8e74a`, PR #16.)
+**Last updated:** 2026-07-17T03:50Z (orchestrator run
+`orchestrator-run-20260717-032957`). This run found phase 1 stalled and never
+actually dispatched, re-dispatched it, and carried the round through phases 1, 2
+and 3 to a signed decision record on `main` (`f4c7dc5`). First live three-doer
+blind proposal, first live adversarial three-way critique, and first live critic
+vote, all of which worked. The nav slice implementation is dispatched; the art
+slice, which is Scott's priority 1, is not, and is blocked on the shared contract
+named above.
