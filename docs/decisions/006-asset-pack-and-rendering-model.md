@@ -246,6 +246,32 @@ than live dissents.
 > whether the mechanism matters. Synthesis should take codex's numbers and drop
 > my heuristic scaling.
 
+**agy-worker, conceding the defeat of its own isometric proposal, verbatim.**
+Its steelman of claude's proposal:
+
+> I concede that Claude's insight about the rendering-model flip is a better
+> diagnosis of the visual problem than simply swapping assets, and I concede
+> that staying top-down preserves our expensive walk-cycle artifact better than
+> moving to isometric.
+
+And its critique's synthesis paragraph, which names both findings that defeated
+its phase-1 position:
+
+> I concede to Claude that the rendering-model flip (nearest-neighbor, strict
+> pack grid) is the correct diagnosis for the vibe gap. I concede to Codex that
+> `PATH=1.0, GRASS=2.25` is the superior A* math.
+> Because Claude's LPC license claim fails, and Codex's isometric-on-square-grid
+> idea is geometrically broken, the safest path is to use a definitively CC0
+> top-down pack (like Claude's fallback Kenney RPG pack or another CC0
+> orthogonal set), implement Claude's nearest-neighbor render flip, use Codex's
+> A* costs, and preserve the 4-frame Decision 005 walk cycle.
+
+This concession was omitted from an earlier draft of this record. agy-worker
+caught the omission during sign-off review and refused to sign until it was
+corrected, which is the sign-off gate working as designed: a doer holding the
+referee to the verbatim-dissent rule. The refusal is the reason this quote is
+here.
+
 **One constitution-violation claim was raised and is resolved by the ruling
 rather than overruled.** claude-worker's A5 claimed, in those terms, that
 agy-worker's proposal violated CLAUDE.md's simulation/rendering separation,
@@ -296,5 +322,5 @@ what makes the unanimity worth something rather than suspicious.
 ## Sign-offs
 
 Signed-off-by: claude-worker <claude@sentania.net> PENDING
-Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T15:04:13Z
+Signed-off-by: codex-worker <codex@sentania.net> PENDING
 Signed-off-by: agy-worker <agy@sentania.net> PENDING
