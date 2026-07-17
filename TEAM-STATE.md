@@ -26,28 +26,88 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**NONE ACTIVE. Round 003 is CLOSED and merged.** The next run starts a new
-assignment from Scott rather than resuming anything.
+**ROUND 004 ACTIVE: "make it look like a game."** Assigned by Scott via Dalinar
+at 2026-07-17T12:30Z, inbox
+`.pka/inbound/orchestrator/2026-07-17-1230-dalinar-assignment-round-004.md`
+(read it in full; it is the authority, this is the scope derived from it).
 
-Round 003 ("village feel") delivered the walk cycle, click-to-move navigation,
-zoom control, and the visual-feel pass. **PR #19 merged at `6a0b3fb`**,
-`.review-passed` recorded at `d9dee4f`. Flora was cut by decision 003 and stays
-cut; it is the obvious candidate for a next round, along with the follow-ups
-listed below.
+Scott playtested build 29564548380. Machinery verdict good, game verdict mixed.
+Seven findings, all **requirements, not suggestions**:
+
+1. Walk animation is "just okay, really rudimentary, sort of skipping". New
+   acceptance bar: side-by-side animated GIF against a reference-game walk
+   cycle, attached to the decision record, judged on stride length, contact
+   frames, vertical bounce. Frame order alone no longer passes.
+2. No visible change in art vibe. The round-003 feel pass produced a color
+   grade, not a style change. Judged against the reference images, with
+   before/after screenshots in the round PR.
+3. **Flora is now a hard requirement.** Trees, bushes, at least one flower
+   patch. Scott has asked three times. Decision 003 cut it; that cut does not
+   carry forward.
+4. Pathfinding must know roads exist (weighted nav costs, prefer paths).
+5. Add right-click to focus/recenter the view, independent of pathing.
+6. Building shadows must conform to building silhouettes, not rounded blobs.
+7. The traveller floats. Ground him, plus a contact shadow consistent with the
+   building shadow direction.
+
+**Strategy change, authorized by Scott: licensed asset packs (CC0/CC-BY) are
+now permitted as a base layer**, AI generation reserved for custom pieces. Every
+adopted asset needs a CREDITS.md entry with source URL and license. No
+noncommercial or unclear-license assets. Scott flagged "which pack(s)" as the
+likely biggest single unlock for the vibe gap and as a phase-1 contested
+question. The codex seat **must** exercise its agent-sprite-forge skills
+(`$generate2dsprite` / `$generate2dmap`) for remaining generation, and the retro
+must report whether they materially helped.
+
+Exclusions: still no NPCs, and no engine change (Scott asked; the assessment is
+that asset sourcing and art direction are the constraint, not Godot).
+
+Reference folder (read-only): `/home/scott/claude/vault/tmp/longwalk-inputs`.
+Technique reference: CorsixTH, techniques citable, assets never.
+
+### Lane
+
+**FULL PROTOCOL.** Three reasons, any one of which would be sufficient:
+
+- It touches two protected paths (below), which is design-level by definition.
+- Scott explicitly flagged the asset-pack question as contested, and it is: the
+  pack choice is a one-way door that the whole art direction then inherits, and
+  it partially supersedes decision 005's generation topology.
+- Seven requirements with real sequencing tension between them (the pack choice
+  gates the vibe work, the flora work, and arguably the walk cycle). A
+  reasonable engineer could scope this several materially different ways.
+
+### Protected paths touched
+
+**Yes**, forecast as two entries from `.github/protected-paths.txt`:
+
+- `src/sim/` (requirement 4: road-weighted routing extends
+  `NavGrid.find_path()`; `GroundTile.PATH` already exists in
+  `src/sim/town_layout.gd`, so the data is there and only the cost function is
+  missing).
+- `project.godot` (requirement 5: a new InputMap action for right-click focus).
+
+A forecast, not a certainty. Phase 3 corrects it against what the synthesis
+actually calls for. Consequence: contested synthesis questions take four
+ballots, critic invoked only on a 2-2 split, per decision 004.
+
+### Round structure
+
+Round branch `round/004-look-like-a-game`, cut from `main` at `9988feb`. Doer
+branches `claude/004-proposal`, `codex/004-proposal`, `agy/004-proposal`, each
+cut from the round branch, each in its own worktree at
+`/home/scott/claude/lw-004-<name>`. One PR to `main` from the round branch, one
+external review round, per decision 004.
 
 ## Phase
 
-**Status:** `done`. Nothing is dispatched, no worker is running, no worktree
-holds unintegrated work, and there is nothing in flight for the next run to
-adopt. The repo is at a clean stopping point.
+**Status:** `phase 1: blind proposal`. Dispatched 2026-07-17T14:0xZ to all three
+doers in parallel, each into its own worktree, each blind to the others.
 
-Verified at end of run, not asserted:
-
-- **Zero open team PRs** (`gh pr list --state open` returns empty).
-- **Zero team branches.** Remote holds only `main` and `issue-4-world-eras`
-  (not a team branch, no PR, pre-existing).
-- **One worktree** (`/home/scott/claude/longwalk`, on `main`). Every round-003
-  worktree was removed and every local doer branch deleted.
+Round 003 is closed and merged, and that was **verified this run rather than
+inherited from this file**: `gh pr list --state open` empty, `git branch -r`
+after a `--prune` fetch showing only `origin/main` and `origin/issue-4-world-eras`
+(not a team branch), one worktree, `main` at `9988feb`.
 
 ## What this run did
 
