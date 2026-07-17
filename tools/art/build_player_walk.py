@@ -72,13 +72,28 @@ def _hue_mask(image: Image.Image, hue_range: tuple[float, float]) -> np.ndarray:
     )
 
 
+def marker_residue_mask(image: Image.Image) -> np.ndarray:
+    """Return opaque pixels that retain either generation-marker hue."""
+    rgba = image.convert("RGBA")
+    hsv = np.asarray(rgba.convert("RGB").convert("HSV"), dtype=np.float64)
+    hue = hsv[:, :, 0] * (360.0 / 255.0)
+    value = hsv[:, :, 2] / 255.0
+    alpha = np.asarray(rgba)[:, :, 3]
+    marker_hue = (
+        ((hue >= MAGENTA_HUE_RANGE[0]) & (hue <= MAGENTA_HUE_RANGE[1]))
+        | ((hue >= CYAN_HUE_RANGE[0]) & (hue <= CYAN_HUE_RANGE[1]))
+    )
+    return marker_hue & (value >= MARKER_MIN_VALUE) & (alpha > 0)
+
+
 def _set_hue(image: Image.Image, mask: np.ndarray, hue_degrees: float) -> Image.Image:
     rgba = image.convert("RGBA")
     hsv = np.asarray(rgba.convert("RGB").convert("HSV"), dtype=np.uint8).copy()
     hsv[mask, 0] = round(hue_degrees * 255.0 / 360.0)
     rgb = np.asarray(Image.fromarray(hsv, mode="HSV").convert("RGB"))
-    result = np.dstack((rgb, np.asarray(rgba)[:, :, 3]))
-    return Image.fromarray(result.astype(np.uint8), mode="RGBA")
+    result = np.asarray(rgba).copy()
+    result[mask, :3] = rgb[mask]
+    return Image.fromarray(result, mode="RGBA")
 
 
 def _swap_boot_hues(image: Image.Image) -> Image.Image:
@@ -176,9 +191,14 @@ def build_colored_shipping_atlas(source: Image.Image) -> Image.Image:
 
 def recolor_boots(image: Image.Image) -> Image.Image:
     # Use broader hue windows than the rejection gate so antialiased marker
-    # fringes are recolored too. The source palette has no other foreground
-    # colors in these ranges.
-    marker = _hue_mask(image, (260.0, 359.9)) | _hue_mask(image, (140.0, 220.0))
+    # fringes are recolored too. Keep that broad match saturation-gated to
+    # protect unrelated muted colors, then include the exact marker windows
+    # without a saturation floor so HSV round trips cannot strand boot edges.
+    marker = (
+        _hue_mask(image, (260.0, 359.9))
+        | _hue_mask(image, (140.0, 220.0))
+        | marker_residue_mask(image)
+    )
     rgba = image.convert("RGBA")
     hsv = np.asarray(rgba.convert("RGB").convert("HSV"), dtype=np.uint8).copy()
     hsv[marker, 0] = round(LEATHER_HUE * 255.0 / 360.0)
@@ -186,7 +206,9 @@ def recolor_boots(image: Image.Image) -> Image.Image:
     values = hsv[:, :, 2].astype(np.float64)
     hsv[marker, 2] = np.clip(values[marker] * LEATHER_VALUE_SCALE, 35, 155).astype(np.uint8)
     rgb = np.asarray(Image.fromarray(hsv, mode="HSV").convert("RGB"))
-    return Image.fromarray(np.dstack((rgb, np.asarray(rgba)[:, :, 3])), mode="RGBA")
+    result = np.asarray(rgba).copy()
+    result[marker, :3] = rgb[marker]
+    return Image.fromarray(result, mode="RGBA")
 
 
 def recolor_tunic(image: Image.Image, target_hue: float | None) -> Image.Image:

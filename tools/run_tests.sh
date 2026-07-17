@@ -3,6 +3,8 @@
 # it is not already present. This is the exact entry point CI invokes.
 #
 # Art-pipeline tests (test/art/), plain Python, no Godot:
+#   - test_build_player_walk.py: asserts that no opaque generation-marker hue
+#     survives into any shipping player atlas.
 #   - test_check_walk_sheet.py: the pre-recolor walk-sheet rejection gate
 #     (tools/art/check_walk_sheet.py). Asserts every rejection path fires
 #     against a fixture built to trip it (leading-leg non-reversal traced from
@@ -45,6 +47,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # Art-pipeline tests run first: they are plain Python (PIL and numpy, the same
 # deps process_assets.py already needs), they need no Godot binary, and they
 # are fast, so a break here surfaces before the engine fetch.
+echo "=== test_build_player_walk.py ==="
+python3 "${REPO_ROOT}/test/art/test_build_player_walk.py"
+
 echo "=== test_check_walk_sheet.py ==="
 python3 "${REPO_ROOT}/test/art/test_check_walk_sheet.py"
 
