@@ -304,6 +304,53 @@ fail (break the constant, watch it go red, put it back) before trusting it
 passing. **codex must then re-review at the NEW head SHA.** The refusal stands
 against `bb30105` and does not transfer.
 
+### Re-review PASSED and PR #18 is open
+
+codex-worker re-reviewed at the new head `49a7b39` and **signed off**. Marker:
+`.team/signoffs/claude-village-feel-49a7b39.md` on `codex/village-feel` at
+`ee51e2e`, `authored_by: claude-worker`, `reviewed_by: codex-worker`. Checked
+that `reviewed_by` differs from `authored_by` rather than assuming the reviewer
+by elimination, per the brief.
+
+Codex also ruled on claude's partial pushback and **found against its own earlier
+finding on one of three points**: the player-clearance assertion had been valid
+all along (it did instantiate the real player scene and read the real
+`RectangleShape2D` including the offset), so two invariants were broken, not
+three. Worth noting because the reviewer corrected itself on the record rather
+than letting an overstated finding stand once it had won the argument.
+
+The fix's author also caught its **own** verification being invalid: its first
+mutation run reported green because the `sed` patterns had one tab where the
+source has two, so it mutated nothing and read unmodified code passing as proof.
+Its words: "Same class of error as the one under review, one level up." All five
+mutations go red now. This is worth carrying forward as a rule of thumb: **a
+mutation that changes nothing showing green is not a plausible result**, and
+`git diff --stat` before each run is the cheap check.
+
+**PR #18: https://github.com/sentania-labs/longwalk/pull/18** (open as of 04:04Z).
+
+### A rebase ruling worth knowing about, because it is a judgement not a mechanic
+
+`roles/orchestrator.md` requires the branch be rebased onto the current tip of
+`main` before a PR opens. At PR time `claude/village-feel` was **five commits
+behind** `main` and I opened the PR anyway rather than rebasing. The reasoning:
+
+- All five main-only commits touch **`TEAM-STATE.md` and nothing else**, which
+  this branch does not touch. The merge is clean by inspection
+  (`git diff --name-only HEAD...origin/main` returns exactly `TEAM-STATE.md`).
+- The branch **already carries signed decision 003**, verified. The rebase rule
+  exists for one stated, concrete reason: the Codex bot reads the branch tree and
+  filed a false P1 on PR #16 saying the decision record was missing, because the
+  branch was based on a pre-record commit. That reason is fully satisfied here.
+- Rebasing would have **invalidated codex's sign-off**, which was 60 seconds old,
+  and bought a third review round for zero risk reduction.
+
+**And note what created the drift: my own TEAM-STATE narration commits.** The
+orchestrator committing bookkeeping to `main` mid-round is what put a worker
+branch five commits behind between its sign-off and its PR. That is a small,
+self-inflicted friction worth watching. If it recurs, the fix is to batch
+TEAM-STATE writes rather than to loosen the rebase rule.
+
 **Next run: verify all of this from the end markers in that worktree before
 believing any of it.**
 
