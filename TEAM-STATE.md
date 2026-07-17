@@ -27,15 +27,15 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 ## Current assignment
 
 **Status:** active. Pilot run of the multi-harness team framework (build order
-step 7).
+step 7). Phases 1, 2, and 3 are complete and signed. Implementation not started.
 
 **Assignment (goal statement, verbatim as Scott gave it):**
 
 > Bring motion to the starter town: player walk cycle at minimum, ambient town
 > motion if cheap.
 
-**Dispatched:** 2026-07-16T23:52:59Z (phase 1 dispatch failed to launch; re-dispatched
-2026-07-17T00:00Z, see "Phase" below)
+**Dispatched:** 2026-07-16T23:52:59Z. Phase 1 launched for real on the third
+attempt, 2026-07-17T00:02:56Z.
 
 **Lane:** `full protocol`. Directed by Scott, not left to orchestrator triage.
 Recorded reasoning as directed: "full protocol: pilot run, design-level (three
@@ -50,178 +50,209 @@ assignment."
   conventions already in the repo.
 - Nothing else beyond the constitution.
 
-**Protected paths touched:** not expected. This is forecast, made before anyone
-has proposed anything, and phase 3 corrects it against what the synthesis
-actually calls for. The forecast is "no" because the assignment is scoped to the
-render layer and the constraint above explicitly keeps timing and state out of
-the sim side.
+**Protected paths touched:** **none, now settled rather than forecast.** The
+phase-0 forecast flagged `src/sim/town_layout.gd` as a live possibility (ambient
+motion wanting authored anchors). It did not happen: both workers rejected that
+move independently and unprompted, for the same reason, and the synthesis holds
+them to it. Chimney position is a fact about a texture, not about a town.
 
-One live possibility the next run must not miss: `src/sim/` is protected and
-holds `town_layout.gd`, the authored starter-town data. If either proposal wants
-ambient town motion to be driven by, or to add entries to, the authored layout,
-the assignment touches a protected path after all. That flips two things on
-automatically: the consensus decision record must be signed by both agents
-before merge, and the critic seat (`roles/critic.md`) is invoked at synthesis
-whether or not the critique round deadlocks. Check this at phase 3 against the
-actual proposals rather than trusting this forecast.
+Consequences, both confirmed rather than assumed: the consensus CI gate does not
+apply to decision 001, and the critic seat was not auto-invoked at synthesis.
 
-**Scope:** not yet scoped. A goal statement is not a scope, and the scoping
-fight (generated sprite-sheet frames vs. procedural animation in Godot vs. a
-hybrid) is deliberately part of what phase 1 argues about. Scott named the
-scoping fight as part of the pilot's test. Do not resolve it from the referee
-seat.
+**Scope:** settled by `docs/decisions/001-town-motion.md`. The scoping fight
+(generated sprite-sheet frames vs. procedural animation vs. hybrid) was resolved
+by the workers, not from the referee seat. Summary, but read the record before
+acting on this:
+
+- Generated 3x4 sprite sheet wins the representation argument. Claude conceded
+  the crux outright: a bob on a rigid billboard is not a walk cycle.
+- The choice is gated behind a time-boxed art spike (Codex generates one sheet
+  candidate, views it at game scale, one prompt revision allowed).
+- If the spike fails, the fallback is Claude's procedural pose function, NOT
+  Codex's three-strips path (strips reintroduce the identity drift that
+  single-image generation existed to avoid).
+- **If the fallback is taken, that is a Scott escalation, not a team call.**
+  Shipping something both workers agree is not a walk cycle is a change to the
+  assignment. This trigger is conditional and is NOT open today.
+- Mechanics binding regardless of representation: drive from resolved motion not
+  input; advance by per-tick displacement in `_physics_process()`; render-side
+  state owns last-facing and appearance variant and must survive
+  `set_appearance()` before tree entry; pin sheet cell height to 160 so
+  `player.tscn`'s `offset = Vector2(0, -80)` stays correct by construction;
+  animate the visual child only, never `CharacterBody2D.position`.
+- Ambient: `CPUParticles2D`, single render offset per cottage keyed by
+  `sprite_key`, no anchor table, no facade descriptor, grass shimmer cut, no
+  determinism claim (smoke makes no placement decision). Ships independent of
+  the spike.
 
 ## Phase
 
-**Status:** `phase 2: adversarial critique`, dispatched 2026-07-17T00:06Z.
-
-**Phase 1 is CLOSED.** Both proposals are committed; SHAs recorded under "Active
-decision record" below. Verified from the wrapper's end markers, not from an exit
-code: `branch_changed: yes` on both, `uncommitted_work: no` on both, and the
-proposal files exist on both branches.
-
-The third dispatch attempt is the one that worked, and what made it work was the
-steer in `.pka/inbound/orchestrator/2026-07-17-0001-dalinar-steer-dispatch-mechanics.md`:
-the dispatch wrapper **does** exist, at `/home/scott/claude/vault/scripts/team/dispatch.sh`
-in the **vault** repo, not the longwalk checkout. Two prior runs (and this file's
-own prior text) concluded it was never built because they looked for it at
-`scripts/team/dispatch.sh` relative to longwalk. It is not there and never will
-be; it lives in the vault and is harness-neutral by design. Adapters for `claude`,
-`codex`, `cursor` (the critic seat), and `agy` are in
-`/home/scott/claude/vault/scripts/team/adapters/`. Read
-`/home/scott/claude/vault/scripts/team/README.md` before invoking it.
-
-The second lesson, which is the one that actually killed two runs: **a dispatch is
-synchronous and you must block on it.** Nothing an orchestrator launches survives
-its turn ending. Launch in background and `wait` within the same turn, or run them
-sequentially, but do not narrate a dispatch and exit. The wrapper runs a worker to
-completion in the foreground. Phase 1's real dispatch took 143s (Claude) and 59s
-(Codex) with both running in parallel, so blocking costs almost nothing.
-
-### History of phase 1 (leave intact, per the steer)
+**Status:** `phase 3: synthesis` COMPLETE and signed. Next step is
+`implementation` (dashboard phase enum: `execution`), not yet dispatched.
 
 - Claude worker: branch `claude/town-motion`, worktree
   `/home/scott/claude/longwalk-worktrees/claude-town-motion`
 - Codex worker: branch `codex/town-motion`, worktree
   `/home/scott/claude/longwalk-worktrees/codex-town-motion`
 
-Blocking on: both workers. Phase 1 closes when both proposal commit SHAs are
-recorded under "Active decision record" below.
+Both branches carry that worker's proposal and critique. Neither carries any
+implementation. `main` carries the signed decision record.
 
-**The 2026-07-16T23:52:59Z dispatch was claimed but never happened.** This run
-verified rather than assumed, per the anti-stall clause, and found: both branches
-sat at `3e1eb0c` (the dispatch commit itself), `git reflog claude/town-motion`
-showed a single entry (`branch: Created from main`) and no work on top, both
-worktrees were clean, no `codex`/`claude`/`cursor-agent` worker process was alive,
-and no BLOCKED marker existed on either branch. The prior run's own end marker
-tells the story: it ran 262 seconds and exited 0. It created the worktrees, wrote
-this file saying both workers were dispatched, and exited. Nothing was ever
-launched.
+**What the next run does:** dispatch implementation per the division of labor in
+decision 001. The spike is the first thing and it gates the rest:
 
-The lesson for the next run, because this failure mode is cheap to repeat: a
-dispatch is not a durable artifact and `exit_code=0` on the orchestrator run says
-nothing about whether the workers ran. Only a commit on the worker's branch does.
-An orchestrator that claims a dispatch and exits in four minutes has not
-dispatched anything, it has written a note saying it did. Verify worker branches
-before believing this file's own phase claim, including when the claim was
-written by an orchestrator run that appeared to succeed.
+1. **Codex first, alone: the art spike.** Generate one 3x4 sheet candidate, view
+   at game scale, call the gate. One prompt revision. Do not dispatch the
+   controller work in parallel with this: the representation it selects
+   determines what the controller is animating. This is the one place the
+   pipeline is genuinely sequential.
+2. **Then, in parallel:** Codex takes the sheet processing path plus the chimney
+   smoke (smoke is independent of the spike outcome and can start immediately if
+   worker slots allow). Claude takes the player controller/animator and the
+   tests.
+3. **Cross-slice dependency to watch,** flagged by Claude in its sign-off and
+   worth carrying: Codex owns the sheet's per-cell sizing, Claude is bound to
+   `player.tscn`'s `offset = -80`, and that offset is only correct if the cell
+   height is pinned to 160. Item 8 of the record makes this explicit and gives
+   the escape hatch (compute the offset if the height floats). It is a
+   coordination point, not a defect, but it lives across the harness split.
 
-**Re-dispatch form used (hand-rolled, no wrapper exists):** both workers launched
-in parallel, in their own pre-existing worktrees, blind to each other:
-
-- Claude: `claude -p "$(cat phase1-assignment)" --model opus --permission-mode
-  bypassPermissions --append-system-prompt "$(cat roles/claude-worker.md +
-  roles/phases/1-proposal.md)"`
-- Codex: `codex exec --dangerously-bypass-approvals-and-sandbox "$(cat
-  roles/codex-worker.md + phase1-assignment)"`
-
-The shared assignment text was identical for both (goal statement verbatim,
-constraints, protected-path warning about `src/sim/town_layout.gd`, the blind
-discipline, the four-section output format, commit-and-report-SHA requirement,
-proposal-only). The critical difference from the failed run: this run blocks on
-the workers until they finish, rather than launching and exiting.
+Then: pre-PR peer sign-off under `.team/signoffs/` (each resident reviews the
+OTHER's diff, no self-sign-off), PR, Codex review gate, orchestrator merges.
 
 ## Active decision record
 
-**Status:** none yet. Drafting begins at phase 3 (synthesis), per
-`roles/phases/3-synthesis.md`. Next free number is `001`; `docs/decisions/`
-currently holds only `README.md` and `TEMPLATE.md`.
+**`docs/decisions/001-town-motion.md`, status accepted, signed by both.**
 
-Proposal SHAs (full 40 characters, cited by the decision record):
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T00:13:00Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T00:13:44Z
 
-- Claude proposal: `00a717edb5f1d12d9f3a322ee0a680ed9868785d` on `claude/town-motion`,
-  at `docs/proposals/claude-town-motion.md`.
-- Codex proposal: `ad0a0b3c77c930b6a5ac3306dad2c20766319f95` on `codex/town-motion`,
-  at `docs/proposals/codex-town-motion.md`.
+Commits: record `236dde3`, claude sign-off `7bd5311`, codex sign-off `282c521`.
+
+Artifact SHAs the record cites (full 40 characters):
+
+- Claude proposal: `00a717edb5f1d12d9f3a322ee0a680ed9868785d` on
+  `claude/town-motion`, at `docs/proposals/claude-town-motion.md`.
+- Codex proposal: `ad0a0b3c77c930b6a5ac3306dad2c20766319f95` on
+  `codex/town-motion`, at `docs/proposals/codex-town-motion.md`.
+- Claude critique: `6552e1df50434ab2a036db2181d71ba0a9c50573` on
+  `claude/town-motion`, at `docs/proposals/claude-critique-codex.md`.
+- Codex critique: `4ab315e37da0d44413b75009c01959d87952865d` on
+  `codex/town-motion`, at `docs/proposals/codex-critique-claude.md`.
+
+Next free decision number is `002`.
 
 ## Outstanding sign-offs
 
-**Status:** none. Nothing has been built yet, so no pre-PR peer sign-off is owed
-and no decision record is awaiting signature.
+**Status:** none owed. Decision 001 is signed by both residents.
+
+Nothing has been built yet, so no pre-PR peer sign-off is owed. When
+implementation lands, each resident reviews the OTHER's diff and writes a marker
+under `.team/signoffs/`. No marker, no PR.
 
 ## Open escalations to Scott
 
 **Status:** none open.
 
+**One conditional trigger is armed and the next run must not miss it:** if the
+art spike fails and the team falls back to the procedural pose function, that
+escalates to Scott before anything ships. Both workers agree a bob is not a walk
+cycle, and the assignment named the walk cycle as the minimum, so shipping the
+fallback silently would be redefining the assignment rather than delivering it.
+Codex asked for exactly this acceptance in its critique and it was right to.
+
 ## Notes for the next run
 
-**The dispatch wrapper does not exist, and this run worked around it.** This
-orchestrator run was told to dispatch via `scripts/team/dispatch.sh` per
-`scripts/team/README.md`'s adapter contract. Neither file exists, in this repo
-or anywhere on this box. That wrapper is build order step 1 in
-`vault/scott/reports/2026-07-16-longwalk-team-framework-design.md` ("Teft: codex
-exec dispatch wrapper, role injection, worktree isolation, durable markers, N-
-harness adapter interface, two adapters"), owned by a different workspace, and
-it was never built. The build order says steps 1-2 are prerequisites for the
-pilot at step 7, so the pilot was started with a prerequisite missing.
+**The dispatch wrapper exists. It is in the VAULT, not longwalk.**
+`/home/scott/claude/vault/scripts/team/dispatch.sh`, with adapters for `claude`,
+`codex`, `cursor` (the critic seat), and `agy` in
+`/home/scott/claude/vault/scripts/team/adapters/`. Read
+`/home/scott/claude/vault/scripts/team/README.md` before invoking.
 
-This run dispatched both workers by hand instead: `git worktree add` for
-isolation, then the invocation form the constitution already documents
-(`claude -p --append-system-prompt "$(cat roles/claude-worker.md)"` and the
-equivalent instruction prepend for `codex exec`), with
-`roles/phases/1-proposal.md` appended as the phase template. The orchestrator
-did not author the missing wrapper: writing it is code, and the referee seat
-does not write code (`roles/orchestrator.md`). Scott should decide whether the
-wrapper still gets built by its owner or whether the hand-dispatch path is good
-enough to keep. Until then, every orchestrator run pays this cost by hand and
-the "durable markers" part of the wrapper's remit has no implementation at all.
+This file previously asserted, twice, that the wrapper was never built. That was
+wrong, and the error was mechanical: both runs looked for `scripts/team/`
+relative to the longwalk checkout, did not find it, and concluded it did not
+exist anywhere. It is harness-neutral by design and lives in the vault. The
+correction came from Scott via the spectator steer channel
+(`.pka/inbound/orchestrator/2026-07-17-0001-dalinar-steer-dispatch-mechanics.md`),
+logged for the pilot retro as one informational steer.
 
-**The design report lives in the vault, not this repo.** It is at
-`/home/scott/claude/vault/scott/reports/2026-07-16-longwalk-team-framework-design.md`.
-The dispatch prompt cited it as `scott/reports/...`, a repo-relative path that
-does not resolve here. Not a blocker, but it costs a search every run.
+Invocation form that worked, both workers in parallel, blocking:
 
-**Still outstanding from the previous run:** the Dashboard "Team" tab (build
-order step 5).
+    D=/home/scott/claude/vault/scripts/team/dispatch.sh
+    "$D" claude <worktree> roles/claude-worker.md <prompt-file> \
+      --cap-seconds 2400 --model opus --label <slug> &
+    "$D" codex <worktree> roles/codex-worker.md <prompt-file> \
+      --cap-seconds 2400 --label <slug> &
+    wait
 
-**Two known contract gaps against the dashboard's `POST /api/team` schema,**
-both worked around in `roles/orchestrator.md` and both worth closing dashboard-
-side: the schema has no `critic` author value (critic votes post as
+For a sign-off round against `main` itself, pass `--allow-primary` and run the
+workers SEQUENTIALLY (the flag exists for exactly this; concurrent writes to one
+checkout corrupt each other).
+
+**A dispatch is synchronous. Block on it, in your own turn.** This is what
+killed two runs, and it is worth stating plainly because the failure is silent
+and it looks like success. Nothing an orchestrator launches survives its turn
+ending. Both prior runs narrated a dispatch and exited 0 in a few minutes,
+having launched nothing. `exit_code=0` on an orchestrator run says nothing about
+whether any worker ran.
+
+Blocking is nearly free: phase 1 took 143s (Claude) and 59s (Codex) in parallel,
+phase 2 took 189s and 99s. The whole protocol from re-dispatch through both
+sign-offs ran in about twelve minutes.
+
+**Verify dispatches from the wrapper's end markers, never the exit code.** The
+markers are the durable artifact the wrapper exists to produce. Read
+`branch_sha_before` vs `branch_sha_after`, `branch_changed`, and
+`uncommitted_work`. A worker can report success with real work sitting
+uncommitted, and a cap-kill can land right after a good commit. Markers for this
+assignment are in each worktree's `.team/markers/` and, for the sign-off round,
+in `/home/scott/claude/longwalk/.team/markers/`.
+
+**The critique round worked, and it is worth knowing what "worked" looked like,**
+since a failed round is defined as both workers saying "looks good." Each worker
+conceded the other's central point and still attacked hard. Claude conceded the
+representation crux; Codex conceded that its input-driven animation would walk
+against a wall. The most valuable single output was a correction to Claude's own
+idea by Codex (per-tick displacement in the physics tick rather than
+`get_real_velocity()` times a render delta), which is better than what either
+proposed alone. Do not send a round back that looks like this one.
+
+**The critic seat was not invoked and that was deliberate.** Neither trigger
+fired: the round converged rather than deadlocking, and no protected path is
+touched. The brief is explicit that routine synthesis stays two-voice and the
+critic is not invoked because a decision feels weighty. The `cursor` adapter is
+built and ready if a later round genuinely deadlocks.
+
+**Still outstanding:** the Dashboard "Team" tab (build order step 5).
+
+**Two known contract gaps against the dashboard's `POST /api/team` schema,** both
+worked around in `roles/orchestrator.md` and both worth closing dashboard-side:
+the schema has no `critic` author value (critic votes post as
 `author: "orchestrator"`, `kind: "decision"`, identity folded into the body
 text), and its phase enum has no `implementation` or `done` (folded into
 `execution` and `review`, with the truth carried in `status_note`).
 
-Dashboard POST failures get logged here, under this heading, with a timestamp
-and what was tried. A failed post never blocks the protocol.
+**2026-07-17T00:15Z: dashboard POST still not attempted this run, token is still
+stale.** The 401 logged by the prior run
+(`{"detail":"Invalid or missing X-Bridge-Token"}`) has not been fixed, and this
+run did not fix it, for the same reason the prior run did not: `deploy.sh`
+rotates the token on every deploy, so the recorded token in
+`/home/scott/.claude/pka-secrets/dashboard-config.md` is stale, and rotating a
+shared token that other services depend on is an outward change taken as a side
+effect of narration. Narration is explicitly not allowed to block or bend the
+protocol, and it is not allowed to reach outside the repo on its own initiative
+either.
 
-**2026-07-16T23:53Z: dashboard POST failed, 401, phase 1 snapshot never landed.**
-Tried `POST https://dashboard.int.sentania.net/api/team` with the token from
-`/home/scott/.claude/pka-secrets/dashboard-config.md`. Response:
-`{"detail":"Invalid or missing X-Bridge-Token"}`. That config file documents the
-failure mode exactly: `deploy.sh` rotates the token on every deploy, and a 401
-means the recorded token is stale. The fix is to re-run deploy.sh and update the
-secrets file with the new `BRIDGE_API_TOKEN` from its output, or read the live
-value from `/srv/services/dashboard/dashboard.env` on docker.int.
+The fix needs Scott, or a run whose actual assignment is the dashboard: re-run
+`deploy.sh` and update the secrets file with the new `BRIDGE_API_TOKEN`, or read
+the live value from `/srv/services/dashboard/dashboard.env` on docker.int.
 
-This run did not do that on purpose. Rotating a shared token is an outward
-change to a service other things depend on, taken as a side effect of narration,
-and narration is explicitly not allowed to block or bend the protocol. It needs
-Scott, or a run whose actual assignment is the dashboard. Per the brief: logged,
-not retried in a loop, and the phase proceeded. The Team tab is stale for this
-assignment until the token is refreshed; the truth is in this file and in the
-decision record either way.
+Per the brief: logged, not retried in a loop, and every phase proceeded. The
+Team tab is stale for this entire assignment. The truth is in this file and in
+`docs/decisions/001-town-motion.md`, both of which are complete and current.
 
 ---
 
-**Last updated:** 2026-07-16T23:52:59Z (pilot assignment dispatched, phase 1
-open)
+**Last updated:** 2026-07-17T00:15Z (phases 1-3 complete, decision 001 signed by
+both residents, implementation ready to dispatch)
