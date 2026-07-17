@@ -175,7 +175,7 @@ def _shipping_frame(cell: Image.Image) -> Image.Image:
     # Preserve aspect and place the opaque sole on the contract's row 159.
     scale = min(CELL / subject.width, CELL / subject.height)
     size = (max(1, round(subject.width * scale)), max(1, round(subject.height * scale)))
-    subject = subject.resize(size, Image.Resampling.LANCZOS)
+    subject = subject.resize(size, Image.Resampling.NEAREST)
     frame = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
     frame.alpha_composite(subject, ((CELL - size[0]) // 2, CELL - size[1]))
     # Lanczos can turn a fully opaque source sole into a subpixel-only final
