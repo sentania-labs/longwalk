@@ -174,9 +174,13 @@ a 2-2 invokes the critic. Two questions were genuinely contested:
 - **Q2 (offline render tool):** Blender headless as the single authoring+render
   source (Godot only for acceptance capture), rather than a Godot 3D sub-viewport.
 
-<!-- BALLOT RESULTS filled after the four-ballot dispatch. -->
-**Result:** _pending ballots (orchestrator votes FOR Q1's dual-candidate merge and
-FOR Q2's Blender-headless; the three doer ballots are being collected)._
+**Result: Q1 4-0 FOR, Q2 4-0 BLENDER. No 2-2 split, so the critic seat was
+correctly not invoked (decision 004).** Ballots: orchestrator (FOR Q1, BLENDER
+Q2); claude-worker `b182a2819ab8b4388e51f6db9ae30faf4905139b` (FOR, BLENDER, ADOPT);
+codex-worker `d9bef93d2a809e17df671c2f05f5c785545d581b` (FOR, BLENDER, ADOPT);
+agy-worker `e5989621ac7299ff60f62999e450b040a7d4a904` (FOR, BLENDER, ADOPT). All
+three accepted their division-of-labor assignments. On Q2, agy voted BLENDER
+against its own critique position, conceding the render-tool question outright.
 
 ## Division of labor
 
@@ -189,9 +193,37 @@ FOR Q2's Blender-headless; the three doer ballots are being collected)._
 
 ## Dissent
 
-_Pending: any losing ballot objection will be recorded here verbatim after the
-four-ballot dispatch. agy's Godot-sub-viewport position (Q2) and any surviving
-minority position are recorded in the objector's own words._
+**None survived.** Both contested questions were 4-0 and every ballot voted
+ADOPT. For the record, the one losing *position* was agy's Godot-sub-viewport
+argument on Q2, abandoned by its own author in the ballot. Quoted verbatim from
+agy's critique `b7327bec27e149e42d6ad62795db5f7ea7415da6`:
+
+> **Tooling Bloat:** Proposing a headless Blender script (`render_iso_from_3d.py`)
+> adds an entirely new rendering pipeline dependency. We already have a capable 3D
+> engine in Godot. An offline Godot sub-viewport could render the orthographic
+> sprites without forcing Blender into the automated build chain.
+
+agy's ballot `e5989621ac7299ff60f62999e450b040a7d4a904` conceded it: "While a
+Godot sub-viewport would guarantee exact shader matching, the orchestrator's point
+regarding the 2026-07-15 pivot is overriding. Reintroducing 3D scenes into the
+Godot project, even strictly for rendering, risks violating the architectural
+separation of the new authored 2D model."
+
+No losing objection claimed a constitution violation, so this record is decided by
+the team and not escalated to Scott on those grounds. The Meshy-adoption call-out
+below is a separate, forward-looking escalation-class item, not a dissent.
+
+## Escalation to Scott (Meshy adoption, per directive 1515)
+
+Meshy is a NEW external dependency (account, API key, cost, license/ToS,
+provenance/retention, a service version outside the repo). Per directive 1515 and
+the constitution's new-dependency rule, this is called out to Scott explicitly:
+**the small pilot (one cottage + one player through the full pipeline) is
+pre-authorized and needs no further approval, but ADOPTING Meshy for the
+production town beyond the pilot requires Scott's explicit approval.** The pilot
+result (the acceptance gate + the cleanup-labor ledger extrapolated to the
+~200-asset curve) is what the team will bring to Scott to make that call. No
+second external dependency (e.g. Mixamo) enters even the pilot by convenience.
 
 ## Protected paths touched
 
@@ -199,10 +231,11 @@ minority position are recorded in the objector's own words._
 
 ## Sign-offs
 
-<!-- Filled after ballots; signing = "I read the synthesis and accept it as the
-team's decision," a worker whose objection lost still signs and its dissent is
-recorded verbatim above. -->
+Signing means "I read the synthesis and accept it as the team's decision." Each
+worker cast an ADOPT ballot (SHA cited in the four-ballot result above); the
+orchestrator folds those into these sign-off lines, timestamped at each ballot
+commit.
 
-    Signed-off-by: claude-worker <claude@sentania.net> PENDING
-    Signed-off-by: codex-worker <codex@sentania.net> PENDING
-    Signed-off-by: agy-worker <agy@sentania.net> PENDING
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T20:37:08Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T20:36:51Z
+    Signed-off-by: agy-worker <agy@sentania.net> 2026-07-17T20:36:56Z
