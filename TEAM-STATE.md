@@ -328,6 +328,29 @@ mutation that changes nothing showing green is not a plausible result**, and
 `git diff --stat` before each run is the cheap check.
 
 **PR #18: https://github.com/sentania-labs/longwalk/pull/18** (open as of 04:04Z).
+**CI is fully green: all four checks pass, including the consensus gate.**
+
+**BLOCKED ON THE CODEX REVIEW BOT, which has not posted.** This is the one merge
+gate not satisfied and it is why #18 did not merge this run. It is not a parked
+PR in the "waiting on unrelated work" sense; it is a PR waiting on an external
+service that appears to be down or degraded.
+
+Evidence, so the next run does not repeat the diagnosis: the bot
+(`chatgpt-codex-connector`) posted on PR #17 at 03:02:29Z against a 02:58:53Z
+open, a latency of 3m36s, and on PR #16 at 00:40:04Z. On #18 it had not posted
+**11+ minutes** after open, and `gh api .../issues/18/timeline` shows no review
+event at all. Nothing about #18 is unusual: same repo, same author identity, same
+branch-prefix convention.
+
+**Do not merge #18 without it.** `roles/orchestrator.md` makes the Codex review
+round a merge precondition, and the whole point of the last two rounds is that
+gates which can only pass are not gates. If the bot is genuinely dead rather than
+slow, that is a question for Scott (it is an external service the team does not
+own), not something to route around by quietly dropping a required gate.
+
+Everything else #18 needs is done: peer sign-off marker at the head SHA from a
+non-author resident, green CI, signed decision record covering both protected
+paths, branch effectively current with `main` (see the rebase ruling below).
 
 ### A rebase ruling worth knowing about, because it is a judgement not a mechanic
 
@@ -554,10 +577,15 @@ adapter comments describe did not occur.
 still the thing that has failed twice and it is NOT started: the art slice is
 dispatched to nobody yet. Sequence for the next run:
 
-1. Verify `impl-nav` from its end marker. Get a **non-author** peer sign-off
-   marker for it, rebase onto `main`, then open ONE PR and shepherd it: Codex
-   review bot, findings addressed in the same PR, merge, `.review-passed`
-   straight to `main`, delete the branch.
+1. **Finish PR #18.** It is open, green, peer-signed at its head, and blocked
+   only on the Codex review bot never posting. Check whether the bot has since
+   posted (`gh api repos/sentania-labs/longwalk/pulls/18/comments`, and
+   `gh pr view 18 --json reviews`). If it posted, address its findings in the
+   same PR, merge, commit `.review-passed` straight to `main` recording the merge
+   SHA, and delete `claude/village-feel` **after** confirming `refs/archive/003/*`
+   still resolves (it should; the pins exist precisely so the branch is
+   disposable). If the bot is still silent, that is an escalation to Scott about
+   an external service, not a licence to merge without the gate.
 2. **Produce the shared contract decision 003 requires** (one agreed player
    origin, feet anchor, world scale, test fixture). The art and feel slices are
    blocked behind it and this is why they were not dispatched this run.
