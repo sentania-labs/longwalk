@@ -32,3 +32,4 @@ __pycache__/
 # (decision 009 pilot, round 006)
 /meshy_output/
 /assets/art_src/pilot/sanity_render/
+/assets/art_src/pilot/sanity_render_validate/
