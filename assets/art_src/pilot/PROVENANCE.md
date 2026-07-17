@@ -151,14 +151,18 @@ da0f063cd2e1eb50ae112a97a50e3cf8708b853f43309cd5ea33df55850053db  player/player_
 a03fc4b3e7012aa3ad0312c9fb019b5d85e83b2b6533dc71eff9a495b0e97c6a  player/player_walk_armature.glb
 ```
 
-- `player_rigged.{glb,fbx}` — bind-pose rigged mesh (Meshy `Character_output`).
-- `player_walk.{glb,fbx}` / `player_run.{glb,fbx}` — the free skinned walk/run
+- `player_rigged.{glb,fbx}`: bind-pose rigged mesh (Meshy `Character_output`).
+- `player_walk.{glb,fbx}` / `player_run.{glb,fbx}`: the free skinned walk/run
   clips the gait-tuning slice needs (`_withSkin`). Both glb and fbx are kept
   because animation round-trip through Blender is often cleaner via fbx (decision
   009 allowed requesting fbx for the player for exactly this reason).
-- `player_{walk,run}_armature.glb` — armature-only clips, for reference/reuse.
-- `player_base_color.png` — texture referenced by the fbx exports.
-- `player_preview.png` — Meshy render thumbnail, reference only.
+- `player_{walk,run}_armature.glb`: armature-only clips, for reference/reuse.
+- `player_base_color.png`: texture referenced by the fbx exports.
+- `player_preview.png`: Meshy render thumbnail, reference only.
+
+These are 3D authoring sources, not game resources: `assets/art_src/` carries a
+`.gdignore` so Godot skips the whole tree during its import scan (no
+`.godot/imported/` bloat, no stray extracted textures next to the raw meshes).
 
 ## Cleanup-labor ledger seed (decision 009 constraint 6)
 
@@ -181,11 +185,11 @@ reduction to clear the 300k rig limit), NOT a quality rejection.
 `text-to-3d` preview tasks created during this session that I did not submit and
 did not use, costing 40 credits:
 
-- `019f720c-cbdc-7203-9da4-c9d00e66355b` — cottage-themed preview whose prompt
+- `019f720c-cbdc-7203-9da4-c9d00e66355b`: cottage-themed preview whose prompt
   ("...a simple stone chimney... Full standalone building, no base or ground
   plane.") is not the prompt I submitted. My delivered cottage has a BRICK chimney
   and a small base, matching MY prompt, confirming this orphan was not used.
-- `019f720c-db8e-7126-b133-db35e09b1cc4` — player-themed preview whose prompt
+- `019f720c-db8e-7126-b133-db35e09b1cc4`: player-themed preview whose prompt
   ("...a short cloak... young peasant commoner...") is not the prompt I submitted.
   My delivered player has NO cloak, matching MY prompt, confirming this orphan was
   not used.
