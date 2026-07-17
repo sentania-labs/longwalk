@@ -751,28 +751,39 @@ worked. Every agy dispatch this round produced real commits in the real worktree
 confirmed by branch SHA movement. The throwaway-scratch-project failure the
 adapter comments describe did not occur.
 
-**What is left of this round, in priority order.** Priority 1 (the walk cycle) is
-still the thing that has failed twice and it is NOT started: the art slice is
-dispatched to nobody yet. Sequence for the next run:
+**What is left of this round, in priority order. Read this first if you are the
+next run.**
 
-1. **Dispatch the `roles/` codification slice.** This is the only thing the
-   steers explicitly direct and it is not done. Steers 0405 and 0435 must be
-   written into `roles/orchestrator.md`, the worker briefs, `roles/critic.md`,
-   and `roles/phases/*` text, citing `docs/decisions/004-*.md`. Both steers say
-   it rides **this round's single PR**, so commit it on a doer branch off
-   `round/003-village-feel` and integrate it locally like any other slice. It
-   needs a peer sign-off like any other slice. **The orchestrator must not write
-   it**: `roles/` is protected and protocol text is not the referee's to author.
-   Note the briefs currently contradict the steers in several places (the critic
-   seat is described as standing; PR hygiene describes one PR per owned slice),
-   so this is a real edit and not a footnote.
-2. **Produce the shared contract decision 003 requires** (one agreed player
-   origin, feet anchor, world scale, test fixture). The art and feel slices are
-   blocked behind it and this is why they were not dispatched this run.
-3. Dispatch the art slice to **codex** (colored boots, 3 source rows, pipeline
-   order binding) and the check to **claude**. This is priority 1 and it is the
-   one Scott most cares about.
-4. Dispatch zoom + visual feel to **agy**.
+Everything below happens on `round/003-village-feel`, not on `main` and not on
+per-doer PRs. Doers branch off the round branch; you integrate locally; the round
+ships ONE PR at the end.
+
+1. **PRIORITY 1: the walk cycle. It is still not started and it is the thing
+   Scott cares most about.** It has now failed twice and been escalated once. The
+   approach is decided and signed (decision 003): agy's color-coded boots, three
+   source rows, validate pre-recolor per source row, then mirror, then recolor.
+   The owner is codex-worker. **Blocked on step 2 below.**
+2. **Produce the shared contract decision 003 requires**: one agreed player
+   origin, feet anchor, world scale, and test fixture. The art and feel slices
+   are blocked behind it, and it is why they were not dispatched this run.
+   Dispatching them without it means dispatching into a conflict. This is small
+   and it unblocks two thirds of the round.
+3. **Verify the codex sprite skills installed** (`~/.codex/skills/`, per the 0430
+   steer) before relying on them for the art slice. Teft was installing at 04:30Z
+   and this run did not confirm.
+4. **Consider the anchor-drift gate** in `process_assets.py` (0430 steer, max
+   anchor-y stdev 0.05). It is orthogonal to the boot check and covers the exact
+   hole claude-worker admitted its own check could not: **boots verify
+   ALTERNATION, anchor drift verifies GROUND CONTACT.**
+5. **Zoom plus visual feel** to agy-worker, per 003's division of labor.
+6. **Then, and only then, the round PR:** `round/003-village-feel` to `main`, ONE
+   external Codex review round, address findings routing substantive ones to the
+   owning doer, merge, `.review-passed` straight to `main`, delete every branch
+   including the round branch. **Check `refs/archive/003/*` still resolves before
+   deleting anything**; the pins exist so the doer branches are disposable.
+7. **The Codex bot escalation (`846fef69`) will bite at step 6** if the connector
+   is still dead, because the round PR needs the same gate PR #18 never got. It
+   is not urgent until then, and it is not fixed by ignoring it.
 
 **The Codex review gate is the `chatgpt-codex-connector` bot, not codex-worker.**
 It posts automatically on PR open, roughly 2-3 minutes in. `gh pr view <n> --json
