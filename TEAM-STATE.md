@@ -610,11 +610,17 @@ deleted." They were not deleted. This run found and removed six of them: PRs
 present. A sweep that is recorded but not performed is worse than one that is
 skipped, because the next run reads the note and does not look.
 
-Zero open team PRs (`gh pr list --state open` empty). Remote branches now: `main`,
-the three `*/village-feel` (live round), `claude/town-motion` and
-`codex/town-motion` (retained: decision 001 cites SHAs reachable only from them,
-sweep once round 2's animation slice lands), `issue-4-world-eras` (not a team
-branch, no PR). Plus `refs/archive/003/*`, which are pins and not branches.
+**One open team PR at end of run: #18**, and it is not a parked PR in the
+disallowed sense. Its blocker (the Codex review bot never posting) is stated in
+its own body as a comment and diagnosed above. It is green, peer-signed at its
+head, and merges the moment the gate runs.
+
+Remote branches at end of run: `main`, the three `*/village-feel` (live round;
+`agy/village-feel` was pushed for the first time this run), `claude/town-motion`
+and `codex/town-motion` (retained: decision 001 cites SHAs reachable only from
+them, sweep once round 2's animation slice lands), `issue-4-world-eras` (not a
+team branch, no PR). Plus `refs/archive/003/*`, which are pins and not branches
+and must not be swept.
 
 Remember `git branch -r --merged` reports nothing useful here because the repo
 squash merges; check merged PRs' head branches instead. And `git branch -r`
