@@ -76,6 +76,10 @@ var _destination_cell := NavGridScript.NO_CELL
 var _stall_frames := 0
 var _repathed_since_stall := false
 
+const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+var _zoom_index := 2
+var _target_zoom := 1.0
+
 
 func set_appearance(appearance_variant: String) -> void:
 	# get_node() rather than an @onready var: set_appearance() is meant to be
@@ -195,3 +199,31 @@ func _handle_stall() -> void:
 	# _route_to resets the guard, so re-arm it: the next stall on this route
 	# drops it rather than repathing forever.
 	_repathed_since_stall = true
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("zoom_in"):
+		_set_zoom_index(_zoom_index + 1)
+		var viewport := get_viewport()
+		if viewport:
+			viewport.set_input_as_handled()
+	elif event.is_action_pressed("zoom_out"):
+		_set_zoom_index(_zoom_index - 1)
+		var viewport := get_viewport()
+		if viewport:
+			viewport.set_input_as_handled()
+
+
+func _set_zoom_index(new_index: int) -> void:
+	_zoom_index = clampi(new_index, 0, ZOOM_LEVELS.size() - 1)
+	_target_zoom = ZOOM_LEVELS[_zoom_index]
+
+
+func _process(delta: float) -> void:
+	var camera: Camera2D = get_node_or_null("Camera2D")
+	if camera:
+		if not is_equal_approx(camera.zoom.x, _target_zoom):
+			var new_z: float = lerpf(camera.zoom.x, _target_zoom, 1.0 - exp(-15.0 * delta))
+			if abs(new_z - _target_zoom) < 0.001:
+				new_z = _target_zoom
+			camera.zoom = Vector2(new_z, new_z)

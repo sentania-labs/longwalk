@@ -29,6 +29,7 @@
 #     rather than pinning the window somewhere the settings screen cannot
 #     undo, and that the fullscreen shortcut's F11 / Alt+Enter bindings are
 #     registered (an unregistered action is a silently dead key).
+#   - test_player_zoom.gd: tests the zoom control in the player controller.
 #
 # The runtime procedural world and its tests were parked under
 # src/legacy_procedural/ and test/legacy_procedural/ during the docs/authored-map
@@ -67,5 +68,11 @@ echo "=== test_player_world_contract.gd ==="
 
 echo "=== test_display_settings.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_display_settings.gd
+
+echo "=== test_player_zoom.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_player_zoom.gd
+
+echo "=== test_smoke_grade.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_smoke_grade.gd
 
 echo "All active-path test suites passed."

@@ -55,6 +55,10 @@ func _ready() -> void:
 	_build_click_marker()
 	_name_label.text = character_name
 
+	var grade := CanvasModulate.new()
+	grade.color = Color(1.0, 0.95, 0.88)
+	add_child(grade)
+
 
 func _load_from_game_state() -> void:
 	var game_state := get_node_or_null("/root/GameState")
@@ -74,6 +78,11 @@ func _build_ground() -> void:
 			sprite.texture = load(GROUND_TEXTURE_PATHS[tile])
 			sprite.centered = false
 			sprite.position = Vector2(x * TILE_SIZE, y * TILE_SIZE)
+
+			var h := hash(Vector2i(x, y))
+			sprite.flip_h = (h % 2 == 0)
+			sprite.flip_v = ((h / 2) % 2 == 0)
+
 			_ground_layer.add_child(sprite)
 
 
@@ -86,6 +95,10 @@ func _build_buildings() -> void:
 		var footprint_px := Vector2(building.footprint.x, building.footprint.y) * TILE_SIZE
 		var footprint_origin := Vector2(building.cell.x, building.cell.y) * TILE_SIZE
 		var footprint_center := footprint_origin + footprint_px / 2.0
+
+		var shadow := _create_shadow_polygon(footprint_px * 0.8)
+		shadow.position = footprint_center
+		_ground_layer.add_child(shadow)
 
 		var texture: Texture2D = load(BUILDING_TEXTURE_PATHS[building.sprite_key])
 		var sprite := Sprite2D.new()
@@ -109,6 +122,11 @@ func _build_buildings() -> void:
 		if building.sprite_key == "cottage_facade":
 			var smoke := ChimneySmokeScene.instantiate()
 			smoke.position = COTTAGE_SMOKE_OFFSET
+
+			# Compensate for the warm sunset CanvasModulate so the smoke reads as cool grey
+			var canvas_grade = Color(1.0, 0.95, 0.88)
+			smoke.modulate = Color(1.0 / canvas_grade.r, 1.0 / canvas_grade.g, 1.0 / canvas_grade.b)
+
 			sprite.add_child(smoke)
 
 		var body := StaticBody2D.new()
@@ -194,6 +212,12 @@ func _spawn_player() -> void:
 	player.set_layout(_layout)
 	var spawn_cell := Vector2i(int(_layout.width / 2.0), 7)
 	player.position = Vector2(spawn_cell.x, spawn_cell.y) * TILE_SIZE + Vector2(TILE_SIZE / 2.0, TILE_SIZE / 2.0)
+
+	var shadow := _create_shadow_polygon(Vector2(28.0, 14.0))
+	shadow.position = Vector2.ZERO
+	player.add_child(shadow)
+	player.move_child(shadow, 0)
+
 	_world.add_child(player)
 	_player = player
 
@@ -203,3 +227,15 @@ func _spawn_player() -> void:
 	camera.limit_top = 0
 	camera.limit_right = int(pixel_size.x)
 	camera.limit_bottom = int(pixel_size.y)
+
+
+func _create_shadow_polygon(size: Vector2) -> Polygon2D:
+	var shadow := Polygon2D.new()
+	var points := PackedVector2Array()
+	var segments := 24
+	for i in range(segments):
+		var angle := float(i) / segments * TAU
+		points.append(Vector2(cos(angle) * size.x / 2.0, sin(angle) * size.y / 2.0))
+	shadow.polygon = points
+	shadow.color = Color(0, 0, 0, 0.25)
+	return shadow
