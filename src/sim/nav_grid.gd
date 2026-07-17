@@ -15,10 +15,13 @@ class_name NavGrid
 #   - The open set is a plain Array searched with an explicit total order
 #     (lower f, then lower y * width + x). It is never a Dictionary keyed walk,
 #     so no result depends on hash iteration order.
-#   - The octile heuristic is consistent for this cost pair, so a cell is
-#     closed at most once and no reopening rule can reorder the search.
-#   - Every cost is a sum of ORTHOGONAL_COST and DIAGONAL_COST, so repeated
-#     calls with equal input produce byte-identical output.
+#   - The octile heuristic stays consistent under the terrain weighting below,
+#     because no terrain multiplier drops below 1.0 (see the invariant at
+#     TownLayout.TERRAIN_COST), so a cell is closed at most once and no
+#     reopening rule can reorder the search.
+#   - Every edge cost is a base step (ORTHOGONAL_COST or DIAGONAL_COST) times a
+#     fixed per-terrain multiplier, all authored constants, so repeated calls
+#     with equal input produce byte-identical output.
 #
 # The grid is 18x14 (252 cells), so the linear open-set scan below is chosen
 # for being obviously order-independent rather than for asymptotics. A binary
@@ -134,7 +137,16 @@ static func find_path(layout: TownLayout, from: Vector2i, to: Vector2i) -> Array
 			var neighbor_index := cell_index(layout, neighbor)
 			if closed.has(neighbor_index):
 				continue
-			var step_cost := DIAGONAL_COST if offset.x != 0 and offset.y != 0 else ORTHOGONAL_COST
+			# Cost is charged for ENTERING a cell: the base step (orthogonal or
+			# diagonal) is multiplied by the neighbour's terrain cost, so a route
+			# is cheap when the cells it enters are road (GroundTile.PATH). This
+			# prefers roads without guaranteeing them: because every terrain
+			# multiplier is >= TownLayout.MIN_TERRAIN_COST (1.0), no edge is ever
+			# cheaper than the unweighted base step octile_distance() assumes, so
+			# the heuristic stays admissible and consistent (see the invariant
+			# comment at TownLayout.TERRAIN_COST).
+			var base_step := DIAGONAL_COST if offset.x != 0 and offset.y != 0 else ORTHOGONAL_COST
+			var step_cost := base_step * layout.terrain_cost_at(neighbor)
 			var tentative: float = float(g_score[current_index]) + step_cost
 			if g_score.has(neighbor_index) and tentative >= float(g_score[neighbor_index]):
 				continue

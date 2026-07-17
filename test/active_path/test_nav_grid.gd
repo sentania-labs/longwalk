@@ -37,6 +37,11 @@ func _initialize() -> void:
 	failures += _check_nearest_walkable_tie_break()
 	failures += _check_path_to_self()
 	failures += _check_determinism()
+	failures += _check_road_detour_beats_grass()
+	failures += _check_long_detour_loses_to_grass()
+	failures += _check_offroad_destination_reached()
+	failures += _check_mixed_terrain_determinism()
+	failures += _check_terrain_cost_invariant()
 	failures += _check_unreachable_and_unwalkable_endpoints()
 	failures += _check_nav_collision_agreement()
 
@@ -249,6 +254,138 @@ func _check_determinism() -> int:
 	NavGridScript.nearest_walkable(layout_a, Vector2i(2, 3))
 	var after_other_work := NavGridScript.find_path(layout_a, from, to)
 	failures += _check(after_other_work == first, "find_path is unaffected by unrelated calls in between")
+	return failures
+
+
+# Road preference (decision 006, point 4). A route between two grass points with
+# a road running between them detours onto the road and back, because entering
+# grass costs 2.25x and entering road costs 1.0x. The detour here is well within
+# the 2.25x envelope, so the road route wins on cost.
+func _check_road_detour_beats_grass() -> int:
+	var failures := 0
+	# 7x3 field, the middle row (y=1) a full road, everything else grass.
+	var layout := _build_terrain_layout(7, 3, _full_row_cells(7, 1), [])
+	var from := Vector2i(0, 0)
+	var to := Vector2i(6, 0)
+
+	var path := NavGridScript.find_path(layout, from, to)
+	failures += _check(not path.is_empty(), "a route across the road field exists")
+	if path.is_empty():
+		return failures
+	failures += _check(path[0] == from and path[path.size() - 1] == to, "the road-field route includes both endpoints")
+
+	# The route actually uses the road rather than running straight across grass.
+	var uses_road := false
+	for cell in path:
+		if layout.ground_tile_at(cell) == TownLayoutScript.GroundTile.PATH:
+			uses_road = true
+	failures += _check(uses_road, "the route detours onto the road instead of crossing grass straight")
+
+	# And it is genuinely cheaper than the straight grass line it could have taken.
+	var straight_grass: Array[Vector2i] = []
+	for x in range(7):
+		straight_grass.append(Vector2i(x, 0))
+	var detour_cost := _path_cost(layout, path)
+	var grass_cost := _path_cost(layout, straight_grass)
+	failures += _check(detour_cost < grass_cost, "the road detour (%.2f) costs less than the straight grass line (%.2f)" % [detour_cost, grass_cost])
+	return failures
+
+
+# The other half of the framing: weighting is a preference, not a guarantee. When
+# the road is far enough that the detour is more than 2.25x the straight grass
+# distance, the traveller crosses grass rather than chasing the road.
+func _check_long_detour_loses_to_grass() -> int:
+	var failures := 0
+	# A road parked far to the south (y=11). The two points are three grass cells
+	# apart on the top row; reaching the road and returning is far more than 2.25x
+	# that, so the straight grass crossing wins.
+	var layout := _build_terrain_layout(4, 12, _full_row_cells(4, 11), [])
+	var from := Vector2i(0, 0)
+	var to := Vector2i(3, 0)
+
+	var path := NavGridScript.find_path(layout, from, to)
+	failures += _check(not path.is_empty(), "a route across the far-road field exists")
+	if path.is_empty():
+		return failures
+
+	var touches_road := false
+	for cell in path:
+		if layout.ground_tile_at(cell) == TownLayoutScript.GroundTile.PATH:
+			touches_road = true
+	failures += _check(not touches_road, "a far road is not worth the detour, so the route stays on grass")
+	failures += _check(path.size() == 4, "the far-road route is the straight three-step grass crossing (%d)" % path.size())
+	return failures
+
+
+# A destination off the road is still reached: the route rides the road as far as
+# it sensibly can and leaves it for the last grass cells to the target.
+func _check_offroad_destination_reached() -> int:
+	var failures := 0
+	var layout := _build_terrain_layout(7, 3, _full_row_cells(7, 1), [])
+	var from := Vector2i(0, 1)  # on the road
+	var to := Vector2i(6, 0)    # off the road
+
+	var path := NavGridScript.find_path(layout, from, to)
+	failures += _check(not path.is_empty(), "an off-road destination is reachable")
+	if path.is_empty():
+		return failures
+	failures += _check(path[path.size() - 1] == to, "the route ends exactly on the off-road destination")
+	failures += _check(layout.ground_tile_at(to) == TownLayoutScript.GroundTile.GRASS, "the destination really is off-road grass")
+
+	var steps_legal := true
+	for i in range(path.size() - 1):
+		if not NavGridScript.can_step(layout, path[i], path[i + 1]):
+			steps_legal = false
+	failures += _check(steps_legal, "every step of the off-road route is a legal single step")
+	return failures
+
+
+# CLAUDE.md determinism, restated for mixed terrain specifically: a field with
+# both road and grass still gives byte-identical routes across repeated calls.
+func _check_mixed_terrain_determinism() -> int:
+	var failures := 0
+	var layout := _build_terrain_layout(7, 3, _full_row_cells(7, 1), [])
+	var from := Vector2i(0, 0)
+	var to := Vector2i(6, 2)
+
+	var first := NavGridScript.find_path(layout, from, to)
+	failures += _check(not first.is_empty(), "the mixed-terrain route exists")
+	if first.is_empty():
+		return failures
+
+	var repeat_matches := true
+	for _i in range(8):
+		if NavGridScript.find_path(layout, from, to) != first:
+			repeat_matches = false
+	failures += _check(repeat_matches, "repeated find_path calls over mixed terrain are byte-identical")
+	return failures
+
+
+# The load-bearing cross-file invariant (decision 006, point 4, and claude's
+# phase-2 C6). nav_grid.gd's octile heuristic stays admissible and consistent
+# ONLY because no terrain multiplier drops below the unweighted base step.
+# MIN_TERRAIN_COST names that floor; this pins it so a future tuning that prices
+# the road (or anything) below 1.0 reds the suite instead of silently
+# reintroducing the reopening hazard while every other test still passes.
+func _check_terrain_cost_invariant() -> int:
+	var failures := 0
+
+	var min_cost := INF
+	for cost in TownLayoutScript.TERRAIN_COST.values():
+		min_cost = minf(min_cost, cost)
+	failures += _check(min_cost == TownLayoutScript.MIN_TERRAIN_COST, "MIN_TERRAIN_COST equals the smallest terrain cost (%.3f vs %.3f)" % [TownLayoutScript.MIN_TERRAIN_COST, min_cost])
+
+	# The floor must be at least the unweighted step, so no edge is cheaper than
+	# the base step octile_distance() assumes. This is the exact condition that
+	# keeps the heuristic admissible and consistent.
+	failures += _check(TownLayoutScript.MIN_TERRAIN_COST >= NavGridScript.ORTHOGONAL_COST, "the smallest terrain multiplier (%.3f) is >= the unweighted step (%.3f)" % [TownLayoutScript.MIN_TERRAIN_COST, NavGridScript.ORTHOGONAL_COST])
+
+	# Every terrain has a cost, so terrain_cost_at() never hits a missing key.
+	var all_covered := true
+	for tile in [TownLayoutScript.GroundTile.GRASS, TownLayoutScript.GroundTile.PATH]:
+		if not TownLayoutScript.TERRAIN_COST.has(tile):
+			all_covered = false
+	failures += _check(all_covered, "every GroundTile has an authored terrain cost")
 	return failures
 
 
@@ -501,6 +638,34 @@ func _build_open_layout(width: int, height: int, plots: Array) -> TownLayoutScri
 	for plot in plots:
 		buildings.append(plot)
 	return TownLayoutScript.new(width, height, ground, buildings)
+
+
+# An open field with hand-placed road cells, for exercising terrain-weighted
+# routing. Every cell starts as grass; each cell in `path_cells` is set to PATH.
+func _build_terrain_layout(width: int, height: int, path_cells: Array, plots: Array) -> TownLayoutScript:
+	var layout := _build_open_layout(width, height, plots)
+	for cell in path_cells:
+		layout.ground[cell.y][cell.x] = TownLayoutScript.GroundTile.PATH
+	return layout
+
+
+# Every cell in one row, as a full horizontal road strip.
+func _full_row_cells(width: int, y: int) -> Array:
+	var cells: Array = []
+	for x in range(width):
+		cells.append(Vector2i(x, y))
+	return cells
+
+
+# The A* cost of a path: each step is a base step (orthogonal or diagonal) times
+# the terrain cost of the cell it enters, matching NavGrid.find_path's charge.
+func _path_cost(layout: TownLayoutScript, path: Array) -> float:
+	var total := 0.0
+	for i in range(1, path.size()):
+		var delta: Vector2i = path[i] - path[i - 1]
+		var base_step: float = NavGridScript.DIAGONAL_COST if delta.x != 0 and delta.y != 0 else NavGridScript.ORTHOGONAL_COST
+		total += base_step * layout.terrain_cost_at(path[i])
+	return total
 
 
 # Two 1x1 buildings meeting only at a corner:
