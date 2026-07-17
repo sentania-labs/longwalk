@@ -62,10 +62,49 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 MESHY PILOT: the GENERATION slice is DISPATCHED and IN
-FLIGHT (detached, ppid 1, survives orchestrator turns). Non-Meshy slices remain
-DELIVERED/signed/MERGED into round/006-two-rivers, now @ aa8eab5 (added .mcp.json,
-pushed). FULL SUITE GREEN as of 22f8e4c. Decision 010 accepted 4-0. No PR yet.`
+**Status:** `ROUND 006 MESHY PILOT: the GENERATION slice is DELIVERED, peer-signed,
+and MERGED into round/006-two-rivers @ 1ece706 (pushed to origin), INTEGRATED
+SUITE GREEN. Non-Meshy slices remain merged. Decision 010 accepted 4-0. No PR yet
+(round not complete until the pilot acceptance gate passes). NEXT = the shared/
+sequenced BLENDER CLEANUP + gait-tuning slice, then the two render candidates,
+then in-engine integration, then the anonymized acceptance gate vs the spike.`
+
+**GENERATION SLICE (DONE, signed, merged):** claude-worker `claude/006-pilot-gen`
+generated ONE 2x2 half-timbered cottage + ONE player (t-pose -> refine -> remesh
+to clear the 300k rig limit -> rig with Meshy's free walk+run) via the Meshy MCP,
+committed under `assets/art_src/pilot/{cottage,player}/` with `PROVENANCE.md`
+(service meshy-6, all task IDs, verbatim prompts/params, license note, sha256 of
+all 14 files, cleanup-ledger seed = 0 quality re-rolls per asset). Raw drafts stay
+in gitignored `meshy_output/`; an empty `assets/art_src/.gdignore` keeps Godot from
+importing the raw 3D sources. Signed commit `92249ea` (peer-reviewed by codex:
+FIRST review `changes-requested` for 7 em-dashes in the manifest -> a real
+constitution catch, the peer gate working, NOT a rubber stamp; claude fixed them +
+added the .gdignore in `92249ea`; codex re-reviewed + signed
+`.team/signoffs/claude-006-pilot-gen-92249ea198bc.md`, all 14 sha256 re-verified,
+suite green). Merged `--no-ff` -> `1ece706`, integrated suite GREEN, pushed. The
+raw draft previews were eyeballed by the orchestrator and are genuinely on-vibe
+(cottage: steep golden thatch, dark timber over pale plaster, brick chimney;
+player: grey-green homespun tunic, leather belt, boots, readable silhouette),
+slightly glossy/photoreal as raw Meshy renders are (which is exactly what the
+downstream painterly pre-render pass exists to resolve).
+
+**ORCHESTRATION ERROR TO SURFACE TO SCOTT (his paid credits): ~40 Meshy credits
+wasted.** A transient double-launch of the generation dispatch briefly ran a
+SECOND claude+Meshy session in the same worktree before it was SIGKILLed; that
+orphan made two `text_to_3d` preview calls (task IDs `019f720c-cbdc-...`,
+`019f720c-db8e-...`, prompts differing from the delivered assets). Account delta
+was 110 credits vs 70 authored. The doer caught and flagged it in the manifest;
+codex confirmed the accounting. Cause = my detachment/verification mistake (a
+silent-but-alive detached `claude -p` looked dead, so I probed + relaunched);
+fixed process below. Net pilot generation cost: 70 authored + 40 wasted = 110.
+
+**BINARY-SIZE / GIT-LFS CONSIDERATION (for the production-adoption escalation, NOT
+blocking the pilot):** the generation slice committed ~180 MB of raw Meshy glb/fbx
++ textures for just 2 assets. Fine for a one-off pilot, but at the ~200-asset
+production scale this is untenable in plain git. When the Meshy production-adoption
+call goes to Scott (decision 009 constraint 8), pair it with a storage decision
+(git-lfs or an out-of-repo artifact store for the raw 3D sources; the constraint-7
+re-render input can be the cleaned .blend rather than the raw drafts).
 
 **MESHY MCP REACHABILITY: CONFIRMED in a claude-worker doer.** The dispatched
 doer connected the `meshy` MCP server (npm `@meshy-ai/meshy-mcp-server`, child
@@ -90,30 +129,20 @@ worktree off the round branch lacked the Meshy config. Cherry-picked 9a0e2c8
 (Scott's authorship preserved) onto `round/006-two-rivers` -> `aa8eab5`, pushed.
 Integration action, not orchestrator-authored code.
 
-**IN-FLIGHT DISPATCH (poll this):**
-- run_id `006-pilot-gen-20260717-214426`, harness claude, model opus, cap 3600s.
-- worktree `/home/scott/claude/lw-006-pilot-gen`, branch `claude/006-pilot-gen`
-  (cut from round branch @ aa8eab5).
-- prompt: `.pka/round006/pilot-gen-prompt.md` (generation ONLY: one 2x2
-  half-timbered cottage + one rigged player, provenance manifest, commit under
-  `assets/art_src/pilot/`; NEVER pass `save_to` to meshy_download_model).
-- POLL: `/home/scott/claude/lw-006-pilot-gen/.team/markers/006-pilot-gen-20260717-214426-end.md`.
-  Verify `branch_changed`/`uncommitted_work`/`cap_expired`, then inspect the tree
-  (models present? manifest? sha256s?) and re-derive, never trust narration.
-- Process root pid was 3356924 (`ps -o etimes= -p <pid>` to see if still alive).
-
-**DOUBLE-LAUNCH INCIDENT (resolved, lesson):** the first detached launch's setsid
-grandchild reparented to init but emitted no output for minutes (claude -p buffers
-until done) and wrote no end marker while running, so it LOOKED dead. A manual
-adapter probe (rc=143 at its own 15s cap) plus a second full launch were fired.
-Result: TWO claude+meshy sessions briefly ran in the SAME worktree (the exact
-corruption/double-spend hazard). The second tree was SIGKILLed (incl. its orphan
-`timeout claude -p` that reparented to init after its adapter died, plus its meshy
-MCP child). Only the first (3356924) survives. LESSON: a detached claude -p that
-is alive with ppid 1 but silent is NORMAL for minutes; verify liveness with
-`ps`/child-MCP-procs BEFORE concluding death or relaunching. Brief double-spend of
-Meshy credits is possible (the killed session may have made an early paid call);
-the surviving doer's PROVENANCE manifest + balance delta will reveal actual spend.
+**DETACHMENT LESSON (paid for in ~40 wasted credits this run, honor it):** a
+`setsid`-detached `claude -p` reparents to init (ppid 1) and then emits NO output
+and writes NO end marker for MANY MINUTES while it runs (the harness buffers
+`claude -p` output until completion, and Meshy generation legitimately takes
+15-20 min). This looks identical to a dead dispatch. Do NOT conclude death or
+relaunch on "no output + no end marker" alone. Verify liveness the right way:
+`ps -o pid=,etimes= -p <root_pid>` and check for its child MCP procs
+(`npm exec @meshy-ai/meshy-mcp-server`). Only relaunch after confirming the
+process is genuinely gone. A second launch into the SAME worktree is the
+corruption + double-spend hazard, and killing a dispatch tree must SIGKILL the
+reparented `timeout claude -p` grandchild too (it survives its adapter's death).
+Working detach recipe used this run:
+`setsid bash -c "'$DISPATCH' <harness> <wt> <brief> <prompt> --cap-seconds N --label L >> LOG 2>&1 < /dev/null" & disown`,
+then poll the end marker at `<wt>/.team/markers/<label>-<stamp>-end.md`.
 
 **Three non-Meshy slices, delivered + verified + signed + merged:**
 - **claude** `claude/006-nullfix` @ `dd86f7e` (peer-signed by codex `f880a6d`,
@@ -165,22 +194,47 @@ agy harness MCP wiring for longwalk's .mcp.json is unconfirmed). Pilot is
 pre-authorized (1515); ADOPTING Meshy for production beyond the pilot still
 escalates to Scott (decision 009).
 
-**NEXT STEP = THE MESHY PILOT (round 006's actual art deliverable, the riskiest
-under-owned slice; decision 009 constraints 5-8 + division of labor).** Sequence:
-(1) agy generates ONE 2x2 half-timbered cottage + ONE player via the meshy MCP,
-commits models + a provenance manifest (service version, request params, license,
-source hashes) per constraint 8; (2) shared/sequenced Blender topology cleanup +
-armature weighting + 6-pose/8-facing gait tuning (least-owned, log the cleanup
-ledger per constraint 6); (3) render candidate A (deterministic NPR/composite,
-codex) AND candidate B (texture-space/whole-sheet fixed-seed generative, claude)
-from the 30 deg rig; (4) integrate onto the iso spine via `tools/art/` +
-`starter_town.gd` (claude); (5) the anonymized in-engine ACCEPTANCE GATE vs the
-SPIKE (constraint 7) with static + walk-GIF captures + the cleanup ledger. Start by
-verifying meshy MCP reachability in a doer, then dispatch agy generation. This
-phase is large and may span multiple orchestrator runs.
+**PILOT SEQUENCE (decision 009 constraints 5-8), step (1) DONE, next is (2):**
+- (1) Generation (cottage + player + provenance) -- **DONE, signed, merged
+  `1ece706`** (see GENERATION SLICE block above). Reassigned agy->claude by
+  capability. MCP reachability CONFIRMED in a claude doer.
+- (2) **<- NEXT: shared/sequenced Blender topology cleanup + armature weighting +
+  6-pose/8-facing gait setup. Assign to AGY** (capability: agy authored
+  `tools/art/blender_calibration.py` + `render.sh`, needs NO Meshy access, and
+  this is the Blender-scene ownership from decision 009's DoL). Log the cleanup
+  ledger (constraint 6), extending `PROVENANCE.md`'s ledger seed with real
+  human-equivalent minutes by category (mesh edits, UV/texture repair, rig repair).
+- (3) render candidate A (deterministic NPR/composite, codex) AND candidate B
+  (texture-space albedo OR single fixed-seed whole-sheet generative, claude) from
+  the 30-deg rig.
+- (4) integrate onto the iso spine via `tools/art/` + `starter_town.gd` (claude),
+  building_contact_cell anchor conformance.
+- (5) anonymized in-engine ACCEPTANCE GATE vs the SPIKE (constraint 7): static +
+  walk-GIF captures, the six independently-failable pass conditions, full rerender
+  from committed local inputs with NO second Meshy call, + the cleanup ledger.
 
-Prompt files + all ballots: `/tmp/round006-exec/` (may not survive a reboot;
-substance is captured above and in decision 010).
+**SCOPING THE NEXT (agy Blender) DISPATCH -- read before writing its prompt:**
+Inputs are `assets/art_src/pilot/cottage/cottage.glb` and the player set
+(`player_rigged.glb` bind pose; `player_walk.glb`/`player_run.glb` are the skinned
+clips). The render rig is agy's `blender_calibration.py`: Cycles CPU, ORTHO camera
+at elevation `asin(0.5)` (~30 deg) / azimuth 45, film_transparent, Standard view
+transform, 1024x1024, passes Z/normal/position/uv/shadow. SCOPE THIS SLICE TO
+cleanup + a PARAMETRIC pose/facing rig (functions that place the camera at facing
+F in 45-deg azimuth steps for 8 facings, and sample 6 keyframe poses from the walk
+clip) + a SMALL low-sample SANITY render proving it works. Do NOT do the full
+8x6x2 Cycles PRODUCTION render in this slice -- Cycles CPU at 1024 is slow and the
+full renders belong to the candidate-A/B slices (codex/claude). Nail the OUTPUT
+CONTRACT (per-facing/per-pose PNG naming + the render passes) since codex's
+8-facing atlas assembly and claude's candidate B both consume it. Player nominal
+height 1.75 m (decision 010; `32*sqrt(6)` px/m upright); `check_scale_contract.py`
+validates the RENDERED sprites downstream, not the meshes. Consider inspecting the
+player rig's bone/anim structure (import the glb, list armature actions) before
+finalizing the prompt so the pose-sampling is concrete. Fetch Blender first in the
+worktree: `tools/fetch_blender.sh` (binary is gitignored).
+
+Prompt files this run: `.pka/round006/pilot-gen-*.md` (generation, sign-off, fix,
+re-sign). Earlier ballots: `/tmp/round006-exec/` (may not survive reboot;
+substance is in decision 010).
 
 **Round 006 artifact SHAs (archived under refs/archive/006/*, pushed to origin):**
 | Worker | Proposal | Critique | Ballot |
@@ -301,21 +355,25 @@ archived under `refs/archive/005/*` (pushed to origin).
 
 - **Zero open team PRs** (round 006 has no PR yet; the round PR opens only after
   the Meshy pilot completes, per decision 004's one-PR-per-round rule).
-- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` @ `22f8e4c`
-  (integration tree, 3 slices merged + decision 009/010, suite green; PR after the
-  pilot); `origin/issue-4-world-eras` (a HUMAN branch, author sentania, predates
-  the team framework; NOT the team's to delete, retained). The
-  `claude/006-proposal`/`codex/006-proposal` (+local `agy/006-proposal`) branches
-  are archived under `refs/archive/006/*`. The three EXECUTION branches
-  `claude/006-nullfix`, `codex/006-scale-contract`, `agy/006-camera-calibration`
-  are LOCAL-ONLY, already merged into the round branch (retained on purpose only
-  as worktree checkouts; disposable, their work is in the round branch).
+- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` @ `1ece706`
+  (integration tree: 3 non-Meshy slices + .mcp.json + decision 009/010 + the pilot
+  GENERATION slice, integrated suite green; PR after the acceptance gate);
+  `origin/issue-4-world-eras` (a HUMAN branch, author sentania, predates the team
+  framework; NOT the team's to delete, retained). Remote `origin/claude/006-nullfix`
+  + `origin/codex/006-scale-contract` are stale doer branches (their work is merged
+  into the round branch); DELETE them in the close-out sweep. The
+  `claude/006-proposal`/`codex/006-proposal` are archived under `refs/archive/006/*`.
+- **Local-only doer branches (merged into the round branch, disposable):**
+  `claude/006-nullfix`, `codex/006-scale-contract`, `agy/006-camera-calibration`,
+  and now `claude/006-pilot-gen` @ `061b2a6` (the pilot generation slice; merged
+  into round `1ece706`; retained only as the `lw-006-pilot-gen` worktree checkout).
 - **Worktrees (retained on purpose, round 006 in flight):** primary `longwalk`
-  (main); `lw-006-round` (round/006-two-rivers @ `22f8e4c`, the integration tree);
+  (main); `lw-006-round` (round/006-two-rivers @ `1ece706`, the integration tree);
+  `lw-006-pilot-gen` (`claude/006-pilot-gen`, the generation slice, free/idle now);
   `lw-006-claude` (`claude/006-nullfix`), `lw-006-codex` (`codex/006-scale-contract`),
-  `lw-006-agy` (`agy/006-camera-calibration`) - reuse these for the pilot slices
-  (cut fresh pilot branches off the round branch in each). All round-005 worktrees
-  torn down.
+  `lw-006-agy` (`agy/006-camera-calibration`) - reuse a free worktree for the next
+  (Blender) slice, or `git worktree add` a fresh one off the round branch @ 1ece706.
+  All round-005 worktrees torn down.
 
 ## Open escalations to Scott
 
@@ -326,20 +384,25 @@ constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP: the MESHY PILOT** (see the Phase section's "NEXT STEP =
-THE MESHY PILOT" for the 5-step sequence). Check the `.pka/inbound/orchestrator/`
-inbox FIRST (per-phase-boundary rule). The non-Meshy scaffolding is DONE (merged,
-signed, green). FIRST verify the `meshy` MCP is reachable inside a dispatched doer
-(the .mcp.json is claude-oriented; test a tiny meshy MCP call in a claude-worker
-dispatch before committing to a full generation). Then dispatch agy to generate
-the pilot cottage + player + provenance manifest. Cut fresh pilot branches off
-`round/006-two-rivers` @ `22f8e4c`. Dispatch DETACHED, poll end markers, verify
-from disk + re-run render/tests yourself. This phase is large and may span runs.
-Do NOT open the round PR until the pilot's acceptance gate passes (one PR per
-round). This is also the point where, if the pilot clears the acceptance gate vs
-the spike, you bring the result + cleanup ledger to Scott for the Meshy
-production-adoption call (decision 009 escalation) AND likely the vision-bar
-surface (directive 1500).
+**IMMEDIATE NEXT STEP: dispatch the AGY Blender cleanup + pose/facing-rig slice**
+(pilot sequence step 2; see the Phase section's "PILOT SEQUENCE" + "SCOPING THE
+NEXT (agy Blender) DISPATCH" for the scoped brief). Check the
+`.pka/inbound/orchestrator/` inbox FIRST (per-phase-boundary rule). Generation
+(step 1) is DONE, signed, merged (`1ece706`), suite green. Cut a fresh branch off
+`round/006-two-rivers` @ `1ece706` in a worktree, `tools/fetch_blender.sh` there,
+and dispatch agy DETACHED (its Blender ownership; no Meshy needed). Scope it to
+cleanup + a parametric pose/facing rig + a SMALL sanity render + the ledger, NOT
+the full production render (that is candidate A/B). Poll the end marker, verify
+from disk (re-run `render.sh`/`run_tests.sh` yourself), never from narration. Do
+NOT open the round PR until the acceptance gate passes (one PR per round). When the
+pilot clears the anonymized gate vs the spike, that is the moment to bring the
+result + cleanup ledger to Scott for the Meshy production-adoption call (decision
+009 escalation) AND the vision-bar surface (directive 1500).
+
+**SURFACE TO SCOTT (not blocking, but his money): ~40 wasted Meshy credits** from
+a double-launch this run (details in the "ORCHESTRATION ERROR" block above). And
+when the production-adoption call goes up, pair it with a git-lfs/artifact-store
+decision for the ~180 MB/2-asset raw-source footprint (the "BINARY-SIZE" block).
 
 **Watch the agy adapter's `--add-dir`** (the adapter now passes it internally at
 `adapters/agy.sh:88`; markers still catch a scratch no-op). Verify every dispatch
@@ -359,8 +422,14 @@ protocol.
 
 **RETRO GAP:** inbox-check convention only fires at spawn; directive 1500 asks
 for per-phase-boundary re-scans. Honor that every round-006 phase boundary.
-Inbox as of this run: 1500 + 1515 PROCESSED; newest inbox item is 1515 (14:26),
-no unprocessed message remains.
+Inbox as of this run: 1500 + 1515 + **1620 ("meshy-live")** all PROCESSED. 1620
+confirmed Meshy is LIVE and wired for codex + claude-worker seats ONLY (not agy),
+lifted the PoC gate on the generative candidate, and set two BINDING constraints
+now baked into the art-slice prompts: (a) NEVER pass `save_to` to
+`meshy_download_model`, (b) claude-worker project-scoped `.mcp.json` may need a
+one-time approval in a fresh worktree (did NOT materialize with
+`--dangerously-skip-permissions`). Newest inbox item is 1620 (16:16); no
+unprocessed message remains.
 
 **agy tends to commit stray `.team/markers/` files** (it hand-committed
 `006-camera-end.md` in its first pass; removed on the revision). Marker files ARE
@@ -377,25 +446,23 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-17T~21:35Z (orchestrator run
-`orchestrator-run-20260717-204425`). This run ran round-006 EXECUTION for all
-non-Meshy work, end to end: (1) dispatched 3 non-Meshy slices detached, verified
-each from its end marker + tree: claude null-fix (`dd86f7e`, real node-path root
-cause + regression), codex scale-contract (`fd73f04`), agy camera-calibration
-(`8168e65`). (2) Orchestrator VERIFICATION of agy's calibration caught a real
-cross-slice conflict: the render camera must be 30 deg (arcsin 0.5), not atan(0.5),
-and at 30 deg it foreshortens height to `32*sqrt(6)` px/m, conflicting with codex's
-signed 64 px/m. (Orchestrator initially mis-forced atan(0.5); agy's evidence + a
-hand-derivation corrected it.) (3) Ran the reconciliation as a four-ballot with an
-adversarial CRITIQUE round: round-1 A,A,B,B; the coupling proof (upright+depth share
-screen-Y, locked at 30 deg) refuted Option A's "clean projection scalar" premise;
-both A-voters withdrew; team went 4-0 Option B. Authored decision 010, committed to
-the round branch (`de0173f`). (4) Dispatched the 010 implementations (codex contract
--> `3b85b28`, agy calibration -> `1fac9b0`), verified both (agy's render.sh now
-PASSES at 30 deg with the 32*sqrt(6) golden-pole check). (5) Orchestrated 3
-non-author cross-signs (codex->claude, agy->codex, claude->agy, all signed-off),
-merged all 3 --no-ff into `round/006-two-rivers` (`22f8e4c`), FULL SUITE GREEN,
-pushed. (6) Discovered Meshy IS provisioned (key + MCP wired) - the expected pilot
-blocker does NOT exist. Every dispatch verified from end marker + tree, never
-narration. NEXT: the Meshy pilot (round 006's art deliverable) - verify MCP
-reachability in a doer, then generate the cottage + player.
+**Last updated:** 2026-07-17T~22:20Z (orchestrator run
+`orchestrator-run-20260717-213930`). This run drove the ROUND-006 MESHY PILOT
+GENERATION slice end to end: (1) Processed inbox 1620 ("meshy-live"); recorded the
+capability re-division (Meshy wired for codex+claude only, NOT agy, so decision
+009's agy generation slice moved to claude-worker). (2) Cherry-picked Scott's
+`.mcp.json` infra commit (9a0e2c8) onto the round branch (`aa8eab5`, pushed),
+because the round branch was cut before it landed on main. (3) Cut
+`claude/006-pilot-gen` off the round branch, dispatched claude to generate ONE
+cottage + ONE rigged player via the Meshy MCP -> CONFIRMED MCP reachability in a
+doer; verified the completed slice from its end marker + tree (models, manifest,
+14 sha256s, 0 quality re-rolls). Raw previews eyeballed = on-vibe. (4) Ran the peer
+gate FOR REAL: codex FIRST review `changes-requested` (7 em-dashes in the manifest,
+a genuine constitution catch); claude fixed them + added `assets/art_src/.gdignore`
+(`92249ea`); codex re-reviewed + signed. Merged `--no-ff` -> `1ece706`, integrated
+suite GREEN, pushed. (5) INCIDENT + LESSON: a silent-but-alive detached `claude -p`
+looked dead, so a probe + relaunch briefly ran a SECOND Meshy session in the same
+worktree before SIGKILL -> ~40 wasted credits (flagged to Scott, in the manifest).
+Detachment/verification lesson recorded above. Every dispatch verified from end
+marker + tree, never narration. NEXT: the agy Blender cleanup + pose/facing-rig
+slice (pilot step 2), scoped in the Phase section. Nothing left running.
