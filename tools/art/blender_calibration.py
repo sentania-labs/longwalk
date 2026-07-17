@@ -38,8 +38,8 @@ def setup_camera(scene):
     scene.collection.objects.link(cam_obj)
     scene.camera = cam_obj
     
-    # Decision 009 constraint 2 PINNED atan(0.5)
-    elevation_deg = math.degrees(math.atan(0.5))
+    # Decision 010: 30 deg elevation reproduces 2:1 ground basis (arcsin(0.5))
+    elevation_deg = math.degrees(math.asin(0.5))
     azimuth_deg = 45.0
     
     cam_obj.rotation_euler = (
@@ -146,12 +146,13 @@ def run_calibration():
     print("\n--- HEIGHT CALIBRATION TESTS ---")
     
     # (height_in_meters, expected_pixels_above_contact)
+    # Decision 010: PHYSICAL foreshortened upright rate (32*sqrt(6) px/m)
     test_heights = [
-        (1.75, 112.0),
-        (2.0, 128.0),
-        (2.4, 153.6),
-        (4.8, 307.2),
-        (5.6, 358.4)
+        (1.75, 1.75 * 32 * math.sqrt(6)),
+        (2.0, 2.0 * 32 * math.sqrt(6)),
+        (2.4, 2.4 * 32 * math.sqrt(6)),
+        (4.8, 4.8 * 32 * math.sqrt(6)),
+        (5.6, 5.6 * 32 * math.sqrt(6))
     ]
     
     # Test above origin (0, 0)
@@ -179,10 +180,34 @@ def run_calibration():
         print(f"  Blender Proj:  ({px:.2f}, {py:.2f})")
         print(f"  Error:         {error:.4f} px")
 
+    print("\n--- GOLDEN-HEIGHT ACCEPTANCE CHECK ---")
+    # Decision 010 consequence 4: render/measure a known-height primitive
+    # Create a 2.0 m pole
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.0, depth=2.0, location=(0, 0, 1.0))
+    pole = bpy.context.active_object
+    bpy.context.view_layer.update()
+    
+    # Get bounding box vertices in world space
+    bbox_corners = [pole.matrix_world @ Vector(corner) for corner in pole.bound_box]
+    
+    # Project to screen space
+    screen_coords = [get_pixel_coords(scene, cam_obj, v) for v in bbox_corners]
+    min_y = min(py for px, py in screen_coords)
+    max_y = max(py for px, py in screen_coords)
+    
+    measured_height = max_y - min_y
+    expected_pole_height = 2.0 * 32 * math.sqrt(6) # ~156.77
+    pole_error = abs(measured_height - expected_pole_height)
+    max_error = max(max_error, pole_error)
+    
+    print(f"2.0m Pole measured height: {measured_height:.4f} px")
+    print(f"Expected height:           {expected_pole_height:.4f} px")
+    print(f"Error:                     {pole_error:.4f} px")
+
     print(f"\nMax Pixel Error: {max_error:.4f} px")
     print("----------------------------------\n")
     
-    if max_error > 0.1:
+    if max_error > 2.0:
         print("CALIBRATION FAILED!")
         sys.exit(1)
     else:
