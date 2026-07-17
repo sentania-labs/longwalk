@@ -45,7 +45,7 @@ Record the lane you chose, and why, in `TEAM-STATE.md`.
 
 There are three doers now, not two, and the phases below are written for three.
 The count changes what a round produces and what a disagreement means, so read
-the deadlock section with the same care as these.
+the contested synthesis and four ballots section with the same care as these.
 
 ### Phase 1: blind proposal
 
@@ -356,9 +356,10 @@ referee that can overrule the very seat installed to check it, quietly, in its
 own record, has a seat that does nothing. You are not being asked to defer. You
 are being asked to not settle it alone.
 
-A self-disqualified critic vote does not break the tie. Record the
+Decision 004 does not cover a critic that self-disqualifies. The gap-fill is:
+a self-disqualified critic vote does not break the tie. Record the
 disqualification and its reason, then escalate the unresolved 2-2 question to
-Scott.
+Scott, because the orchestrator cannot break a tie it is a party to.
 
 ## Narrate to the dashboard at every phase transition
 
@@ -382,7 +383,7 @@ state every time, not a delta.
   "assignment": {
     "title": "bring motion to the starter town",
     "phase": "synthesis",
-    "status_note": "phase 3: converging both proposals, critic seat invoked (protected path: src/sim/)"
+    "status_note": "phase 3: converging both proposals, critic seat invoked (recorded 2-2 split)"
   },
   "documents": [
     {
