@@ -4,20 +4,24 @@ const PlayerScene := preload("res://scenes/player.tscn")
 
 func _initialize() -> void:
 	var failures := 0
-	
+
 	var player = PlayerScene.instantiate()
 	var camera: Camera2D = player.get_node("Camera2D")
 	var sprite: Sprite2D = player.get_node("Sprite2D")
 	var collider: CollisionShape2D = player.get_node("CollisionShape2D")
-	
+
 	failures += _check(player._zoom_index == 2, "Default zoom index is 2")
 	failures += _check(camera.zoom == Vector2.ONE, "Default camera zoom is 1.0")
-	
+
 	# Pin invariants before zoom
 	var base_origin: Vector2 = player.position
 	var base_sprite_offset: Vector2 = sprite.offset
 	var base_collider_shape: Shape2D = collider.shape
 	var base_collider_pos: Vector2 = collider.position
+	var base_sprite_scale: Vector2 = sprite.scale
+	var test_world_pos := Vector2(1000, 1000)
+	var base_nav_cell: Vector2i = player.world_to_cell(test_world_pos)
+	var base_nav_center: Vector2 = player.cell_to_world_center(base_nav_cell)
 	
 	# Test zoom in bounds
 	player._set_zoom_index(3)
@@ -32,21 +36,24 @@ func _initialize() -> void:
 	failures += _check(sprite.offset == base_sprite_offset, "Sprite anchor stayed pinned")
 	failures += _check(collider.shape == base_collider_shape, "Collider geometry stayed pinned")
 	failures += _check(collider.position == base_collider_pos, "Collider pos stayed pinned")
-	
+	failures += _check(sprite.scale == base_sprite_scale, "Sprite scale (cell size) stayed pinned")
+	failures += _check(player.world_to_cell(test_world_pos) == base_nav_cell, "Navigation conversion (world_to_cell) stayed pinned")
+	failures += _check(player.cell_to_world_center(base_nav_cell) == base_nav_center, "Navigation conversion (cell_to_world) stayed pinned")
+
 	# Test max bound
 	player._set_zoom_index(10)
 	for i in range(100):
 		player._process(0.016)
 	failures += _check(player._zoom_index == 5, "Zoom index clamped to max (5)")
 	failures += _check(camera.zoom == Vector2(2.0, 2.0), "Camera zoom clamped to 2.0")
-	
+
 	# Test min bound
 	player._set_zoom_index(-1)
 	for i in range(100):
 		player._process(0.016)
 	failures += _check(player._zoom_index == 0, "Zoom index clamped to min (0)")
 	failures += _check(camera.zoom == Vector2(0.5, 0.5), "Camera zoom clamped to 0.5")
-	
+
 	# Input events
 	var event_in = InputEventAction.new()
 	event_in.action = "zoom_in"
@@ -65,9 +72,9 @@ func _initialize() -> void:
 		player._process(0.016)
 	failures += _check(player._zoom_index == 0, "Zoom index decremented by input event")
 	failures += _check(camera.zoom == Vector2(0.5, 0.5), "Camera zoom updated by input event")
-	
+
 	player.free()
-	
+
 	if failures == 0:
 		print("\nAll zoom checks passed.")
 		quit(0)

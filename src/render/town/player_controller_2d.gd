@@ -227,4 +227,3 @@ func _process(delta: float) -> void:
 			if abs(new_z - _target_zoom) < 0.001:
 				new_z = _target_zoom
 			camera.zoom = Vector2(new_z, new_z)
-

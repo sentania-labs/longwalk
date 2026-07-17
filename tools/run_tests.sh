@@ -58,4 +58,7 @@ echo "=== test_display_settings.gd ==="
 echo "=== test_player_zoom.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_player_zoom.gd
 
+echo "=== test_smoke_grade.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_smoke_grade.gd
+
 echo "All active-path test suites passed."
