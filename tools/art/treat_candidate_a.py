@@ -60,6 +60,14 @@ def place(source: Image.Image, size: tuple[int, int], body_contact: tuple[int, i
     return canvas
 
 
+def alpha_bottom(image: Image.Image) -> int:
+    alpha = np.asarray(image)[:, :, 3]
+    rows = np.nonzero(alpha > 8)[0]
+    if not len(rows):
+        raise ValueError("rendered subject has no visible pixels")
+    return int(rows.max())
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--render-dir", type=Path, default=Path("assets/art_src/pilot/candidate_a/render"))
@@ -77,7 +85,7 @@ def main() -> int:
                 args.render_dir / "player" / f"{facing}_{pose}_color.png",
                 args.render_dir / "player" / f"{facing}_{pose}_normal.png",
             )
-            cell = place(sprite, (160, 160), (80, 144), shadow=True)
+            cell = place(sprite, (160, 160), (80, 144), source_contact=(512, alpha_bottom(sprite)), shadow=True)
             name = f"{facing}_{pose}.png"
             cell.save(player_out / name, optimize=False, compress_level=9)
             frames[f"{facing}_{pose}"] = {"source": f"finished/player/{name}"}
@@ -93,10 +101,12 @@ def main() -> int:
     (args.output_dir.parent / "player_walk_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
     cottage = painterly(
-        args.render_dir / "cottage" / "SW_0_color.png",
-        args.render_dir / "cottage" / "SW_0_normal.png",
+        args.render_dir / "cottage" / "W_0_color.png",
+        args.render_dir / "cottage" / "W_0_normal.png",
     )
-    place(cottage, (512, 512), (256, 448)).save(cottage_out / "cottage_sw.png", optimize=False, compress_level=9)
+    place(cottage, (512, 512), (256, 448), source_contact=(512, alpha_bottom(cottage))).save(
+        cottage_out / "cottage_w.png", optimize=False, compress_level=9
+    )
     return 0
 
 

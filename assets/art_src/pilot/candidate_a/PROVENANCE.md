@@ -15,8 +15,8 @@ The render uses Blender 4.0.2, the fixed 30 degree orthographic isometric
 camera, Standard view transform, fixed warm key and cool fill lights, 1024 by
 1024 transparent output, 32 Cycles CPU samples, and deterministic denoising.
 It renders all eight player facings at six poses and all eight cottage facings
-at pose zero. The finished cottage delivery selects the native SW view because
-the current authored-map renderer needs one canonical cottage sprite. The
+at pose zero. The finished cottage delivery selects the W view because its 440
+by 437 pixel silhouette fits the 512 canvas intact at calibrated scale. The
 other seven raw views remain reproducible inputs for later selection.
 
 ## Treatment and anchors
@@ -41,4 +41,5 @@ assets/art_src/pilot/candidate_a/reproduce.sh
 ```
 
 The script runs render, treatment, atlas assembly, and all asset validators.
-The production render took PLACEHOLDER_RENDER_TIME on the Codex worker CPU.
+The production render took 452.363 seconds (7 minutes 32.363 seconds) on the
+Codex worker CPU.
