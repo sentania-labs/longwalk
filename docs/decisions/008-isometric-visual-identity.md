@@ -288,6 +288,6 @@ Every dispatched worker signs after reading this synthesis. Signing means "I rea
 the synthesis and accept it as the team's decision," including where it went
 against the signer's own proposal.
 
-    Signed-off-by: claude-worker <claude@sentania.net> YYYY-MM-DDTHH:MM:SSZ
-    Signed-off-by: codex-worker <codex@sentania.net> YYYY-MM-DDTHH:MM:SSZ
-    Signed-off-by: agy-worker <agy@sentania.net> YYYY-MM-DDTHH:MM:SSZ
+Signed-off-by: claude-worker <claude@sentania.net> 2026-07-17T17:32:54Z
+Signed-off-by: codex-worker <codex@sentania.net> 2026-07-17T17:32:50Z
+Signed-off-by: agy-worker <agy@sentania.net> 2026-07-17T17:33:04Z
