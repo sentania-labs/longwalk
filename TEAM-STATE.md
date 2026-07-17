@@ -310,6 +310,17 @@ implementation dispatch was actively about to rebase that branch onto `main` and
 renumber them. A record whose citations cannot be checked is not an auditable
 record, which is the whole claim the SHAs exist to support.
 
+**The pin was load-bearing within twenty minutes of being created, which settles
+whether it was worth doing.** The `impl-nav` dispatch rebased
+`claude/village-feel` onto `main` at 03:55Z, exactly as instructed, and that
+rebase renumbered the very commits decision 003 cites: claude's proposal moved
+`b7faf40` to `d28445a` and its critique `0b70f7b` to `5005f95`. Both original
+SHAs are now unreachable from any branch and resolve **only** through
+`refs/archive/003/*`. Without the pin, the record would already be citing two
+commits nobody could check, and the round's whole auditability claim would have
+quietly become false between one dispatch and the next. Pin the SHAs at synthesis
+time, before any implementation dispatch rebases anything.
+
 The branches are still retained as well:
 
 - Claude proposal: `b7faf4046a00871fdd0eb1a39f5bed623fdc4bc1`
