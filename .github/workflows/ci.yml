@@ -23,6 +23,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/art/requirements.txt
+
+      - name: Install art-pipeline Python dependencies
+        # tools/run_tests.sh runs test/art/, which imports numpy and PIL (the
+        # same deps tools/art/process_assets.py already needs). The runner has
+        # neither preinstalled.
+        run: python3 -m pip install -r tools/art/requirements.txt
+
       - name: Read pinned Godot version
         id: godot
         run: echo "version=$(cat tools/godot/VERSION)" >> "$GITHUB_OUTPUT"
