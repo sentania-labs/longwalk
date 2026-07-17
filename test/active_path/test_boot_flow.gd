@@ -131,6 +131,7 @@ func _check_starter_town_boot() -> int:
 	var player_found := false
 	var cottage_sprites := 0
 	var cottage_smoke := 0
+	var cottage_primitive_smoke := 0
 	var smoke_on_other_facades := 0
 	for child in world.get_children():
 		if child is StaticBody2D:
@@ -144,6 +145,8 @@ func _check_starter_town_boot() -> int:
 				cottage_sprites += 1
 				if smoke is CPUParticles2D and smoke.position == town.COTTAGE_SMOKE_OFFSET:
 					cottage_smoke += 1
+					if smoke.texture is GradientTexture2D:
+						cottage_primitive_smoke += 1
 			elif smoke != null:
 				smoke_on_other_facades += 1
 
@@ -151,6 +154,7 @@ func _check_starter_town_boot() -> int:
 	failures += _check(player_found, "starter town spawned the player")
 	failures += _check(cottage_sprites == 2, "starter town built 2 cottage sprites (%d)" % cottage_sprites)
 	failures += _check(cottage_smoke == cottage_sprites, "each cottage has CPU smoke at the shared render offset (%d/%d)" % [cottage_smoke, cottage_sprites])
+	failures += _check(cottage_primitive_smoke == cottage_sprites, "each cottage smoke emitter uses a Godot gradient primitive (%d/%d)" % [cottage_primitive_smoke, cottage_sprites])
 	failures += _check(smoke_on_other_facades == 0, "non-cottage facades have no chimney smoke")
 
 	var boundary: Node2D = town.get_node("Boundary")
