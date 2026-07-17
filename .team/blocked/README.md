@@ -26,7 +26,8 @@ scope down. Scope it down, ship the smaller thing, and say what you cut.
 
     .team/blocked/<resident>-<UTC-timestamp>.md
 
-- `<resident>`: `orchestrator`, `claude-worker`, `codex-worker`, or `critic`.
+- `<resident>`: `orchestrator`, `claude-worker`, `codex-worker`, `agy-worker`,
+  or `critic`.
 - `<UTC-timestamp>`: ISO 8601 basic form, `YYYYMMDDTHHMMSSZ`. Basic form
   because colons in filenames are not cross-platform-clean, and Windows is this
   project's primary export target (see CLAUDE.md).

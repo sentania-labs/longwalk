@@ -66,11 +66,11 @@ with a number.
 
 ### "Looks good" is a failed round
 
-A critique round where both workers say the other's proposal looks good is a
+A critique round where every worker says the others' proposals look good is a
 failed round, not a converged one, and it gets sent back. This is not a
 threat, it is a definition: the round produced nothing, so it did not happen.
 
-If you genuinely believe the peer's proposal is better than yours, the response
+If you genuinely believe a peer's proposal is better than yours, the response
 is not "looks good." It is to say which part is better and why, **and** to keep
 attacking the parts that are still weak. The best proposal in the room still
 has the most useful critique in the room aimed at it. Agreement is not the goal

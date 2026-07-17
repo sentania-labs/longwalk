@@ -52,20 +52,27 @@ the split was right.
 
 ## Invoke the critic when the seat activates
 
-Two conditions, either one is sufficient (see `roles/critic.md`):
+Always, on every full-protocol synthesis (see `roles/critic.md`). The seat is
+standing: you invoke it every time a full-protocol round reaches this phase, and
+its vote and rationale go into the record every time. Fast-lane work gets no
+critic vote, but fast-lane work never reaches this template either.
 
-1. **Deadlock.** The critique round did not converge and you are deciding. This
-   is what the seat is for: you run on Claude's harness, so you refereeing a
-   Claude-versus-Codex deadlock alone is a house call. If the critic agrees
-   with your ruling, that is your majority. If it sides with the worker you
-   meant to overrule, there is no majority, and you either adopt its side or
-   escalate to Scott with its vote attached. See "When the critic votes against
-   you" in `roles/orchestrator.md`.
+What varies is the vote's weight, not whether you ask for one:
+
+1. **Deadlock.** The critique round did not converge and you are deciding. Here
+   the vote is tiebreaker-grade, and this is what the seat is really for: you
+   run on Claude's harness, so you refereeing a deadlock with the Claude worker
+   in it, alone, is a house call. If the critic agrees with your ruling, that is
+   your majority. If it sides with the worker you meant to overrule, there is no
+   majority, and you either adopt its side or escalate to Scott with its vote
+   attached. See "When the critic votes against you" in
+   `roles/orchestrator.md`. Read "Deadlock" there too: with three doers, a 2-1
+   split is not a deadlock.
 2. **Protected paths.** The synthesis touches a path in
-   `.github/protected-paths.txt`. Deadlock or not, invoke the seat.
-
-Routine synthesis with neither condition stays two-voice: you and the two
-workers. Do not invoke the critic because the decision feels weighty.
+   `.github/protected-paths.txt`. Tiebreaker-grade too, deadlock or not.
+3. **Neither.** The vote is advisory. You have a majority reading already, so
+   you may rule against the critic without escalating. You still record its vote
+   verbatim, and you record that you ruled against it and why.
 
 The critic writes nothing. It cannot: it runs read-only. Its vote comes back as
 output and **you** put it into the record, verbatim, including its model
@@ -77,12 +84,14 @@ record exactly as much as a vote does.
 ## Record dissent verbatim
 
 Where you went against a worker, quote the losing objection in the objector's
-own words. Not paraphrased, not summarized, not tightened up.
+own words. Not paraphrased, not summarized, not tightened up. With three doers
+there may be more than one losing objection; each gets recorded in its own
+words rather than merged into a single summarized dissent.
 
 Expect to be here. Synthesis that fully agreed with one proposal and left the
-other with nothing to object to is the rare case, not the normal one. If you
+others with nothing to object to is the rare case, not the normal one. If you
 find yourself writing "None" in the Dissent section, check whether the critique
-round actually did its job, because a round where both workers agreed on
+round actually did its job, because a round where every worker agreed on
 everything is a failed round.
 
 The dissent is in the record precisely because you might be the one who is
@@ -106,17 +115,18 @@ schema that drifts, and the template is the one the gate reads.
 
 Two things worth flagging because they are where synthesis records go wrong:
 
-- **Both proposal SHAs, full 40 characters.** The whole auditability claim
-  rests on them.
+- **Every proposal SHA, full 40 characters.** One per dispatched worker. The
+  whole auditability claim rests on them.
 - **The "Protected paths touched" section authorizes only what it lists.** List
   what the synthesis actually calls for, not what `0-assignment.md` forecast
   before anyone had written anything. If the forecast was wrong, this is where
   it gets corrected.
 
-Then: get both workers' sign-off lines on the record. A worker whose objection
-lost still signs, and its dissent stays in the record; signing means "I read the
-synthesis and accept it as the team's decision," not "I agree with all of it."
-A record signed by one resident is not a consensus record.
+Then: get a sign-off line on the record from every worker you dispatched. A
+worker whose objection lost still signs, and its dissent stays in the record;
+signing means "I read the synthesis and accept it as the team's decision," not
+"I agree with all of it." A record signed by one resident is not a consensus
+record.
 
 ## Before you exit this phase
 

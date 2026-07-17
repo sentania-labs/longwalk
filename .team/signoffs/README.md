@@ -1,8 +1,14 @@
 # Pre-PR peer sign-off markers
 
-The first of the three review layers: before a worker opens a PR, the *other*
-resident reviews the diff in-worktree and writes a marker here. **No marker,
-no PR.**
+The first of the three review layers: before a worker opens a PR, a resident
+that is *not the author* reviews the diff in-worktree and writes a marker here.
+**No marker, no PR.**
+
+The team has three doers (`claude-worker`, `codex-worker`, `agy-worker`), so
+"not the author" is two candidates rather than one implied peer. The
+orchestrator names the reviewer when it dispatches the sign-off. One marker from
+one non-author resident clears the gate; two are not required and an author
+never picks its own reviewer.
 
 This is deliberately not the same thing as the external
 chatgpt-codex-connector review that posts on the PR after it opens (layer 2),
@@ -55,7 +61,10 @@ Field notes:
   filename carries a short form for readability; this field is authoritative.
 - `reviewed_by` must **not** equal `authored_by`. A resident never signs off
   its own change. That is the whole point of the gate and a verifier should
-  reject a marker that violates it.
+  reject a marker that violates it. Both fields name a resident from the doer
+  roster (`claude-worker`, `codex-worker`, `agy-worker`); check them against
+  each other rather than inferring the reviewer by elimination, which stopped
+  working the day the roster grew past two.
 - `timestamp` is UTC, ISO 8601, `Z` suffix.
 - `tests_run` records the command the reviewer actually ran in the worktree
   (normally `tools/run_tests.sh`). A sign-off is a claim the reviewer ran

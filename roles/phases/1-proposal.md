@@ -25,14 +25,15 @@ constitution">
 
 ### Blind means blind
 
-Do not read the other resident's proposal, branch, worktree, or inbox, and do
-not accept a summary of it from anyone, including the orchestrator. If you see
-it by accident, say so rather than pretending you did not: an anchored proposal
-that is disclosed is a recoverable problem, and one that is hidden is not.
+Do not read the other residents' proposals, branches, worktrees, or inboxes, and
+do not accept a summary of one from anyone, including the orchestrator. If you
+see one by accident, say so rather than pretending you did not: an anchored
+proposal that is disclosed is a recoverable problem, and one that is hidden is
+not.
 
-This is the mechanism, not the etiquette. The team is worth running only if two
+This is the mechanism, not the etiquette. The team is worth running only if
 genuinely independent reads of the problem exist to compare. One glance
-collapses that into one read plus an anchoring effect, and then phase 2
+collapses yours into that read plus an anchoring effect, and then phase 2
 critiques your agreement instead of testing the idea.
 
 A corollary that is easy to miss: propose what you actually think is best, not

@@ -1,8 +1,11 @@
-# .pka/team-config.yaml -- opt-in two-resident mailbox config.
+# .pka/team-config.yaml -- opt-in multi-resident mailbox config.
 #
 # Presence of this file with a `residents:` list of 2+ entries switches
-# scripts/watcher/deterministic-router.py (vault side) into two-resident
-# mailbox mode for this workspace:
+# scripts/watcher/deterministic-router.py (vault side) into multi-resident
+# mailbox mode for this workspace. The mode is a threshold, not a count: a
+# third resident does not switch anything on that two did not, it only widens
+# the fan-out below. Each resident listed here needs its own
+# .pka/inbound/<resident>/ directory to receive broadcasts.
 #   - Normal cross-workspace requests/responses addressed to `longwalk`
 #     deliver to the single front door .pka/inbound/orchestrator/ (prevents
 #     both residents independently picking up and duplicating the same
@@ -16,3 +19,4 @@
 residents:
   - claude
   - codex
+  - agy
