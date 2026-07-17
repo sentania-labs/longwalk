@@ -109,15 +109,39 @@ Two facts, both verified by running agy's Blender calibration:
    often does); (b) adopt the physical foreshortened px/m into the contract
    (re-derive codex's pixel-height table). Both defensible => contested, four-ballot.
 
-**NEXT STEP: run the height-reconciliation decision (010), then finish execution.**
-Get proposals + four ballots from claude/codex/agy on option (a) vs (b) vs a third.
-Then: agy restores elevation to 30 deg + implements the chosen height fix; codex
-updates the contract if (b); recalibrate to PASS; cross-sign all three slices
-(non-author each); strip the stray marker commits; merge `--no-ff` into
-round/006-two-rivers; run the full suite; THEN proceed to the Meshy pilot (still
-gated on Meshy credentials -> likely BLOCKER for Scott).
+**DECISION 010 (height reconciliation) IN PROGRESS. Round-1 blind ballots (stamp
+211241), verbatim rationales preserved in `/tmp/round006-exec/BALLOT1-{claude,
+codex,agy}.txt`:**
+- **claude: A** (keep 64 px/m; realize via a rig/projection-stage vertical
+  correction, NOT per-mesh; golden-pole acceptance test; flagged pitched-roof
+  flattening risk).
+- **codex: A** (keep 64; rig-level Z pre-correction from calibrated camera;
+  prefers projection-stage to avoid touching normals).
+- **agy: B** (accept the camera's physical ~78 px/m upright, revise the contract;
+  non-uniform mesh Z-scale distorts normals/painterly lighting; custom projection
+  brittle; camera = single source of truth).
 
-Prompt files: `/tmp/round006-exec/*.md`.
+**Orchestrator's decisive technical finding (verified by hand + agy's calibration):**
+screen-Y gets contributions from BOTH ground-depth (coeff sin(theta)) AND upright
+height (coeff cos(theta)), COUPLED by the fixed 30 deg elevation. Desired ratio
+upright/depth for (64 px/m upright + 2:1 ground) = sqrt(2); actual at 30 deg =
+cot(30) = sqrt(3). No ortho-camera projection scalar decouples them. So the A-voters'
+"clean projection-stage correction" is GEOMETRICALLY IMPOSSIBLE with a standard ortho
+camera; A necessarily = mesh-Z squash (the normal/lighting distortion agy warns of)
+OR a brittle custom sheared projection matrix. This premise flaw is why a critique
+re-ballot round is being run (it was compressed out of the one-shot proposal+ballot).
+
+**NEXT STEP: critique/re-ballot round dispatched (stamp TBD) with the coupling proof
+on the table; each doer critiques both A and B under the coupling constraint and
+re-ballots. Then orchestrator synthesizes + adds its ballot -> decision 010. If it
+converges A-premise-refuted it likely lands B; a genuine 2-2 invokes the critic
+(decision 004). THEN: agy restores 30 deg elevation + implements the chosen fix;
+codex updates contract if B; recalibrate to PASS; cross-sign all three slices
+(non-author); strip stray marker commits (`b1ea34f` claude, agy's were removed);
+merge `--no-ff` into round/006-two-rivers; full suite; THEN Meshy pilot (still gated
+on Meshy credentials -> likely BLOCKER for Scott).**
+
+Prompt files + round-1 ballots: `/tmp/round006-exec/`.
 
 **Round 006 artifact SHAs (archived under refs/archive/006/*, pushed to origin):**
 | Worker | Proposal | Critique | Ballot |
