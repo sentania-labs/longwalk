@@ -68,6 +68,9 @@ echo "=== test_boot_flow.gd ==="
 echo "=== test_nav_grid.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_nav_grid.gd
 
+echo "=== test_iso_projection.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_iso_projection.gd
+
 echo "=== test_player_world_contract.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_player_world_contract.gd
 
