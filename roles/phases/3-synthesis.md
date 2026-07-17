@@ -20,7 +20,8 @@ three critiques rather than one critique per pair. If a worker's critique
 engaged only some of its peers, that is a failed critique round for the peers it
 skipped: send it back rather than synthesizing over an untested proposal.
 
-Plus the critic's vote. See "Invoke the critic" below.
+For each contested question, include the four ballots described below. Include
+the critic's vote only if those ballots split 2-2.
 
 ## Synthesis is not averaging
 
@@ -58,36 +59,21 @@ capability reasoning per piece, not a single sentence covering the whole
 division: the per-piece reasoning is what a later run reads to judge whether
 the split was right.
 
-## Invoke the critic when the seat activates
+## Record four ballots and invoke the critic on 2-2
 
-Always, on every full-protocol synthesis (see `roles/critic.md`). The seat is
-standing: you invoke it every time a full-protocol round reaches this phase, and
-its vote and rationale go into the record every time. Fast-lane work gets no
-critic vote, but fast-lane work never reaches this template either.
-
-What varies is the vote's weight, not whether you ask for one:
-
-1. **Deadlock.** The critique round did not converge and you are deciding. Here
-   the vote is tiebreaker-grade, and this is what the seat is really for: you
-   run on Claude's harness, so you refereeing a deadlock with the Claude worker
-   in it, alone, is a house call. If the critic agrees with your ruling, that is
-   your majority. If it sides with the worker you meant to overrule, there is no
-   majority, and you either adopt its side or escalate to Scott with its vote
-   attached. See "When the critic votes against you" in
-   `roles/orchestrator.md`. Read "Deadlock" there too: with three doers, a 2-1
-   split is not a deadlock.
-2. **Protected paths.** The synthesis touches a path in
-   `.github/protected-paths.txt`. Tiebreaker-grade too, deadlock or not.
-3. **Neither.** The vote is advisory. You have a majority reading already, so
-   you may rule against the critic without escalating. You still record its vote
-   verbatim, and you record that you ruled against it and why.
+For every contested synthesis question, record ballots from the orchestrator,
+claude-worker, codex-worker, and agy-worker. Every doer votes, including parties
+to the dispute. Record a party's interest alongside its vote. A 3-1 or 4-0
+result decides the question without a critic. A 2-2 result invokes the critic
+as tiebreaker. This model is required by
+[decision 004](../../docs/decisions/004-round-branch-integration-and-voting-model.md).
 
 The critic writes nothing. It cannot: it runs read-only. Its vote comes back as
 output and **you** put it into the record, verbatim, including its model
 transparency line. If it disqualified itself, record the disqualification and
-its stated reason too, and then decide without its vote on the normal deadlock
-rules. A disqualification is a fact about the decision and belongs in the
-record exactly as much as a vote does.
+its stated reason too, then escalate the unresolved 2-2 question to Scott. A
+disqualification is a fact about the decision and belongs in the record exactly
+as much as a vote does.
 
 ## Record dissent verbatim
 
@@ -108,8 +94,8 @@ and your paraphrase of an argument you just ruled against is not a neutral
 instrument.
 
 Escalate to Scott instead of deciding when the losing objection claims a
-constitution violation, or when the critic voted against your ruling and you
-intend to hold it anyway. Every other disagreement, you settle.
+constitution violation. If the critic cannot break a 2-2 tie because it
+self-disqualifies, escalate the unresolved question too.
 
 ## Produce the record
 
