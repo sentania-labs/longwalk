@@ -62,27 +62,62 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 EXECUTION IN FLIGHT. Decision 009 signed 4-0/4-0 on
-round/006-two-rivers @ 85dc620. Three NON-Meshy execution slices dispatched
-DETACHED at run stamp 20260717-204733 (cap 2400s), each in its own worktree off
-the round branch:`
-- **claude** on `claude/006-nullfix` (worktree `lw-006-claude`): the "Instance
-  base is null" fast-lane fix (decision 009 constraint 9), clean-import repro +
-  engine stack, regression assertion in `test/active_path/test_boot_flow.gd`.
-- **codex** on `codex/006-scale-contract` (worktree `lw-006-codex`): the scale
-  contract doc + build-failing validation script + `test/art/` test (constraints
-  3 + 7). NON-Meshy, fixture-tested.
-- **agy** on `agy/006-camera-calibration` (worktree `lw-006-agy`): provision
-  Blender headless (fetch pinned, don't commit binary; mirror fetch_godot.sh),
-  pin the render spec, prove camera agreement with `projection.gd` on PRIMITIVES
-  (constraints 1 + 2). NON-Meshy. If Blender can't be fetched -> `.team/blocked/`.
+**Status:** `ROUND 006 EXECUTION: 3 non-Meshy slices delivered + verified. TWO
+are clean and merge-ready (pending peer sign-off); the THIRD (camera calibration)
+surfaced a REAL cross-slice geometry/scale conflict that needs a reconciliation
+decision (010) before any 3D asset with height can be judged. Meshy pilot NOT yet
+reached.`
 
-Prompt files: `/tmp/round006-exec/{claude-nullfix,codex-scale,agy-camera}.md`.
-Poll end markers `.team/markers/006-*-204733-end.md` in each worktree; verify
-`branch_changed`/`uncommitted_work`/`cap_expired` and read the tree, THEN
-cross-sign (non-author), merge `--no-ff` into round branch, run suite. These
-three are independent + non-Meshy; the Meshy pilot (step 3) comes after and is
-the likely BLOCKER (no Meshy key provisioned).
+**Slice results (all dispatched 20260717-204733, verified from end markers + tree):**
+- **claude** `claude/006-nullfix` @ `dd86f7e` (subst. commit; `b1ea34f` is a stray
+  marker commit to strip at merge): CLEAN + VERIFIED. Root cause of "Instance base
+  is null" = `character_creation.gd` `@onready _name_edit` node path was
+  `.../VBoxContainer/NameEdit` but the LineEdit is at `.../VBoxContainer/NameRow/
+  NameEdit` -> null base at play time. Old boot test stayed green because bare
+  `instantiate()` never fires `@onready` (resolves on `_ready()`/tree entry). Fix =
+  one-line path correction + a `_check_character_creation_handoff()` regression in
+  `test/active_path/test_boot_flow.gd` that fires `_ready()` and asserts the refs
+  resolve. Diagnosis matches constraint 9 (real origin, not a guessed load site).
+- **codex** `codex/006-scale-contract` @ `fd73f04`: CLEAN + VERIFIED (its
+  `test/art/test_check_scale_contract.py` runs green). Adds `docs/art/scale-contract.md`
+  + `tools/art/check_scale_contract.py` (build-failing validator) + test, wired into
+  `run_tests.sh`. Contract pins `pixels_per_meter = TILE_H = 64`, UPRIGHT basis
+  `(0,-64)` => 1 upright meter = 64 px STRAIGHT UP, un-foreshortened (player 1.75m
+  = 112px), 2px tolerance.
+- **agy** `agy/006-camera-calibration` @ `8168e65`: provisioned Blender 4.0.2
+  (`tools/fetch_blender.sh`, gitignored binary), `tools/art/blender_calibration.py`
+  + `render.sh`. GROUND-grid calibration is solid. But it surfaced THE FINDING (below).
+
+**THE FINDING (non-Meshy scaffolding caught a defect that blocks the pilot):**
+Two facts, both verified by running agy's Blender calibration:
+1. *(clarification, not a decision change)* The 3D ortho camera elevation that
+   reproduces Godot's 2:1 `(64,32)` ground basis is **arcsin(0.5) = 30 deg**, NOT
+   `atan(0.5) = 26.565 deg`. Empirics: ground error 0.0002px @ 30 deg, 3-28px @
+   26.565 deg. Hand-derivation agrees (azimuth 45, ortho: `sin(theta)=0.5`). The
+   `atan(0.5)` in 009's phase-2 critique prose is the 2D DIAMOND SCREEN-SLOPE,
+   mislabeled as the camera elevation; 009 constraint 2 already says "VERIFY the
+   elevation rather than copying an angle into prose", so the verified 30 deg is
+   what the decision demanded. (Orchestrator erroneously forced atan(0.5) in the
+   first agy bounce; agy's evidence corrected it.)
+2. *(genuine contested design conflict -> decision 010)* Even at the correct 30
+   deg, a 3D ortho camera FORESHORTENS vertical height by `cos(30)` -> measured
+   ~78.4 px per upright meter (agy: 1.75m renders 141.67px @26.565, ~137px @30),
+   while codex's contract (009 constraint 3, adopted wholesale) pins 64 px/m
+   upright, un-foreshortened. These two SIGNED slices are inconsistent on vertical
+   scale. Reconciliation options: (a) pre-scale mesh Z by 64/78.4 before render to
+   hit codex's 64 px/m exactly (deterministic, cheats height like 2:1 pixel-art
+   often does); (b) adopt the physical foreshortened px/m into the contract
+   (re-derive codex's pixel-height table). Both defensible => contested, four-ballot.
+
+**NEXT STEP: run the height-reconciliation decision (010), then finish execution.**
+Get proposals + four ballots from claude/codex/agy on option (a) vs (b) vs a third.
+Then: agy restores elevation to 30 deg + implements the chosen height fix; codex
+updates the contract if (b); recalibrate to PASS; cross-sign all three slices
+(non-author each); strip the stray marker commits; merge `--no-ff` into
+round/006-two-rivers; run the full suite; THEN proceed to the Meshy pilot (still
+gated on Meshy credentials -> likely BLOCKER for Scott).
+
+Prompt files: `/tmp/round006-exec/*.md`.
 
 **Round 006 artifact SHAs (archived under refs/archive/006/*, pushed to origin):**
 | Worker | Proposal | Critique | Ballot |
