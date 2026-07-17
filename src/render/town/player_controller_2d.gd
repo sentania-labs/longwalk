@@ -78,6 +78,7 @@ var _repathed_since_stall := false
 
 const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 var _zoom_index := 2
+var _target_zoom := 1.0
 
 
 func set_appearance(appearance_variant: String) -> void:
@@ -215,7 +216,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _set_zoom_index(new_index: int) -> void:
 	_zoom_index = clampi(new_index, 0, ZOOM_LEVELS.size() - 1)
+	_target_zoom = ZOOM_LEVELS[_zoom_index]
+
+
+func _process(delta: float) -> void:
 	var camera: Camera2D = get_node_or_null("Camera2D")
 	if camera:
-		var z: float = ZOOM_LEVELS[_zoom_index]
-		camera.zoom = Vector2(z, z)
+		if not is_equal_approx(camera.zoom.x, _target_zoom):
+			var new_z: float = lerpf(camera.zoom.x, _target_zoom, 1.0 - exp(-15.0 * delta))
+			if abs(new_z - _target_zoom) < 0.001:
+				new_z = _target_zoom
+			camera.zoom = Vector2(new_z, new_z)
+

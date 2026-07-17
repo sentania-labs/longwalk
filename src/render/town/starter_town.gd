@@ -78,11 +78,11 @@ func _build_ground() -> void:
 			sprite.texture = load(GROUND_TEXTURE_PATHS[tile])
 			sprite.centered = false
 			sprite.position = Vector2(x * TILE_SIZE, y * TILE_SIZE)
-			
+
 			var h := hash(Vector2i(x, y))
 			sprite.flip_h = (h % 2 == 0)
 			sprite.flip_v = ((h / 2) % 2 == 0)
-			
+
 			_ground_layer.add_child(sprite)
 
 
@@ -207,12 +207,12 @@ func _spawn_player() -> void:
 	player.set_layout(_layout)
 	var spawn_cell := Vector2i(int(_layout.width / 2.0), 7)
 	player.position = Vector2(spawn_cell.x, spawn_cell.y) * TILE_SIZE + Vector2(TILE_SIZE / 2.0, TILE_SIZE / 2.0)
-	
+
 	var shadow := _create_shadow_polygon(Vector2(28.0, 14.0))
 	shadow.position = Vector2.ZERO
 	player.add_child(shadow)
 	player.move_child(shadow, 0)
-	
+
 	_world.add_child(player)
 	_player = player
 
