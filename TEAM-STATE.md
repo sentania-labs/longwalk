@@ -497,7 +497,32 @@ the delta and write a new marker. Do not repoint the old one.
 
 ## Open escalations to Scott
 
-**NONE OPEN.** The round-1 escalation `50ceed18` (whether the procedural bob may
+**ONE OPEN, filed this run. It blocks PR #18's merge and nothing else.**
+
+**The Codex review bot has stopped posting.**
+
+- Filed 2026-07-17T04:26Z via the `.pka` channel,
+  `request_id=846fef69-6bf4-411c-aa71-5c55bc3ca1f8`, urgency normal, to `scott`.
+  Response lands in `.pka/inbound/orchestrator/`.
+- Trigger: `chatgpt-codex-connector` did not post on PR #18 after 21+ minutes,
+  against a 3m36s latency on PR #17 and a prior post on #16. The issue timeline
+  shows no review event at all. Nothing about #18 is unusual.
+- Why it is not the team's call: the connector is an external service the team
+  does not own, so the team cannot fix it, and waiving a required merge gate
+  because the service looks unavailable is not the team's decision to make. If
+  the connector is gone for good, the Codex review gate in `CLAUDE.md` and
+  `roles/orchestrator.md` needs amending, and that is a constitution edit, which
+  `roles/orchestrator.md` puts squarely outside what the team decides.
+- Questions put to Scott: (1) is the connector expected to be down or removed?
+  (2) if so, may #18 merge on the peer sign-off plus green CI alone? (3) if it is
+  gone for good, the constitution needs amending.
+- **Nothing is spinning while Scott decides.** No worker is dispatched on it. The
+  blocker is stated in PR #18's own body.
+
+**PREVIOUSLY OPEN, NOW CLOSED:** the round-1 escalation `50ceed18` (whether the
+procedural bob may ship as "the walk cycle") was **answered by Scott: option 2,
+spend more spike budget**. That answer is folded into this round's assignment and
+the bob fallback is out of bounds. The round-1 escalation `50ceed18` (whether the procedural bob may
 ship as "the walk cycle") was **answered by Scott: option 2, spend more spike
 budget**. That answer is folded into this round's assignment and the bob fallback
 is out of bounds. Nothing is waiting on Scott and nothing is blocked.
