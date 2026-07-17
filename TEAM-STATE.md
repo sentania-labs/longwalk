@@ -62,11 +62,27 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006, PHASES 1-3 COMPLETE. Decision 009 (3D-authored,
-2D-delivered pipeline, pilot-gated) SIGNED 4-0/4-0, committed to
-round/006-two-rivers at 85dc620 (branch pushed to origin), validated against the
-consensus gate (signed by all three doers, covers project.godot, PASS). NEXT
-PHASE = EXECUTION of the pilot slices.`
+**Status:** `ROUND 006 EXECUTION IN FLIGHT. Decision 009 signed 4-0/4-0 on
+round/006-two-rivers @ 85dc620. Three NON-Meshy execution slices dispatched
+DETACHED at run stamp 20260717-204733 (cap 2400s), each in its own worktree off
+the round branch:`
+- **claude** on `claude/006-nullfix` (worktree `lw-006-claude`): the "Instance
+  base is null" fast-lane fix (decision 009 constraint 9), clean-import repro +
+  engine stack, regression assertion in `test/active_path/test_boot_flow.gd`.
+- **codex** on `codex/006-scale-contract` (worktree `lw-006-codex`): the scale
+  contract doc + build-failing validation script + `test/art/` test (constraints
+  3 + 7). NON-Meshy, fixture-tested.
+- **agy** on `agy/006-camera-calibration` (worktree `lw-006-agy`): provision
+  Blender headless (fetch pinned, don't commit binary; mirror fetch_godot.sh),
+  pin the render spec, prove camera agreement with `projection.gd` on PRIMITIVES
+  (constraints 1 + 2). NON-Meshy. If Blender can't be fetched -> `.team/blocked/`.
+
+Prompt files: `/tmp/round006-exec/{claude-nullfix,codex-scale,agy-camera}.md`.
+Poll end markers `.team/markers/006-*-204733-end.md` in each worktree; verify
+`branch_changed`/`uncommitted_work`/`cap_expired` and read the tree, THEN
+cross-sign (non-author), merge `--no-ff` into round branch, run suite. These
+three are independent + non-Meshy; the Meshy pilot (step 3) comes after and is
+the likely BLOCKER (no Meshy key provisioned).
 
 **Round 006 artifact SHAs (archived under refs/archive/006/*, pushed to origin):**
 | Worker | Proposal | Critique | Ballot |
