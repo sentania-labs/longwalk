@@ -260,8 +260,52 @@ round's proposal and critique artifacts alongside the implementation, and the PR
 needs sequencing behind a peer sign-off marker. Next run opens it. This is not a
 parked PR; it is a branch with no PR yet.
 
-**Next run: verify this from `.team/markers/impl-nav-20260717-034815-end.md` in
-that worktree before believing anything about it.**
+**Result, verified from the marker and the tree, not narration:** landed at
+`bb30105`, 864 insertions, clean tree, `tools/run_tests.sh` green (95 checks; the
+orchestrator ran it independently rather than trusting the report).
+`src/sim/nav_grid.gd` is a pure `(layout, from, to)` A*, WASD is out of
+`project.godot`, and the suite includes real determinism tests (byte-identical
+across rebuilds) plus "every walkable cell is reachable from the spawn (0
+stranded)".
+
+The worker also found a genuine bug while writing the contract codex demanded:
+**the ring metric and the distance metric are not the same**, so stopping at the
+first Chebyshev ring with a hit is wrong for Euclidean distance (at r=3 a hit at
+(3,3) is 4.24 away while (0,4) on the next ring is 4.00). There is a test pinning
+that case. This is codex's phase-2 objection paying off directly.
+
+### The peer review REFUSED, and it was right. Read this one.
+
+**codex-worker reviewed `bb30105` and did not sign off.** No marker was written.
+This is the second time the team's gates have said no rather than rubber-stamped
+(the first was the round-1 art spike), and it is the no-self-review rule earning
+its keep, because the defect is one the author could not see.
+
+claude-worker reported that it had "made `test_nav_grid.gd` assert all three as
+invariants, so a future change that breaks one fails the suite instead of
+shipping a player that wedges." Codex checked that claim against the code. The
+tests only inspect **sim** data: `test_nav_grid.gd:290` checks that footprints
+have positive integer dimensions and never instantiates the generated colliders,
+so the suite would still pass if `starter_town.gd:117` stopped using
+`footprint * TILE_SIZE` or mispositioned the collider, and it never inspects
+boundary wall geometry at all.
+
+Why this is worse than an ordinary test gap: **agy's objection ("the collision
+and nav must agree by construction, not by runtime exception") is sustained as a
+binding design constraint in decision 003.** The author's answer was that the
+geometry already agrees and the tests pin it. The first half appears true. The
+second half was not, and the second half is the entire reason the first half is
+safe to rely on. An invariant nobody checks is a comment, and the wedging player
+agy predicted would ship green.
+
+**Fix dispatched** (`fix-nav`, 03:58Z) to claude-worker: assert the three claims
+against actual instantiated render geometry, and prove each new assertion can
+fail (break the constant, watch it go red, put it back) before trusting it
+passing. **codex must then re-review at the NEW head SHA.** The refusal stands
+against `bb30105` and does not transfer.
+
+**Next run: verify all of this from the end markers in that worktree before
+believing any of it.**
 
 ### Round-1 assignment (town motion), closed out
 
