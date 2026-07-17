@@ -170,9 +170,12 @@ verification rule, the blocked-worker scan, and "never end your turn on an
 intention". It also confirmed the critic brief genuinely explains its own double
 reversal rather than silently reverting.
 
-**Fix dispatched** (`fix-codify`, 04:41Z). **codex must be re-reviewed at the new
-head and claude must sign there**, because a refusal does not transfer across
-SHAs.
+**Fixed at `8528603`, re-reviewed, SIGNED, and INTEGRATED.** claude-worker signed
+at the new head (marker `codex-roles-codify-85286034c11c.md`, `reviewed_by:
+claude-worker`, `authored_by: codex-worker`, 04:42:49Z) after verifying both
+findings and, notably, checking that the renamed cross-reference **target
+actually exists** rather than trusting the rename. Integrated into the round
+branch at `0c22983`; the integrated result is green.
 
 **Two things claude raised without blocking, recorded so they are decisions
 rather than accidents:**
@@ -355,7 +358,33 @@ concurrently, with nav tests written against a fixture the feel slice rewrites.
 
 **Phase 2 dispatch verified complete at 2026-07-17T03:40Z.**
 
-### Implementation dispatched (nav slice only, deliberately)
+### ROUND BRANCH: `round/003-village-feel`, head `f9c7022`. This is where the round lives now.
+
+Created this run per Scott's 0405 steer. **Two slices are integrated, both
+peer-signed by a non-author, and the integrated result passes the full suite
+(106 checks) after each merge.** Nothing is open on GitHub, which is correct
+under the new model: the round ships ONE PR when the round is done, and it is
+not done.
+
+| Commit | What |
+| --- | --- |
+| `39fa6f7` | Integrate nav slice (`--no-ff` of peer-signed `49a7b39`) |
+| `ec1453c` | Decision 004, the three steers, directive authority |
+| `0c22983` | Integrate roles/ codification (`--no-ff` of peer-signed `8528603`) |
+| `f9c7022` | Collect both sign-off markers onto the round branch |
+
+**Why the markers were collected onto the round branch (`f9c7022`), which is a
+new practice worth keeping:** under the round-branch model the doer branches are
+disposable and get deleted at the sweep. A sign-off marker that exists only on a
+doer branch is review evidence that vanishes when that branch does. The round PR
+is the thing that gets reviewed and merged, so the round's evidence has to travel
+with it.
+
+**Do NOT rebase this branch.** Both markers name SHAs that are reachable from it
+through `--no-ff` merges. Integration was deliberately a merge and not a rebase,
+which is what keeps both sign-offs valid.
+
+### Implementation dispatched (nav slice first, deliberately)
 
 **Dispatched 2026-07-17T03:48Z:** `impl-nav`, claude-worker, into
 `/home/scott/claude/longwalk-worktrees/claude-village-feel` on
