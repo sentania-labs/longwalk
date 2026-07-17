@@ -86,7 +86,7 @@ var _facing := Facing.DOWN
 var _walk_frame := 0
 var _walk_elapsed := 0.0
 
-const ZOOM_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+var _zoom_levels: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 var _zoom_index := 2
 var _target_zoom := 1.0
 
@@ -108,6 +108,36 @@ func set_appearance(appearance_variant: String) -> void:
 # reasoning as set_appearance(): callable straight after instantiate().
 func set_layout(layout: TownLayoutScript) -> void:
 	_layout = layout
+	_recompute_zoom_levels()
+
+func _recompute_zoom_levels() -> void:
+	if _layout == null:
+		return
+	
+	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width")
+	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height")
+	var town_size: Vector2 = _layout.pixel_size()
+	
+	var min_zoom_x := vp_w / town_size.x
+	var min_zoom_y := vp_h / town_size.y
+	var min_zoom := maxf(min_zoom_x, min_zoom_y)
+	
+	var new_levels: Array[float] = [min_zoom]
+	for z in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]:
+		if z > min_zoom:
+			new_levels.append(z)
+	
+	var current_zoom := _zoom_levels[_zoom_index]
+	_zoom_levels = new_levels
+	
+	_zoom_index = 0
+	for i in range(_zoom_levels.size()):
+		if _zoom_levels[i] <= current_zoom:
+			_zoom_index = i
+		else:
+			break
+			
+	_target_zoom = _zoom_levels[_zoom_index]
 
 
 func has_path() -> bool:
@@ -261,8 +291,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _set_zoom_index(new_index: int) -> void:
-	_zoom_index = clampi(new_index, 0, ZOOM_LEVELS.size() - 1)
-	_target_zoom = ZOOM_LEVELS[_zoom_index]
+	_zoom_index = clampi(new_index, 0, _zoom_levels.size() - 1)
+	_target_zoom = _zoom_levels[_zoom_index]
 
 
 func _process(delta: float) -> void:
