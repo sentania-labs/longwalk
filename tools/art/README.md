@@ -1,5 +1,20 @@
 # tools/art, AI art generation pipeline
 
+## Isometric board-led pipeline
+
+Round 005 uses manifests under `manifests/`. Generate a dressed style board
+first, then compact same-geometry category sheets, individual buildings, a
+neutral player master, and one compact six-frame grid per immutable facing.
+Run `ingest_generated_sheet.py` before `process_assets.py`. Ingestion rejects
+missing provenance, malformed grids, empty cells, edge contact, bad anchors,
+and undeclared runtime ids. Processing normalizes only by declared anchors and
+derives footprint-only cast masks plus tight contact masks under one fixed light
+vector. It never chooses frames.
+
+The fixed facing order is `E, SE, S, SW, W, NW, N, NE`. The full policy,
+including the exact sector boundary rule and distance-driven cycle contract,
+lives in `manifests/player-walk-policy.json`.
+
 All longwalk game art is AI-generated, not downloaded from asset packs. This
 directory is the source of truth for regenerating or extending it: prompts
 and style config are committed, not just the output images, so any asset can
@@ -62,24 +77,28 @@ directly with the same prompt text to see the full transcript and error.
 
 ## Current output
 
-`out/` holds five raw generated assets: the three that proved the pipeline
-end to end (`ground_path_tile.png`, `building_facade.png`,
-`player_character.png`) plus two added for the starter-town prototype
-(`grass_ground_tile.png`, `cottage_facade.png`, a second building distinct
-from the general store). All five are raw generator output: high-resolution,
-uncropped, and (for the two building sprites and the player sprite) on a
-plain cream background rather than true alpha transparency.
+`out/` retains the five raw and processed assets from the starter-town
+prototype. They predate the manifest-driven isometric pipeline and are not
+inputs or outputs of `process_assets.py` now. The three player appearance
+variants under `out/processed/` are legacy runtime artifacts produced by an
+earlier version of `build_player_walk.py`. No committed clean-checkout path
+currently regenerates them: the preserved option C script rebuilds only the
+colored source artifact under `out/`, and the current builder does not recolor.
 
-## Post-processing: `out/` (raw) versus `out/processed/` (game-ready)
+The current manifest-driven assets live under `out/iso/`. Raw generated sheets
+use the `_raw.png` suffix, ingestion writes validated transparent assets to
+`out/iso/ingested/`, and processing writes normalized runtime images and shadow
+masks to `out/iso/processed/`.
 
-`out/<name>.png` is always raw codex output, committed as-is so every asset
-is regenerable and diffable against its prompt. `out/processed/<name>.png`
-is the game-ready version the actual scenes import from: `process_assets.py`
-does background removal (a corner-seeded flood fill, since every sprite
-prompt asks for one flat background color) and a crop-to-content pass for
-sprites, plus a resize to a small tile/sprite pixel size for everything.
-Ground tiles have no background to remove (the prompts ask for a full-bleed
-texture), so they only get resized.
+## Manifest-driven post-processing
+
+`process_assets.py` requires a processing manifest. Each asset entry names its
+ingested source, output path and size, source and target anchors, and optional
+scale and shadow generation. Processing normalizes the transparent source to
+the declared anchor. For assets with shadows enabled, it also derives cast and
+contact masks from the bottom footprint slice using the manifest's fixed light
+vector. It does not remove backgrounds, crop content, generate appearance
+variants, or choose animation frames.
 
 Run it locally with plain Python/PIL and numpy, not inside the codex
 sandbox (same caveat as image generation above, though this script has no
@@ -88,37 +107,37 @@ here; it is just kept out of `generate.sh` for the same separation of
 concerns):
 
 ```
-python3 tools/art/process_assets.py
+python3 tools/art/process_assets.py tools/art/manifests/process-iso.json
 ```
 
-It also generates the character-creation appearance presets: three
-`player_character_<name>.png` variants (`moss`, `slate_blue`, `burgundy`)
-that hue-shift only the tunic pixels of the processed player sprite, so
-character creation has a small set of visibly different choices without a
-separate AI generation per outfit color. See the script for the hue-range
-mask that isolates tunic pixels from skin/hair.
-
-Scenes reference `out/processed/`, never `out/` directly. Regenerating an
-asset means: edit or add a prompt file, rerun `generate.sh`, then rerun
-`process_assets.py` to refresh the processed copy.
+The canonical manifest reproduces the committed cottage, neutral player, six
+east-facing walk frames, and the cottage and player shadow masks under
+`out/iso/processed/`. Regenerating one of these assets means regenerating its
+raw sheet, running `ingest_generated_sheet.py` with the corresponding generated
+manifest, then running the command above to refresh every declared processed
+output.
 
 ## Player walk-cycle build
 
-`build_player_walk.py` is the deterministic option C authoring and assembly
-path for the player walk cycle. It reads the committed colored-boot revision 3
-sheet, retains its passing side row, authors symmetric down and up half-cycles,
-and writes the pre-recolor artifact of record:
+The option C artifact predates the manifest-driven `build_player_walk.py`
+assembler. Its historical authoring operation is preserved separately in
+`rebuild_player_walk_option_c.py`. The script reads the committed colored-boot
+revision 3 sheet, retains its side row, completes the down and up rows as
+symmetric four-frame cycles, and writes the colored option C artifact:
 
 ```
-python3 tools/art/build_player_walk.py
-python3 tools/art/check_walk_sheet.py \
-  tools/art/out/player_walk_sheet_option_c_colored.png --json
+python3 tools/art/rebuild_player_walk_option_c.py \
+  --output tools/art/out/player_walk_sheet_option_c_colored.png
 ```
 
-Run the gate before using any processed output. After the source rows pass,
-the build mirrors side into the left-facing runtime row, aligns every frame to
-row 159 of its 160 px cell, recolors both boot markers to leather brown, and
-writes the three appearance atlases under `out/processed/`.
+The current `build_player_walk.py` has a different contract. It composites 48
+declared 160 px frame images into an eight-facing, six-frame atlas from a
+manifest with a top-level `frames` map. It does not author cycles, mirror rows,
+align subjects, or recolor pixels. No production frames manifest is committed
+yet, so it is tested with synthetic fixtures but is not the regeneration path
+for the historical option C artifact. The current `check_walk_sheet.py` also
+validates that newer 960 by 1280 atlas format, not the historical 1448 by 1086
+option C source sheet.
 
 The reproducible in-engine review montage uses the real starter town, player
 scene, atlas regions, camera, and one-to-one shipping scale:

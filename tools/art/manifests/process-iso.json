@@ -1,0 +1,13 @@
+{
+  "shadow_policy": {"light_vector": [18, 9], "footprint_slice": 10},
+  "assets": [
+    {"id": "cottage", "source": "../out/iso/ingested/cottage.png", "output": "../out/iso/processed/cottage.png", "output_size": [640, 480], "source_anchor": [887, 800], "target_anchor": [320, 430], "scale": 0.35, "shadows": true},
+    {"id": "player_neutral", "source": "../out/iso/ingested/player_neutral.png", "output": "../out/iso/processed/player_neutral.png", "output_size": [160, 160], "source_anchor": [887, 820], "target_anchor": [80, 159], "scale": 0.19, "shadows": true},
+    {"id": "E_0", "source": "../out/iso/ingested/E_0.png", "output": "../out/iso/processed/E_0.png", "output_size": [160, 160], "source_anchor": [256, 480], "target_anchor": [80, 159], "scale": 0.30},
+    {"id": "E_1", "source": "../out/iso/ingested/E_1.png", "output": "../out/iso/processed/E_1.png", "output_size": [160, 160], "source_anchor": [256, 480], "target_anchor": [80, 159], "scale": 0.30},
+    {"id": "E_2", "source": "../out/iso/ingested/E_2.png", "output": "../out/iso/processed/E_2.png", "output_size": [160, 160], "source_anchor": [256, 480], "target_anchor": [80, 159], "scale": 0.30},
+    {"id": "E_3", "source": "../out/iso/ingested/E_3.png", "output": "../out/iso/processed/E_3.png", "output_size": [160, 160], "source_anchor": [256, 480], "target_anchor": [80, 159], "scale": 0.30},
+    {"id": "E_4", "source": "../out/iso/ingested/E_4.png", "output": "../out/iso/processed/E_4.png", "output_size": [160, 160], "source_anchor": [256, 480], "target_anchor": [80, 159], "scale": 0.30},
+    {"id": "E_5", "source": "../out/iso/ingested/E_5.png", "output": "../out/iso/processed/E_5.png", "output_size": [160, 160], "source_anchor": [256, 480], "target_anchor": [80, 159], "scale": 0.30}
+  ]
+}

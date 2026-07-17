@@ -1,0 +1,6 @@
+Use the style board and accepted neutral master to lock identity, costume,
+palette, anatomy, camera distance, scale, and feet root. Generate six sequential
+east-facing walk frames in one compact multi-row grid. Natural opposed limbs,
+two clear contact poses, smooth loop, stable contact line. Solid #FF00FF in
+every cell with safe padding. No borders, labels, shadows, ground, effects,
+weapons, extra figures, UI, or guides. Change only pose and east orientation.

@@ -50,6 +50,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 echo "=== test_build_player_walk.py ==="
 python3 "${REPO_ROOT}/test/art/test_build_player_walk.py"
 
+echo "=== test_art_manifest.py ==="
+python3 "${REPO_ROOT}/test/art/test_art_manifest.py"
+
 echo "=== test_check_walk_sheet.py ==="
 python3 "${REPO_ROOT}/test/art/test_check_walk_sheet.py"
 
@@ -67,6 +70,9 @@ echo "=== test_boot_flow.gd ==="
 
 echo "=== test_nav_grid.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_nav_grid.gd
+
+echo "=== test_iso_projection.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_iso_projection.gd
 
 echo "=== test_player_world_contract.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_player_world_contract.gd

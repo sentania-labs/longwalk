@@ -1,0 +1,7 @@
+{
+  "version": "longwalk.generated-sheet.v1",
+  "provenance": {"prompt": "../prompts/iso/player_neutral.prompt.txt", "style_board": "../out/iso/style_board.png", "generator": "openai.image_gen"},
+  "sheet": {"source": "../out/iso/player_neutral_raw.png", "rows": 1, "cols": 1, "cell_width": 1774, "cell_height": 887, "expected_width": 1774, "expected_height": 887, "magenta_key": "#FF00FF", "key_tolerance": 48},
+  "runtime_assets": ["player_neutral"],
+  "cells": [{"id": "player_neutral", "row": 0, "col": 0, "role": "actor_neutral", "anchor": [887, 820], "output": "player_neutral.png", "runtime": true}]
+}

@@ -1,0 +1,11 @@
+Create a non-runtime dressed style board for a cozy persistent-world isometric
+RPG. Use clean hand-painted HD 2D game art, crisp readable silhouettes, subtle
+painterly texture, and an exact classic 2:1 isometric camera with no horizon.
+Show one coherent medieval frontier village vignette on moss-green grass with a
+pale packed-earth diagonal road, timber-and-plaster buildings with mossy slate
+roofs, broadleaf flora, compact props, and one neutral traveler in a moss-green
+tunic and brown boots. Use fixed soft late-morning light from upper-left, cast
+shadows down-right, and tight contact shadows at feet and foundations. Use a
+muted natural palette of moss, ochre, warm timber, cream plaster, slate blue,
+and restrained burgundy. Keep all objects in-world at one scale. No text,
+labels, borders, grids, UI, annotations, logos, or copied assets.

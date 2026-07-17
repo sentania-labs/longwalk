@@ -3,6 +3,7 @@ extends SceneTree
 const PlayerScene := preload("res://scenes/player.tscn")
 const CameraRigScript := preload("res://src/render/town/camera_rig_2d.gd")
 const TownLayoutScript := preload("res://src/sim/town_layout.gd")
+const IsoProjection := preload("res://src/render/iso/projection.gd")
 
 func _initialize() -> void:
 	var failures := 0
@@ -92,37 +93,71 @@ func _initialize() -> void:
 	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height")
 	var vis_w = vp_w / min_z
 	var vis_h = vp_h / min_z
-	var town_w = layout.pixel_size().x
-	var town_h = layout.pixel_size().y
+	var town_w = camera._projected_bounds.size.x
+	var town_h = camera._projected_bounds.size.y
 
-	failures += _check(vis_w <= town_w, "Viewport width at min zoom fits within town")
-	failures += _check(vis_h <= town_h, "Viewport height at min zoom fits within town")
+	failures += _check(vis_w <= town_w or is_equal_approx(vis_w, town_w), "Viewport width at min zoom fits within town")
+	failures += _check(vis_h <= town_h or is_equal_approx(vis_h, town_h), "Viewport height at min zoom fits within town")
 
 	# --- New Tests for Camera Rig ---
 	
-	# Test 1: The camera holds its FOCUSED world point across a simulated player move
-	camera._state = CameraRigScript.State.FOCUSED
-	camera._focus_point = Vector2(500, 500)
-	
-	player.position = Vector2(0, 0)
+	# Test 1: The camera holds its DRAG world point across a simulated player move
+	camera._set_zoom_index(2) # return to 1.0 zoom
 	for i in range(100):
 		camera._process(0.016)
 		
-	failures += _check(camera.position.distance_to(Vector2(500, 500)) < 1.0, "Camera eased to focus point")
+	camera._state = CameraRigScript.State.FREE
+	camera.position = Vector2(500, 500)
 	
-	# Advance player
-	player.position = Vector2(1000, 1000)
+	var middle_of_town = Vector2(layout.width * 128 / 2.0, layout.height * 128 / 2.0)
+	player.position = middle_of_town
 	for i in range(100):
 		camera._process(0.016)
 		
-	failures += _check(camera.position.distance_to(Vector2(500, 500)) < 1.0, "Camera holds focus independent of player move")
+	failures += _check(camera.position.distance_to(Vector2(500, 500)) < 1.0, "Camera held drag point")
 	
-	# Test 2: Left-click move command does not restore FOLLOW
-	var left_click = InputEventMouseButton.new()
-	left_click.button_index = MOUSE_BUTTON_LEFT
-	left_click.pressed = true
-	camera._unhandled_input(left_click)
-	failures += _check(camera._state == CameraRigScript.State.FOCUSED, "Left click does not restore follow")
+	# Test 2: pan_drag input triggers pan and enters DRAG state
+	camera._state = CameraRigScript.State.FOLLOW
+	var drag_start = InputEventMouseButton.new()
+	drag_start.button_index = MOUSE_BUTTON_RIGHT
+	drag_start.pressed = true
+	drag_start.position = Vector2(100, 100)
+	camera._unhandled_input(drag_start)
+	failures += _check(camera._state == CameraRigScript.State.FOLLOW, "Initial drag press doesn't break follow immediately")
+	
+	var drag_motion = InputEventMouseMotion.new()
+	drag_motion.position = Vector2(110, 110)
+	drag_motion.relative = Vector2(10, 10)
+	camera._unhandled_input(drag_motion)
+	failures += _check(camera._state == CameraRigScript.State.DRAG, "Drag motion past threshold enters DRAG state")
+	
+	# Second gesture: Release, then new press with sub-threshold motion
+	var drag_release = InputEventMouseButton.new()
+	drag_release.button_index = MOUSE_BUTTON_RIGHT
+	drag_release.pressed = false
+	drag_release.position = Vector2(110, 110)
+	camera._unhandled_input(drag_release)
+	failures += _check(camera._state == CameraRigScript.State.FREE, "Drag release enters FREE state")
+	
+	var drag_start2 = InputEventMouseButton.new()
+	drag_start2.button_index = MOUSE_BUTTON_RIGHT
+	drag_start2.pressed = true
+	drag_start2.position = Vector2(110, 110)
+	camera._unhandled_input(drag_start2)
+	failures += _check(camera._state == CameraRigScript.State.FREE, "Subsequent drag press stays in FREE state")
+	
+	var drag_motion2 = InputEventMouseMotion.new()
+	drag_motion2.position = Vector2(112, 112) # Distance is 2.82, less than 5.0
+	drag_motion2.relative = Vector2(2, 2)
+	camera._unhandled_input(drag_motion2)
+	failures += _check(camera._state == CameraRigScript.State.FREE, "Sub-threshold motion does not enter DRAG state")
+	
+	# Release second gesture
+	var drag_release2 = InputEventMouseButton.new()
+	drag_release2.button_index = MOUSE_BUTTON_RIGHT
+	drag_release2.pressed = false
+	drag_release2.position = Vector2(112, 112)
+	camera._unhandled_input(drag_release2)
 	
 	# Test 3: center_on_player restores FOLLOW
 	var center_event = InputEventAction.new()
@@ -133,33 +168,35 @@ func _initialize() -> void:
 	
 	for i in range(100):
 		camera._process(0.016)
-	failures += _check(camera.position == player.position, "Camera snaps back to player in follow mode")
+	failures += _check(camera.position.distance_to(IsoProjection.world_to_screen(player.position)) < 1.0, "Camera snaps back to player in follow mode")
 
-	# Test 4: Focus point is clamped at the camera limits at more than one zoom level
+	# Test 4: limits at different zooms
 	camera._set_zoom_index(0) # min zoom
 	for i in range(100):
 		camera._process(0.016)
 		
 	var out_of_bounds = Vector2(-5000, -5000)
-	camera._state = CameraRigScript.State.FOCUSED
-	camera._focus_point = camera._clamp_to_limits(out_of_bounds)
+	camera._state = CameraRigScript.State.FREE
+	camera.position = camera._clamp_to_limits(out_of_bounds)
 	
-	var min_zoom_focus = camera._focus_point
-	failures += _check(min_zoom_focus.x >= camera.limit_left, "Focus X clamped above left limit at min zoom")
-	failures += _check(min_zoom_focus.y >= camera.limit_top, "Focus Y clamped above top limit at min zoom")
+	var min_zoom_focus = camera.position
+	var limit_left = camera._projected_bounds.position.x
+	var limit_top = camera._projected_bounds.position.y
+	failures += _check(min_zoom_focus.x >= limit_left, "Focus X clamped above left limit at min zoom")
+	failures += _check(min_zoom_focus.y >= limit_top, "Focus Y clamped above top limit at min zoom")
 	
 	camera._set_zoom_index(3) # more zoom
 	for i in range(100):
 		camera._process(0.016)
 	
 	out_of_bounds = Vector2(-5000, -5000)
-	camera._focus_point = camera._clamp_to_limits(out_of_bounds)
+	camera.position = camera._clamp_to_limits(out_of_bounds)
 	
-	var high_zoom_focus = camera._focus_point
+	var high_zoom_focus = camera.position
 	failures += _check(high_zoom_focus.x < min_zoom_focus.x, "High zoom left clamp is closer to 0 than min zoom left clamp")
 	
 	# Test 5: Check input map actions exist
-	failures += _check(InputMap.has_action("focus_view"), "focus_view action exists")
+	failures += _check(InputMap.has_action("pan_drag"), "pan_drag action exists")
 	failures += _check(InputMap.has_action("center_on_player"), "center_on_player action exists")
 
 	player.free()

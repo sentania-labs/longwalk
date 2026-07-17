@@ -59,14 +59,23 @@ func _initialize() -> void:
 			var region: Rect2 = (sprite.texture as AtlasTexture).region
 			failures += _check(region == Rect2(frame * 160, facing * 160, 160, 160), "facing %d frame %d selects its 160 px atlas cell" % [facing, frame])
 
-	player._update_facing(Vector2.DOWN)
-	failures += _check(player._facing == player.Facing.DOWN, "downward movement selects the down walk row")
-	player._update_facing(Vector2.UP)
-	failures += _check(player._facing == player.Facing.UP, "upward movement selects the up walk row")
-	player._update_facing(Vector2.RIGHT)
-	failures += _check(player._facing == player.Facing.RIGHT, "rightward movement selects the source side row")
-	player._update_facing(Vector2.LEFT)
-	failures += _check(player._facing == player.Facing.LEFT, "leftward movement selects the mirrored side row")
+	# Facing is selected from PROJECTED screen motion, not raw square velocity
+	# (round 005 fix for PR #21 P1). Under the iso projection a +y grid step
+	# moves down-LEFT on screen and a -y step up-RIGHT, so those must NOT select
+	# DOWN/UP the way the old square-space compare did; straight down/up on
+	# screen come instead from the grid diagonals.
+	player._update_facing(Vector2(0, 1)) # +y grid step: projects down-left
+	failures += _check(player._facing == player.Facing.LEFT, "+y grid step faces the down-left screen row, not DOWN")
+	player._update_facing(Vector2(0, -1)) # -y grid step: projects up-right
+	failures += _check(player._facing == player.Facing.RIGHT, "-y grid step faces the up-right screen row, not UP")
+	player._update_facing(Vector2(1, 0)) # +x grid step: projects down-right
+	failures += _check(player._facing == player.Facing.RIGHT, "+x grid step faces the down-right screen row")
+	player._update_facing(Vector2(-1, 0)) # -x grid step: projects up-left
+	failures += _check(player._facing == player.Facing.LEFT, "-x grid step faces the up-left screen row")
+	player._update_facing(Vector2(1, 1)) # +x+y grid diagonal: projects straight down
+	failures += _check(player._facing == player.Facing.DOWN, "grid down-diagonal projects toward camera and selects DOWN")
+	player._update_facing(Vector2(-1, -1)) # -x-y grid diagonal: projects straight up
+	failures += _check(player._facing == player.Facing.UP, "grid up-diagonal projects away from camera and selects UP")
 	player.free()
 
 	if failures == 0:

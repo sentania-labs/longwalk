@@ -52,6 +52,7 @@ class_name PlayerController2D
 
 const TownLayoutScript := preload("res://src/sim/town_layout.gd")
 const NavGridScript := preload("res://src/sim/nav_grid.gd")
+const IsoProjection := preload("res://src/render/iso/projection.gd")
 
 const SPEED := 220.0
 const TILE_SIZE := TownLayoutScript.TILE_SIZE
@@ -60,6 +61,23 @@ const WALK_FRAME_SECONDS := 0.14
 const WALK_FRAME_COUNT := 4
 
 enum Facing { DOWN, UP, RIGHT, LEFT }
+
+# Fold of IsoProjection's eight screen-space octants onto the four proxy walk
+# rows we ship today (the full 8-facing atlas is Scott-gated follow-up). Indexed
+# by facing_octant id (0=E,1=SE,2=S,3=SW,4=W,5=NW,6=N,7=NE). Screen space is
+# y-DOWN, so S is toward the camera (DOWN) and N is away (UP); the four diagonal
+# octants fold onto the horizontal rows, which read cleanly on the diamond and
+# keep DOWN/UP for motion that projects straight toward or away from the camera.
+const _OCTANT_TO_FACING := [
+	Facing.RIGHT, # 0 E
+	Facing.RIGHT, # 1 SE
+	Facing.DOWN,  # 2 S
+	Facing.LEFT,  # 3 SW
+	Facing.LEFT,  # 4 W
+	Facing.LEFT,  # 5 NW
+	Facing.UP,    # 6 N
+	Facing.RIGHT, # 7 NE
+]
 
 # A waypoint counts as reached inside this radius. Comfortably under the 46px
 # of clearance a cell centre has, so retiring a waypoint early never steers the
@@ -193,10 +211,19 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_facing(direction: Vector2) -> void:
-	if abs(direction.x) > abs(direction.y):
-		_facing = Facing.RIGHT if direction.x > 0.0 else Facing.LEFT
-	else:
-		_facing = Facing.DOWN if direction.y > 0.0 else Facing.UP
+	# The sprite is drawn through the isometric projection, so facing must be
+	# chosen from the PROJECTED screen motion, not the raw square velocity: a
+	# +y grid step projects down-LEFT on screen and a -y step up-RIGHT, so
+	# comparing square x vs y (the round 004 code) selected DOWN/UP for motion
+	# that visibly runs sideways on the diamond. IsoProjection.cell_to_screen is
+	# linear with no constant term, so projecting the velocity direction yields
+	# the screen-motion direction directly. facing_octant is the frozen contract
+	# this was always meant to wire to (decision 008); its eight octants fold
+	# onto the four proxy rows until the 8-facing atlas lands.
+	var octant := IsoProjection.facing_octant(IsoProjection.cell_to_screen(direction))
+	if octant == IsoProjection.FACING_NEUTRAL:
+		return
+	_facing = _OCTANT_TO_FACING[octant]
 
 
 func _update_walk_animation(delta: float, moving: bool) -> void:

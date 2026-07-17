@@ -1,0 +1,6 @@
+Use the style board as the exact reference. Generate one individual
+collision-sensitive timber-and-cream-plaster cottage in clean hand-painted HD
+2:1 isometric art. Include a moss-flecked slate roof and stone foundation.
+Keep a clean 2 by 2 diamond footprint with the front-edge contact at lower
+center. Isolate it on solid #FF00FF with safe margins. No ground, vegetation,
+people, props, baked shadows, text, borders, grids, UI, or guides.
