@@ -15,7 +15,12 @@ LIGHT_VECTOR = (18, 9)
 FOOTPRINT_SLICE = 10
 
 
-def normalize_to_anchor(image: Image.Image, size: tuple[int, int], source_anchor: tuple[int, int], target_anchor: tuple[int, int]) -> Image.Image:
+def normalize_to_anchor(image: Image.Image, size: tuple[int, int], source_anchor: tuple[int, int], target_anchor: tuple[int, int], scale: float = 1.0) -> Image.Image:
+    if scale <= 0:
+        raise ValueError("scale must be positive")
+    if scale != 1.0:
+        image = image.resize((max(1, round(image.width * scale)), max(1, round(image.height * scale))), Image.Resampling.LANCZOS)
+        source_anchor = (round(source_anchor[0] * scale), round(source_anchor[1] * scale))
     output = Image.new("RGBA", size, (0, 0, 0, 0))
     output.alpha_composite(image.convert("RGBA"), (target_anchor[0] - source_anchor[0], target_anchor[1] - source_anchor[1]))
     return output
@@ -57,15 +62,18 @@ def process_manifest(path: Path) -> list[Path]:
         destination = (path.parent / asset["output"]).resolve()
         image = Image.open(source).convert("RGBA")
         size = tuple(asset["output_size"])
-        image = normalize_to_anchor(image, size, tuple(asset["source_anchor"]), tuple(asset["target_anchor"]))
+        image = normalize_to_anchor(image, size, tuple(asset["source_anchor"]), tuple(asset["target_anchor"]), float(asset.get("scale", 1.0)))
         destination.parent.mkdir(parents=True, exist_ok=True)
         image.save(destination)
         written.append(destination)
         if asset.get("shadows"):
             cast, contact = derive_shadows(image, int(asset["target_anchor"][1]), tuple(data["shadow_policy"]["light_vector"]), int(data["shadow_policy"]["footprint_slice"]))
             for suffix, mask in (("cast", cast), ("contact", contact)):
-                target = destination.with_name(f"{destination.stem}_{suffix}_shadow.png")
-                mask.save(target)
+                target = destination.with_name(f"{destination.stem}_{suffix}_shadow_rgba.png")
+                alpha = np.asarray(mask)
+                rgba = np.zeros((mask.height, mask.width, 4), dtype=np.uint8)
+                rgba[:, :, 3] = alpha
+                Image.fromarray(rgba, "RGBA").save(target)
                 written.append(target)
     return written
 
