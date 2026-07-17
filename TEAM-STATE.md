@@ -62,61 +62,80 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006, PHASE 2 (adversarial critique) IN FLIGHT. Phase 1 done:
-all three blind proposals CONVERGED on Path 3 (3D authored -> pre-rendered
-painterly 2D sprites). Three critiques dispatched detached (stamp
-20260717-202714). NEXT: poll the three critique end markers, verify from disk,
-read them, then run phase 3 (synthesis + four-ballot on the contested
-fidelity-recovery sub-question) and write decision 009.`
+**Status:** `ROUND 006, PHASES 1-3 COMPLETE. Decision 009 (3D-authored,
+2D-delivered pipeline, pilot-gated) SIGNED 4-0/4-0, committed to
+round/006-two-rivers at 85dc620 (branch pushed to origin), validated against the
+consensus gate (signed by all three doers, covers project.godot, PASS). NEXT
+PHASE = EXECUTION of the pilot slices.`
 
-**Round 006 phase-1 proposal SHAs (local-only proposal branches; ARCHIVE these
-under refs/archive/006/* at close):**
-| Worker | Proposal | Critique |
-| --- | --- | --- |
-| claude | `8da1420640a1461b936111e42db7419749490f7f` | (phase 2 in flight) |
-| codex | `b707cf7f7e7102ff57e34df0b47377b751f11eea` | (phase 2 in flight) |
-| agy | `d6a0f8288ba266ceeda3f0d66afce1b2bdc783cb` | (phase 2 in flight) |
+**Round 006 artifact SHAs (archived under refs/archive/006/*, pushed to origin):**
+| Worker | Proposal | Critique | Ballot |
+| --- | --- | --- | --- |
+| claude | `8da1420640a1461b936111e42db7419749490f7f` | `0b496efe1f15ade69a8232a61cc176be203bc3a9` | `b182a2819ab8b4388e51f6db9ae30faf4905139b` |
+| codex | `b707cf7f7e7102ff57e34df0b47377b751f11eea` | `e4237a22d75a9f47d601b10223948f9fb81d9735` | `d9bef93d2a809e17df671c2f05f5c785545d581b` |
+| agy | `d6a0f8288ba266ceeda3f0d66afce1b2bdc783cb` | `b7327bec27e149e42d6ad62795db5f7ea7415da6` | `e5989621ac7299ff60f62999e450b040a7d4a904` |
 
-**Phase-1 outcome:** unanimous Path 3. The remaining CONTESTED sub-question for
-phase 3 is HOW to recover painterly fidelity from a clean 3D render:
-- claude (`8da1420`): a generative REPAINT pass is required (painterly quality is
-  a property of the 2D generator, not the 3D render); "3D-as-scaffold,
-  2D-as-skin" variant. Deepest proposal (270 lines).
-- codex (`b707cf7`): DETERMINISTIC NPR/compositing only; explicitly warns
-  per-frame generative repaint causes temporal "boiling." Detailed scale contract
-  (1 unit = 1m, player 1.75m, door 2.0m, ridge 4.8-5.6m), Blender offline render,
-  strong pilot acceptance gate. Poses key question to Scott: may fidelity depend
-  on a deterministic local NPR/compositing pass, or must the raw 3D render meet
-  the spike?
-- agy (`d6a0f82`): OPTIONAL low-strength img2img stylization (middle position);
-  Meshy API + Blender-headless or Godot sub-viewport; claims the 3D->2D pipeline
-  tooling slice + the null-bug fast-lane.
-Determinism (CLAUDE.md) bears directly on this: a per-frame generative repaint is
-a determinism/temporal-coherence risk; a deterministic NPR pass is not. Weigh
-that in synthesis. Meshy adoption = escalation-class call-out in decision 009.
+**Decision 009 outcome (full detail in the record on the round branch):**
+unanimous Path 3; per-frame generative repaint BANNED (both converged, no
+ballot). Four-ballot on two contested questions, both 4-0:
+- Q1 (fidelity recovery): dual-candidate pilot. (A) deterministic NPR/composite
+  baseline AND (B) generative stylization in TEXTURE SPACE (mesh albedo, once) OR
+  a single fixed-seed WHOLE-SHEET pass, never per-frame; the pilot MEASURES both
+  under rejection rules (no landmark mutation, no boiling; freeze accepted outputs
+  + provenance; gate fails if A misses the spike and B cannot close it cleanly).
+- Q2 (render tool): Blender headless single offline authoring+render source; Godot
+  only for acceptance capture. agy conceded its Godot-sub-viewport position.
+Plus: camera-calibration-first vs `src/render/iso/projection.gd` (verify the iso
+angle); codex's meter scale contract + build-failing validation; the 008-QC
+offline-derived shadow MASK stays SHIPPED (Blender cast-shadow = cross-check);
+small pilot = one 2x2 cottage + one player (6-pose walk, 8 facings) + minimal
+dressing; cleanup-labor ledger extrapolated to ~200 assets before any production
+tranche; anonymized in-engine gate vs the SPIKE; `src/sim/` untouched.
+**Meshy adoption beyond the pilot is ESCALATED to Scott in decision 009** (pilot
+pre-authorized; production adoption needs his explicit approval, brought with the
+pilot result + ledger).
 
-## Round 006 next steps (ordered)
+## Round 006 EXECUTION plan (phases 1-3 done; this is what's next)
 
-1. Poll the three phase-1 end markers; verify each from disk (branch_changed=yes,
-   uncommitted=no, cap_expired=no) and read each committed proposal doc. Record
-   the three proposal SHAs here.
-2. Phase 2 (adversarial critique): dispatch each doer to read the other two
-   proposals and genuinely attack them (a "looks good" round is a failed round;
-   send it back). Record critique SHAs.
-3. Phase 3 (synthesis): rule the production-path question. It is contested, so
-   collect FOUR ballots (orchestrator + claude + codex + agy); a 3-1/4-0 decides,
-   a 2-2 invokes the critic (`roles/critic.md`, cursor `--mode ask`,
-   `--allow-primary`). Record every losing objection VERBATIM in decision 009.
-   Meshy adoption (if chosen) is called out to Scott in 009. Divide labor by
-   capability (codex seat = sprite-forge mandate).
-4. Execution: implement chosen slices on doer branches off `round/006-two-rivers`,
-   peer-sign (non-author), `--no-ff` integrate, suite green. Defect #4 (null bug)
-   is a plausible parallel FAST-LANE fix; the other three defects follow the
-   chosen method.
-5. One round PR to main, one external Codex review round, address findings (route
-   to owning doer, cross-sign, integrate locally), merge on the ordinary gate,
-   then close-out sweep (delete branches + worktrees, archive artifact SHAs under
-   `refs/archive/006/*`, write `.review-passed`).
+Decision 009 division of labor (all three ACCEPTED their slices in their ballots):
+- **claude:** in-engine integration into `starter_town.gd`/`player_controller_2d.gd`,
+  camera + `building_contact_cell` anchor-contract conformance, candidate B
+  (texture-space/whole-sheet generative) design, AND the "Instance base is null"
+  fast-lane fix (independent lane; clean-import repro + engine stack, NOT a guessed
+  `load()` site; boot-flow regression assertion on that exact text).
+- **codex** (sprite-forge mandate): 2D delivery boundary, deterministic NPR/
+  composite baseline (candidate A), render-pass specs + pre-render manifests,
+  anchor+scale validation scripts, 8-facing atlas assembly, acceptance-capture +
+  walk-GIF harness.
+- **agy:** Meshy API integration + provenance manifest, Blender-headless offline
+  render tool + primitive camera-calibration scene, cleanup-labor ledger tooling.
+- **shared, sequenced:** Blender topology cleanup, armature weighting, gait tuning.
+
+Ordered execution steps:
+1. **Defect #4 (null bug), independent FAST-LANE, no Meshy needed:** dispatch claude
+   to reproduce "Instance base is null" from a clean import, fix from the engine
+   stack, add the regression assertion. Cross-sign (non-author), `--no-ff` into
+   `round/006-two-rivers`, suite green. This can go FIRST and in parallel with
+   scaffolding, since it does not depend on the art pipeline.
+2. **Non-Meshy scaffolding (can proceed WITHOUT Meshy access):** agy's Blender
+   camera-calibration scene proving agreement vs `projection.gd` using PRIMITIVES;
+   codex's scale-contract validation script; the render-pass/manifest spec. Prove
+   camera + scale on primitives before any Meshy asset is judged (009 constraint 2).
+3. **Meshy-dependent pilot steps (BLOCKED on Meshy credentials, see below):** one
+   cottage + one player generated in Meshy, cleaned/rigged/posed in Blender,
+   rendered to candidate A and B, integrated, run the anonymized acceptance gate
+   vs the spike + the cleanup ledger.
+4. Round PR to main, one external Codex review round, address findings, merge on
+   the ordinary gate, close-out sweep (delete branches + worktrees, archive already
+   done under `refs/archive/006/*`, write `.review-passed`).
+
+**PROVISIONING FLAG (surface early):** the Meshy-dependent steps need a Meshy
+account/API key that likely does not exist in this environment yet. Directive 1515
+pre-authorized the PILOT, so provisioning credentials is within that authorization,
+but it is an external/manual step. Steps 1-2 do NOT need Meshy and should run first;
+if step 3 is reached with no Meshy access, that is a genuine BLOCKER to raise with
+Scott (a `.pka` cross-workspace request or inbox item), not a reason to fake the
+pilot. Do NOT introduce a second external dependency (e.g. Mixamo) by convenience.
 
 ## Round 005 (COMPLETED + MERGED + SWEPT this run)
 
@@ -158,16 +177,19 @@ archived under `refs/archive/005/*` (pushed to origin).
   001's SHAs pinned under `refs/archive/001/*`; 005's under `refs/archive/005/*`).
   **Next free decision number is `009`** (round 006's production-fork decision).
 
-## Branch and PR sweep (verified this run, post round-005 merge)
+## Branch and PR sweep (round 006 in flight)
 
-- **Zero open team PRs.**
-- **Remote branches:** `origin/main`, `origin/issue-4-world-eras` (a HUMAN branch,
-  author sentania, 2026-07-13, no resident prefix, predates the team framework;
-  NOT the team's to delete, retained), plus the three `round/006` proposal
-  branches are LOCAL-ONLY (not pushed). No stale team branches.
-- **Worktrees:** primary `longwalk` (main) + three round-006 proposal worktrees
-  (`lw-006-claude`, `lw-006-codex`, `lw-006-agy`). All round-005 worktrees torn
-  down.
+- **Zero open team PRs** (round 006 has no PR yet; execution not started).
+- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` (pushed to
+  protect decision 009, PR opens after execution); `origin/issue-4-world-eras` (a
+  HUMAN branch, author sentania, 2026-07-13, no resident prefix, predates the team
+  framework; NOT the team's to delete, retained). The three `<w>/006-proposal`
+  branches are LOCAL-ONLY (their artifact SHAs are archived under
+  `refs/archive/006/*` on origin, so the branches are disposable).
+- **Worktrees (retained on purpose, round 006 in flight):** primary `longwalk`
+  (main); `lw-006-round` (round/006-two-rivers, the integration tree);
+  `lw-006-claude`, `lw-006-codex`, `lw-006-agy` (`<w>/006-proposal`, reuse for
+  execution doer branches off the round branch). All round-005 worktrees torn down.
 
 ## Open escalations to Scott
 
@@ -178,12 +200,17 @@ constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP:** poll the three round-006 phase-1 end markers
-(`lw-006-{claude,codex,agy}/.team/markers/006-*-proposal-*-end.md`), verify each
-from disk, read the three proposal docs, record their SHAs, POST the dashboard
-snapshot (phase=proposal), then dispatch phase 2 (adversarial critique). If a
-proposal marker shows no branch change or uncommitted work, RE-DISPATCH it (the
-half-done-dispatch lesson: verify from markers + tree, never narration).
+**IMMEDIATE NEXT STEP:** begin round-006 EXECUTION (see the "Round 006 EXECUTION
+plan" above). Check the `.pka/inbound/orchestrator/` inbox FIRST (per-phase-boundary
+rule). Start with defect #4 (null bug, claude, no Meshy needed) and the non-Meshy
+scaffolding (agy camera-calibration on primitives + codex scale-contract
+validation), which can all proceed without Meshy access. Provision execution doer
+branches off `round/006-two-rivers` (the round branch, at `85dc620` + whatever
+`main` has advanced to; note main moved past the round-branch base with the
+round-005 `.review-passed` and the TEAM-STATE commits, but the round branch was cut
+from that same main so it is current). Dispatch, BLOCK/poll each end marker, verify
+from disk. If the Meshy-dependent pilot step is reached with no Meshy credentials,
+that is a real BLOCKER for Scott (`.pka` request), not a reason to fake the pilot.
 
 **Watch the agy adapter's `--add-dir`** (the adapter now passes it internally at
 `adapters/agy.sh:88`; markers still catch a scratch no-op). Verify every dispatch
@@ -216,13 +243,18 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-17T~20:22Z (orchestrator run
-`orchestrator-run-20260717-193928`). This run: read Codex review round 3 on PR
-#21, found TWO P2s, fixed both (agy clampfix + codex readme fix, the latter
-bounced once on a `changes-requested` peer review and re-fixed with a
-reproducibility script); requested review round 4, found TWO more P2s, fixed both
-(agy drag-threshold + codex attribution); review round 5 CLEAN; MERGED PR #21 to
-main (`5d83f47`); ran the full close-out sweep (branches, worktrees, archive
-refs, `.review-passed` at `2805f00`); processed directives 1500 + 1515;
-LAUNCHED round 006 phase 1 (three blind proposals dispatched detached). NEXT:
-poll + verify the three proposals, then phase 2 critique.
+**Last updated:** 2026-07-17T~20:40Z (orchestrator run
+`orchestrator-run-20260717-193928`). This run, end to end: (1) addressed Codex
+review rounds 3+4 on PR #21 (four P2s total: agy camera clampfix + drag-threshold,
+codex README walk-build + attribution; the walk-build fix bounced once on a
+`changes-requested` peer review and was re-fixed with a byte-reproducible
+`rebuild_player_walk_option_c.py`); round 5 CLEAN; MERGED PR #21 to main
+(`5d83f47`); full close-out sweep (all round+doer branches, worktrees, 9 archive
+refs under `refs/archive/005/*`, `.review-passed` at `2805f00`). (2) Ran round 006
+phases 1-3 in full: three blind proposals (unanimous Path 3), three adversarial
+critiques (genuinely attacking, converged the per-frame-repaint ban), phase-3
+synthesis + decision 009 (dual-candidate fidelity pilot + Blender headless, 4-0/4-0,
+no dissent, gate-validated), artifact SHAs archived under `refs/archive/006/*`,
+round branch pushed. Every dispatch verified from its end marker + the tree. NEXT:
+round 006 EXECUTION, starting with the no-Meshy slices (null bug + camera/scale
+scaffolding).
