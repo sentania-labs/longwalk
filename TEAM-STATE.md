@@ -26,7 +26,7 @@ Dashboard "Team" tab, a follow-up dispatch) parse it by heading.
 
 ## Current assignment
 
-**Status:** ACTIVE, phase 1 (blind proposal) dispatched. Round 2 of the team
+**Status:** ACTIVE, phase 1 closed, phase 2 (adversarial critique) dispatched. Round 2 of the team
 framework, and the first live three-doer round.
 
 **Assignment (goal statement, verbatim as Scott gave it, relayed through
@@ -129,8 +129,53 @@ All three branched from `main` at `03b06db`. Prompt files are at
 `/tmp/village-feel/phase1-<worker>.md` (ephemeral; regenerate from this file's
 goal statement plus `roles/phases/1-proposal.md` if a later run needs them).
 
-Results are recorded below as end markers land. **Verify from
-`.team/markers/<run_id>-end.md` in each worktree, never from narration.**
+### Phase 1 CLOSED, all three proposals committed and verified
+
+Verified from each worktree's `.team/markers/p1-<worker>-20260717-033104-end.md`
+(`branch_changed: yes`, `uncommitted_work: no`, `exit_code: 0`,
+`cap_expired: no`) and then against the tree itself, not from any worker's
+narration. All three carry a `Co-authored-by:` trailer and contain no em-dashes.
+
+| Worker | Branch | Proposal SHA (full 40) | Elapsed | Lines |
+| --- | --- | --- | --- | --- |
+| claude-worker | `claude/village-feel` | `b7faf4046a00871fdd0eb1a39f5bed623fdc4bc1` | 256s | 417 |
+| codex-worker | `codex/village-feel` | `5effb7dbf12ebc1ddbff624c8a6a6deeba96c324` | 168s | 240 |
+| agy-worker | `agy/village-feel` | `05e62658a1a6b0a650328e5e29c921392378dfd8` | 81s | 47 |
+
+**The three-way blind proposal produced three genuinely different reads, which
+is the thing this roster change was seated to test.** They diverge on the one
+question that matters most this round, how to beat the foot-alternation defect,
+and they diverge on the mechanism rather than the wording:
+
+- **claude** argues the round-1 diagnosis stops one level short: a 3x4 sheet
+  asks a diffusion model to satisfy constraints that are *relational between
+  cells*, and diffusion has no cross-cell state, so candidate 2 is proof of a
+  structural limit rather than prompt luck. Proposes six calls of two figures
+  each (one relational constraint per call), plus a mechanical rejection gate
+  (`check_walk_sheet.py`) measuring signed leading-leg reversal, calibrated
+  against the two known-bad sheets.
+- **codex** also abandons the single sheet, but goes per-pose with the preceding
+  accepted pose supplied as a visual reference, one facing at a time, eight
+  facings via mirroring. Pairs it with a stricter in-game acceptance gate at
+  160px.
+- **agy** keeps the single 3x4 sheet and attacks the defect with a prompt hack:
+  a magenta left boot and cyan right boot to force the model's attention to
+  track the leading leg, recolored back to leather brown in `process_assets.py`.
+
+Note the spread's shape: claude and codex converge independently on "stop asking
+for a finished sheet in one composition" while agy dissents and keeps the sheet.
+Two independent reads landing on the same structural diagnosis is a stronger
+signal than either alone, and per `roles/orchestrator.md` a 2-1 split is not a
+deadlock. It is not a verdict either: agy's hack is cheap, is the only proposal
+that preserves single-composition identity coherence, and is testable in one
+generation. That is a real argument and phase 2 is where it gets tested.
+
+They also split on scope: codex proposes eight facings, claude and agy do not.
+And all three independently put click-to-move pathfinding in `src/sim/` with
+render owning the waypoint following, which is a convergence worth noting
+because it confirms the protected-path forecast.
+
+**Phase 1 dispatch verified complete at 2026-07-17T03:35Z.**
 
 ### Round-1 assignment (town motion), closed out
 
