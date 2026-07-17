@@ -121,7 +121,7 @@ row 159 of its 160 px cell, recolors both boot markers to leather brown, and
 writes the three appearance atlases under `out/processed/`.
 
 The reproducible in-engine review montage uses the real starter town, player
-scene, atlas regions, camera, and one-to-one shipping scale:
+scene, atlas regions, camera rig, and one-to-one shipping scale:
 
 ```
 xvfb-run -a tools/godot/Godot_v4.3-stable_linux.x86_64 \

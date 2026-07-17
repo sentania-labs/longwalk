@@ -23,7 +23,8 @@ func _capture() -> void:
 	await process_frame
 
 	var player = town.get_node("World/Player")
-	var camera: Camera2D = player.get_node("Camera2D")
+	var camera: Camera2D = town.get_node("World/CameraRig2D")
+	camera._target_zoom = 1.0
 	camera.zoom = Vector2.ONE
 	var montage := Image.create(CELL * 4, CELL * 4, false, Image.FORMAT_RGBA8)
 	for row in range(4):
