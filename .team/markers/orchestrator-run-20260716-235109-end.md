@@ -25,7 +25,7 @@ cap_expired=no. branch_sha 8be8619a40fa07a178fe77831cfe2b17af50ddd7 -> 9953e8b5e
 (changed: yes).
 Uncommitted work in the worktree: no.
 
-Exit code alone is NOT sufficient to determine outcome — read
+Exit code alone is NOT sufficient to determine outcome. Read
 branch_sha_before/after and uncommitted_work above, and inspect the
 worktree directly, before deciding whether this dispatch produced
 real, committed work.
