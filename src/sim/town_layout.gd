@@ -19,6 +19,29 @@ const TILE_SIZE := 128
 
 enum GroundTile { GRASS, PATH }
 
+# Per-terrain movement cost, charged when a route ENTERS a cell (see
+# NavGrid.find_path). PATH is cheaper than GRASS, so a route prefers roads;
+# this is a preference, not a guarantee, because the weighting only makes grass
+# 2.25x more expensive per cell, so a long enough road detour still loses to a
+# short grass crossing (decision 006, point 4).
+#
+# LOAD-BEARING INVARIANT: every value here is >= MIN_TERRAIN_COST, and
+# MIN_TERRAIN_COST is exactly 1.0. NavGrid multiplies its base step cost
+# (ORTHOGONAL_COST / DIAGONAL_COST) by this terrain cost, while its
+# octile_distance() heuristic assumes the unweighted base step. Because no
+# terrain multiplier drops below 1.0, no edge is ever cheaper than that
+# unweighted step, so the heuristic never overestimates and stays admissible
+# and consistent untouched. If a future tuning drops any value below 1.0 (for
+# example "make the road cheaper at 0.8"), that guarantee breaks silently: the
+# search can then reopen closed cells and the determinism argument in
+# nav_grid.gd's header no longer holds. test/active_path/test_nav_grid.gd pins
+# this invariant so such a change reds the suite instead of passing quietly.
+const MIN_TERRAIN_COST := 1.0
+const TERRAIN_COST := {
+	GroundTile.PATH: 1.0,
+	GroundTile.GRASS: 2.25,
+}
+
 class BuildingPlacement:
 	var id: String
 	# Top-left grid cell of the building's footprint.
@@ -61,6 +84,10 @@ func _init(p_width: int, p_height: int, p_ground: Array, p_buildings: Array[Buil
 
 func ground_tile_at(cell: Vector2i) -> int:
 	return ground[cell.y][cell.x]
+
+
+func terrain_cost_at(cell: Vector2i) -> float:
+	return TERRAIN_COST[ground[cell.y][cell.x]]
 
 
 func is_cell_in_bounds(cell: Vector2i) -> bool:
