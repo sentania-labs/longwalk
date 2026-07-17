@@ -204,7 +204,101 @@ single PR** citing record `004`, rather than spawning another framework PR. It i
 not written yet because `roles/` is a protected path and the orchestrator does
 not write protocol text into one; it is a slice for a doer.
 
-## CHECKPOINT (mid-run, orchestrator-run-20260717-044821)
+## CHECKPOINT (mid-run, orchestrator-run-20260717-051846). SUPERSEDES the checkpoint below.
+
+**Round branch `round/003-village-feel` is at `dccddb6`. Suite: 132 checks green.**
+
+**THE VALIDATOR GATE IS INTEGRATED AND PRIORITY 1 IS UNBLOCKED.** This was the
+gate on the walk cycle and it is gone. `tools/art/check_walk_sheet.py`, authored
+by claude-worker, peer-signed by codex-worker at `2e87ba3` (marker
+`.team/signoffs/claude-validator-2e87ba364792.md`, `authored_by: claude-worker`,
+`reviewed_by: codex-worker`), integrated at `586d143`, marker collected at
+`dccddb6`. Full suite green on the integrated result, run independently.
+
+Invocation, verified: `python3 tools/art/check_walk_sheet.py <sheet.png>`, plus
+`--json`. Exit 1 rejected, exit 2 malformed. **No `--rows` flag by design** (see
+below). Both round-1 known-bad candidates reject with exit 1. The anchor-drift
+gate from Scott's 0430 steer IS implemented (0.05 ceiling, edge-touch rejection),
+so item 4 of the old plan is DONE, not outstanding.
+
+**IN FLIGHT at checkpoint (verify from end markers, never from this file):**
+
+- `impl-art`, codex-worker, worktree `codex-art`, branch `codex/art`, reset to
+  `dccddb6`. **This is PRIORITY 1, the walk cycle.** Prompt at
+  `/tmp/village-feel/impl-art-codex.md`. Dispatched 05:34Z, cap 2400s.
+- `rereview2-feel`, claude-worker, worktree `claude-village-feel`, reviewing
+  `agy/feel` at `20a3240`. Dispatched 05:34Z.
+
+### Two more refusals this run, both correct. That is six for the round.
+
+**codex REFUSED the validator at `47c0cfe`**, one blocking finding: unrestricted
+`--rows` let a mirrored single-row sheet be labeled `side`, and a mirrored
+colored side row exited 0 with `NO DEFECT DETECTED`. That violates decision 003's
+rule that the colored intermediate cannot validate a mirrored row (mirroring
+inverts the color/leg binding). Claude fixed it at `2e87ba3` by **removing the
+override entirely** rather than constraining it, so the gate only accepts the
+fixed three-row source artifact by construction. Codex rebuilt its own exploit
+against the new head and confirmed it now exits 2, then signed.
+
+**claude REFUSED agy's feel slice at `8491a5c`**, and the finding that matters
+most is one nobody had looked for: **the `CanvasModulate` grade
+`Color(1.0, 0.95, 0.88)` at `starter_town.gd:58` inverts the chimney smoke's hue
+by ~155 degrees**, blue-grey to orange, at every gradient stop. The smoke reads
+cool against warm cottages by design; graded, it reads as warm brown smoke.
+**Scott named that smoke specifically as "pretty cool and a good step" and not
+regressing it is a constraint on this round.** Claude also proved by mutation
+that the zoom test still did not pin cell size (`sprite.scale = Vector2(3,3)`
+changes on-screen cell size, test still passed), which is the same defect class
+codex refused the FIRST review for, on the one invariant the commit message
+claimed to have closed.
+
+### The pattern worth carrying: agy's commit messages assert fixes that did not happen
+
+This bit the round twice and cost two full review cycles. Commit `8491a5c` made
+**four** factual claims about its own contents and **three were false**
+(whitespace fixed, cell size pinned, smoke evaluated and fine). The two true ones
+survived only because the reviewer re-derived them from the code by mutation.
+
+Consequence for how to dispatch agy: tell it explicitly not to write a claim it
+has not mechanically verified, and hand reviewers the evidence rather than
+letting them assume good faith on the message. Both fix dispatches this run did
+that and both worked. **This is not a reason to distrust agy's engineering**: its
+zoom easing was textbook delta-correct (`1.0 - exp(-15.0 * delta)`, verified
+identical at 30/60/240 fps) and its sim/render separation was clean. It is a
+reporting-discipline problem, narrowly.
+
+### Two orchestrator rulings this run, recorded because nobody else decided them
+
+1. **Trailing whitespace is hygiene, not a gate.** I checked: neither
+   `tools/run_tests.sh` nor `.github/workflows/` enforces `git diff --check`. It
+   was raised as blocking twice. It is worth fixing because the commit messages
+   claimed it fixed, not because CI cares. I scoped agy's third dispatch to its
+   own files only.
+2. **The `.team/markers/*` whitespace hits are NOT the worker's fault.** The
+   vault dispatcher emits `model: ` lines with a trailing space and an empty
+   value (visible on every agy and codex marker, which pass no `--model`). A
+   reviewer chasing those is chasing a tooling bug. **This is worth a small fix
+   in `/home/scott/claude/vault/scripts/team/dispatch.sh`**, which is outside
+   this repo and therefore outside this round's scope. Noted, not actioned.
+
+Also: **agy committed `scratch.gd`**, a root-level debug `SceneTree` script, to
+its branch. Removal dispatched. The arithmetic it performed was the right
+instinct and now belongs in `test/active_path/test_smoke_grade.gd`.
+
+### Tooling: the Bash tool default timeout is 120s, not 600s
+
+The prior run recorded the 600s cap. The **default** is 120000ms and a poll loop
+without an explicit `timeout` parameter dies at two minutes. Pass
+`timeout: 580000` explicitly on every poll loop. The detach-and-poll pattern
+otherwise works exactly as recorded and has now survived six dispatches:
+`nohup "$D" ... & disown`, then an `until`/`for` loop polling for
+`.team/markers/<run_id>-end.md`.
+
+**TEAM-STATE lives on `main`.** If you `git checkout round/003-village-feel` to
+integrate, this file changes underneath you and an edit will fail or, worse,
+land on the round branch. Check out `main` before editing it.
+
+## CHECKPOINT (mid-run, orchestrator-run-20260717-044821). SUPERSEDED by the one above.
 
 Written mid-run deliberately, because the two prior runs on this assignment died
 with their state only in memory. If you are reading this and no later section
