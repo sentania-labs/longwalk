@@ -62,12 +62,217 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 MESHY PILOT: the GENERATION slice is DELIVERED, peer-signed,
-and MERGED into round/006-two-rivers @ 1ece706 (pushed to origin), INTEGRATED
-SUITE GREEN. Non-Meshy slices remain merged. Decision 010 accepted 4-0. No PR yet
-(round not complete until the pilot acceptance gate passes). NEXT = the shared/
-sequenced BLENDER CLEANUP + gait-tuning slice, then the two render candidates,
-then in-engine integration, then the anonymized acceptance gate vs the spike.`
+**Status:** `ROUND 006 MESHY PILOT: steps 1-2 DONE (merged @ 611664c). STEP 3
+(render candidates A+B) BYTE-STABILITY CLOSE-OUT. Run
+orchestrator-run-20260718-013944. Meshy balance 2970 (verified via
+meshy_check_balance this run; NO paid work in flight). No PR yet.
+
+*** THIS RUN (013944): integrated B, dispatched A's fix-review (stale-signoff
+catch). Verified from tree, not narration: ***
+- CANDIDATE B (f08e2c7 code + 60ceb9c signoff-marker head): codex sign-off marker
+  claude-006-candidate-b-f08e2c74f29c.md is CLEAN (reviewed_by codex / authored_by
+  claude / signed-off / byte-stable proven twice / balance 2970). No protected
+  paths. INTEGRATED --no-ff -> round/006-two-rivers **80435d1**. Round suite GREEN
+  (SUITE_EXIT=0, all active-path suites) in lw-006-round.
+- CANDIDATE A STALE-SIGNOFF CATCH: the a56a370 sign-off (agy, marker
+  codex-006-candidate-a-a56a3705d3cb.md) does NOT cover the byte-stability fix
+  8212464, which landed AFTER it and REGENERATED all 50 delivery PNGs (+pins
+  seed/dither/threads in the SHARED tools/art/blender_pose_rig.py, +PROVENANCE).
+  8212464 is UNSIGNED -> per merge rule a changed SHA needs review at the new head.
+  Round branch head 1208ef0 still merged the OLD (non-byte-stable) A; A must be
+  re-integrated at 8212464 after it signs clean.
+- DISPATCHED (claude, non-author; author is codex; DETACHED, cap 3600s, NO Meshy):
+  label candidate-a-review-fix, worktree lw-006-cand-a, branch codex/006-candidate-a
+  @ 8212464. Prompt .pka/round006/candidate-a-review-fix-prompt.md. Claude re-renders
+  A twice, md5-diffs all 50 deliverables (must be byte-identical, ZERO drift),
+  verifies committed==fresh reproduce, PROVENANCE render time real, suite green,
+  no em-dash, then commits ONLY the marker
+  .team/signoffs/codex-006-candidate-a-8212464520e9.md (signed-off or
+  changes-requested). Start marker candidate-a-review-fix-20260718-014501-start.md;
+  proc tree confirmed alive. POLL
+  lw-006-cand-a/.team/markers/candidate-a-review-fix-*-end.md; VERIFY from end
+  marker + tree; balance must stay 2970.
+  After it signs clean: RE-INTEGRATE A at 8212464 --no-ff onto round (on top of
+  80435d1; brings A's deliverables to byte-stable), run round suite GREEN.
+  If changes-requested: route fix to codex (author), NO Meshy.
+
+*** PRIOR RUN (010412): resolved the shared-vs-specific nondeterminism question,
+dispatched both byte-stability closers DETACHED (both landed: A fix 8212464, B
+resign marker 60ceb9c). ***
+Verified from tree (not narration):
+- CANDIDATE B fix landed as REAL commit **f08e2c7** on claude/006-candidate-b
+  (worktree head confirms; no fix end-marker was written but the commit is real).
+  Commit msg: root cause = multithreaded Cycles + OpenImageDenoise float-order
+  nondeterminism; fix pins seed=0/dither=0/threads=1(FIXED) in B's OWN driver
+  render_candidate_b.py; claims reproduce-twice byte-identical + render time filled.
+  f08e2c7 has NO fresh peer sign-off yet (codex's changes-requested was vs 89a0b59).
+- SHARED-PATH QUESTION RESOLVED: Candidate A renders via the SHARED
+  tools/art/blender_pose_rig.py `--production` path (A/reproduce.sh:13), which has
+  NO thread/seed/dither pinning. B forked its own driver and pinned only that. So
+  A almost certainly drifts the SAME 1-ULP way and agy signed A WITHOUT codex's
+  per-pixel byte diff. blender_pose_rig.py is NOT a protected path (checked) -> no
+  decision record needed to pin it. This is fast-lane (known bug, one obvious repair
+  already empirically validated on B), NOT a four-ballot question.
+- DISPATCHED (both codex, detached, cap 3000s, ZERO Meshy, balance must stay 2970):
+  (1) label candidate-a-determinism, worktree lw-006-cand-a, branch codex/006-candidate-a
+      @ a56a370. Prompt .pka/round006/candidate-a-determinism-prompt.md. Pin the
+      determinism sources in the SHARED blender_pose_rig.py, re-render A, PROVE
+      byte-stability (reproduce twice + md5 diff all sprites/atlas), fill PROVENANCE
+      render time, suite green, ONE commit. codex authors (its own candidate A).
+      Poll lw-006-cand-a/.team/markers/candidate-a-determinism-*-end.md.
+      After it lands: re-review by NON-codex (claude or agy), then re-integrate A
+      onto round branch (current A integration 1208ef0 is PROVISIONAL / will change
+      bytes on re-render), re-sign at new SHA.
+  (2) label candidate-b-resign, worktree lw-006-cand-b, branch claude/006-candidate-b
+      @ f08e2c7. Prompt .pka/round006/candidate-b-resign-prompt.md. codex (non-author;
+      it raised the finding) RE-RENDERS twice + md5-diffs to verify byte-stability at
+      f08e2c7, checks PROVENANCE render time filled + balance 2970 + no em-dash, then
+      writes ONLY the marker .team/signoffs/claude-006-candidate-b-f08e2c74f29c.md
+      (signed-off or changes-requested). Poll
+      lw-006-cand-b/.team/markers/candidate-b-resign-*-end.md.
+Both start markers written at stamp 20260718-010843; both codex trees confirmed
+alive (timeout->codex->codex-code-mode). VERIFY EACH FROM ITS END MARKER + TREE.
+
+*** PRIOR STATUS (superseded by the block above, kept for context) ***
+STEP 3: CANDIDATE A COMPLETE + peer-review IN FLIGHT; CANDIDATE B partial ->
+RECOVERY. Meshy balance 2970 (20 legit credits spent by B's 2 retextures).
+
+*** STEP-3 STATE AS OF THIS RUN (verified from end markers + tree, not narration) ***
+Both PRIMARY candidate dispatches from run 232726 have ENDED. Verified:
+- CANDIDATE A (codex, deterministic NPR, NO Meshy): DONE + CLEAN. End marker
+  candidate-a-20260717-233116-end.md: branch_changed=yes, exit0, cap_expired=no,
+  uncommitted=no. Delivered commit **a56a370** ("Deliver Candidate A sprite atlas")
+  on codex/006-candidate-a: full 8-facing x 6-pose player_walk_atlas.png + manifest
+  + player_scale.json + treat_candidate_a.py (deterministic 16-colour palette
+  quantise + normal-NPR) + reproduce.sh + finished/ sprites, render/ gitignored.
+  60 files. PEER-REVIEW dispatched THIS RUN: agy reviews a56a370 (non-author; author
+  is codex), worktree lw-006-cand-a, label candidate-a-review, cap 2400s. Prompt
+  .pka/round006/candidate-a-review-prompt.md. Poll marker glob
+  lw-006-cand-a/.team/markers/candidate-a-review-*-end.md. Expected artifact:
+  .team/signoffs/codex-006-candidate-a-a56a3705d3cb.md.
+- CANDIDATE B (claude, PAID Meshy texture-space restyle): PARTIAL. End marker
+  candidate-b-20260717-233322-end.md: exit0, cap_expired=no, but branch_changed=NO,
+  uncommitted_work=YES. B did the PAID part correctly (option-1 texture-space albedo
+  restyle; 2 retexture calls 019f7275-96c8 + 019f7275-a259, 20 credits, balance
+  2990->2970, ledger clean in candidate_b/PROVENANCE.md; albedos frozen in tree) AND
+  rendered ALL passes (8x6x5 player + cottage), but STOPPED before running the
+  treatment, assembling the atlas, and committing. NO finished sprites, NO atlas, and
+  branch head still 611664c (uncommitted). RECOVERY dispatched THIS RUN: claude
+  finishes the DETERMINISTIC tail (treat -> atlas/manifest matching A's contract ->
+  commit) with a HARD zero-paid-call rule (balance must stay 2970; albedos reused).
+  worktree lw-006-cand-b, label candidate-b-finish, cap 2400s. Prompt
+  .pka/round006/candidate-b-finish-prompt.md. Poll marker glob
+  lw-006-cand-b/.team/markers/candidate-b-finish-*-end.md. Verify balance stays 2970.
+PROGRESS THIS RUN (orchestrator-run-20260717-233648):
+- CANDIDATE A: DONE, agy-signed (marker codex-006-candidate-a-a56a3705d3cb.md,
+  reviewed_by agy-worker / authored_by codex-worker, signed-off), orchestrator
+  INDEPENDENTLY verified (em-dash clean, no unseeded RNG, manifest contract exact:
+  facing order E,SE,S,SW,W,NW,N,NE / cell 160 / anchor [80,159] / 48 frames), and
+  INTEGRATED --no-ff onto round/006-two-rivers -> **1208ef0** (signed head 92a9f1e
+  = a56a370 code + agy marker). Round suite NOT yet re-run (pending B integration).
+- CANDIDATE B: took THREE claude dispatches to land (recurring no-commit failure:
+  the doer backgrounds work then ends its turn on an intention to "commit after the
+  monitor event", which never re-invokes a claude -p). Primary run rendered+paid but
+  did not commit; finish run produced atlas+manifest+finished sprites but again
+  ended waiting on a monitor; COMMIT-ONLY run (candidate-b-commit, cap 900s) finally
+  committed **89a0b59** ("Deliver Candidate B sprite atlas"). Verified surgical: 60
+  files (mirrors A), ZERO raw render passes committed (render/.gitignore works), no
+  em-dashes, PROVENANCE + both restyled albedos + atlas + manifest + finished
+  sprites + scripts. Balance held 2970 the whole recovery (NO paid call after the
+  authored 2 retextures). PEER-REVIEW dispatched: codex reviews 89a0b59 (non-author;
+  author is claude), worktree lw-006-cand-b, label candidate-b-review, cap 1800s.
+  Prompt .pka/round006/candidate-b-review-prompt.md.
+- CANDIDATE B REVIEW (codex): **changes-requested** @ marker
+  .team/signoffs/claude-006-candidate-b-89a0b598d39e.md (reviewed_sha 89a0b59,
+  reviewed_by codex-worker / authored_by claude-worker). REAL defect, peer gate
+  working: a clean reproduce did NOT regenerate byte-for-byte -- N_1.png + S_3.png
+  each drifted ONE color channel by ONE value at ONE pixel (2 atlas px), violating
+  decision-009 constraint-7's pure-deterministic downstream chain. Plus a
+  PLACEHOLDER_RENDER_TIME left in PROVENANCE.md. Everything else codex verified
+  CLEAN: suite green, reproduce runs, paid ledger correct (2 retextures, balance
+  2970), no em-dashes, NO per-frame generative call, contract 8x6/cell160/[80,159]
+  exact. Codex committed ONLY the marker (89a0b59..8825d66).
+- CANDIDATE B FIX: dispatched DETACHED this run (claude, label candidate-b-fix,
+  worktree lw-006-cand-b, cap 3000s, NO Meshy -- albedos frozen). Prompt
+  .pka/round006/candidate-b-fix-prompt.md. Scope: make the Cycles render + composite
+  byte-stable (pin seed / deterministic sampling / no dither / pin threads),
+  re-render, PROVE byte-stability (reproduce twice + diff), fill the PROVENANCE
+  render time, AND REPORT whether the fix is in the SHARED render path
+  (blender_pose_rig.py, used by BOTH A and B) or B-specific. Poll marker glob
+  lw-006-cand-b/.team/markers/candidate-b-fix-*-end.md; VERIFY balance stays 2970;
+  watch for the recurring no-commit failure (if branch_changed=no + uncommitted=yes,
+  do a COMMIT-ONLY rescue like candidate-b-commit did). Re-reviewer = codex (it
+  raised the finding). B is NOT integrated until it re-signs clean.
+
+*** FAIRNESS / BLAST-RADIUS FLAG (act on this next run): *** Candidate A was
+agy-signed AND integrated @ 1208ef0, but agy's review said "fully reproducible"
+WITHOUT codex's strict per-pixel byte diff. If B's 1-ULP nondeterminism lives in
+the SHARED render path (blender_pose_rig.py), candidate A almost certainly drifts
+the same way and agy just did not diff to that rigor. So: when B-fix reports the
+root cause, if it is shared, RE-VERIFY A's byte-stability with the same rigor;
+if A drifts, A's integration (1208ef0) must be revisited / A re-rendered+re-signed
+before the round PR, and the shared fix covers both. Do NOT open the round PR until
+both A and B are byte-stable and clean-signed.
+
+LESSON (claude-worker no-commit): for a doer whose job ends in a commit, tell it
+explicitly NOT to background work / wait on a Monitor, and if it still fails, a
+tiny COMMIT-ONLY re-dispatch (nothing to background) reliably lands it (candidate B
+took primary -> finish -> commit-only = 3 dispatches to land 89a0b59).
+
+NEXT after B re-signs clean: integrate B --no-ff onto round/006-two-rivers, run the
+round suite (verify GREEN), then step 4 (in-engine integration, claude) and step 5
+(anonymized acceptance gate A vs B vs the SPIKE). Meshy balance 2970.
+
+Prior status (steps 1-2, done): GENERATION slice merged @ 1ece706. BLENDER CLEANUP
++ pose/facing-rig slice (step 2) DELIVERED, PEER-SIGNED (codex, 2 rounds), MERGED
+into round/006-two-rivers @ 611664c, INTEGRATED SUITE GREEN.
+
+BLENDER SLICE (DONE): branch agy/006-blender-cleanup, signed head 9f61a22 (codex marker
+ee3a99d on top), merged --no-ff -> 611664c. Delivers tools/art/blender_pose_rig.py (fixed
+iso camera reused from blender_calibration.py, character rotated about world-Z per facing,
+SW-native validated, 6-pose sampling of the walk action, per-facing/per-pose PNG passes),
+the {facing}_{pose_idx}_{pass}.png NAMING CONTRACT (NAMING-CONTRACT.md; consumed by codex's
+build_player_walk.py), RIG-NOTES.md (armature 'Armature', walk action
+'Armature|walking_man|baselayer_Armature', frames 1-25, corrected facing_to_rot_z table:
+SW=0,S=45,SE=90,E=135,NE=180,N=-135,NW=-90,W=-45), SANITY.md, extended cleanup ledger in
+PROVENANCE.md (mesh edits ~5 min/asset, UV/rig 0), cleaned assets under
+assets/art_src/pilot/cleaned/ (cottage.blend/glb + player_walk.blend/glb, ~125-130 MB), and
+fetch_blender.sh now writes tools/blender/.gdignore so headless Godot's import scan skips
+the Blender install (this was the run_tests.sh HANG root cause). PEER GATE WORKED TWICE:
+codex changes-requested on d5c8c1b (found 3 real defects: (1) Blender-4.0 rename bug
+'NodeOutputFileSlotFile has no attribute name' left frame suffixes on output so the contract
+was unmet while Blender still exited 0; (2) facing map unverified / +Y=NE assumption WRONG,
+actually SW; (3) run_tests.sh hung on the Blender-install import scan); agy fixed all 3 in
+9cb284a; orchestrator INDEPENDENTLY VERIFIED from the tree (fresh sanity = exactly 30
+contracted files no suffix; run_tests green exit 0); codex signed off 9f61a22. NO PAID
+SERVICE touched this slice (agy has no Meshy; all inputs were already committed).
+
+AGY FAILURE MODES SEEN THIS RUN (honor next time): (a) harness STALLS after committing
+('Error: timeout waiting for response'), proc lingers ~0.5% CPU with a clean tree; verify
+the commit + clean tree, then SIGKILL the tree (do NOT wait out the cap; the dispatch.sh
+trap writes the end marker on kill). (b) leaves scratch litter at repo root (test_rot.py,
+top_down.py, top_down_0.png) and un-gitignored render dirs; be surgical, never git add -A.
+(c) ONCE wrote a FORBIDDEN self-authored sign-off marker (author never writes .team/signoffs
+markers); a hygiene-cleanup dispatch removed it (9f61a22). All three cost extra rounds.
+
+REVIEW GATE WORKED (do not lose these 3 findings if the fix pass is incomplete):
+codex changes-requested marker .team/signoffs/agy-006-blender-cleanup-d5c8c1b0df2b.md
+(reviewed_sha d5c8c1b, changes-requested) requires: (1) NAMING CONTRACT BROKEN --
+render_frame() rename raises AttributeError 'NodeOutputFileSlotFile' has no attribute
+'name' on Blender 4.0 yet Blender exits 0; the 30 sanity files were STALE from agy's
+first run; produced names keep the frame suffix (SE_0_color_0000.png) so codex's
+build_player_walk.py (the consumer) cannot glob the contracted {facing}_{pose}_{pass}.png.
+Fix rename + fail-loud (nonzero exit) + clear stale output + prove 30 fresh contracted
+files. (2) FACING MAP UNVERIFIED -- only SE rendered; the +Y=NE base-orientation
+assumption is unchecked; render NE(0 rot)+1 sign-establishing facing, record evidence,
+correct facing_to_rot_z if base orientation differs. (3) run_tests.sh DOES NOT COMPLETE
+-- Godot headless import scan hangs on the fetched Blender install (tools/blender/ has
+NO .gdignore; stalls on bundled StinsonBeach.tex 5+/27+ min). Fix: fetch_blender.sh
+writes tools/blender/.gdignore (or force-add committed marker). assets/art_src/.gdignore
+already shields cleaned/, so the cleaned .blend/.glb are NOT the hang source. SHADOW pass
+absence is NOT a blocker (decision 009: offline mask is shipped shadow, Blender pass is
+cross-check). Footprint note: cleaned assets add ~125-130 MB (both .blend+.glb per asset),
+compounds the raw-source footprint for the production escalation.`
 
 **GENERATION SLICE (DONE, signed, merged):** claude-worker `claude/006-pilot-gen`
 generated ONE 2x2 half-timbered cottage + ONE player (t-pose -> refine -> remesh
@@ -194,24 +399,37 @@ agy harness MCP wiring for longwalk's .mcp.json is unconfirmed). Pilot is
 pre-authorized (1515); ADOPTING Meshy for production beyond the pilot still
 escalates to Scott (decision 009).
 
-**PILOT SEQUENCE (decision 009 constraints 5-8), step (1) DONE, next is (2):**
+**PILOT SEQUENCE (decision 009 constraints 5-8), steps (1)+(2) DONE, next is (3):**
 - (1) Generation (cottage + player + provenance) -- **DONE, signed, merged
   `1ece706`** (see GENERATION SLICE block above). Reassigned agy->claude by
   capability. MCP reachability CONFIRMED in a claude doer.
-- (2) **<- NEXT: shared/sequenced Blender topology cleanup + armature weighting +
-  6-pose/8-facing gait setup. Assign to AGY** (capability: agy authored
-  `tools/art/blender_calibration.py` + `render.sh`, needs NO Meshy access, and
-  this is the Blender-scene ownership from decision 009's DoL). Log the cleanup
-  ledger (constraint 6), extending `PROVENANCE.md`'s ledger seed with real
-  human-equivalent minutes by category (mesh edits, UV/texture repair, rig repair).
-- (3) render candidate A (deterministic NPR/composite, codex) AND candidate B
-  (texture-space albedo OR single fixed-seed whole-sheet generative, claude) from
-  the 30-deg rig.
+- (2) Blender topology cleanup + parametric pose/facing rig + gait setup --
+  **DONE, signed (codex, 2 rounds), merged `611664c`, suite green** (see BLENDER
+  SLICE block above). Delivered by agy. The rig + naming contract that steps 3-4
+  consume is now on the round branch.
+- (3) **<- NEXT: render candidate A (deterministic NPR/composite, CODEX) AND
+  candidate B (texture-space albedo OR single fixed-seed whole-sheet generative,
+  CLAUDE) from the 30-deg rig.** Both drive `tools/art/blender_pose_rig.py`
+  (fetch Blender first; `run_sanity()` shows the pattern) to render the full 8
+  facings x 6 poses walk cycle + passes, then apply their treatment and assemble
+  the 8-facing/6-frame atlas via `build_player_walk.py` (cell 160, contact_anchor
+  [80,159], facing order E,SE,S,SW,W,NW,N,NE). A is DETERMINISTIC + NO Meshy
+  (safe to detach unsupervised). **B likely needs a PAID Meshy generative call
+  (retexture/whole-sheet); dispatch B only in a run where you can supervise the
+  paid call** (verify prior attempt dead + no duplicate billable work before any
+  relaunch; NEVER pass save_to to meshy_download_model). A full 8x6 Cycles CPU
+  render at 1024 is SLOW (tens of minutes); give the doer a large cap and verify
+  from its end marker next run. codex owns A (sprite-forge mandate: NPR/composite,
+  atlas assembly); claude owns B (candidate-B design + integration).
 - (4) integrate onto the iso spine via `tools/art/` + `starter_town.gd` (claude),
   building_contact_cell anchor conformance.
 - (5) anonymized in-engine ACCEPTANCE GATE vs the SPIKE (constraint 7): static +
   walk-GIF captures, the six independently-failable pass conditions, full rerender
   from committed local inputs with NO second Meshy call, + the cleanup ledger.
+  When the pilot clears this gate, THAT is the moment to bring the result +
+  cleanup ledger to Scott for the Meshy production-adoption call (decision 009
+  escalation) + the vision-bar surface (directive 1500), paired with the
+  git-lfs/artifact-store decision for the raw+cleaned binary footprint.
 
 **SCOPING THE NEXT (agy Blender) DISPATCH -- read before writing its prompt:**
 Inputs are `assets/art_src/pilot/cottage/cottage.glb` and the player set
@@ -355,25 +573,28 @@ archived under `refs/archive/005/*` (pushed to origin).
 
 - **Zero open team PRs** (round 006 has no PR yet; the round PR opens only after
   the Meshy pilot completes, per decision 004's one-PR-per-round rule).
-- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` @ `1ece706`
+- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` @ `611664c`
   (integration tree: 3 non-Meshy slices + .mcp.json + decision 009/010 + the pilot
-  GENERATION slice, integrated suite green; PR after the acceptance gate);
-  `origin/issue-4-world-eras` (a HUMAN branch, author sentania, predates the team
-  framework; NOT the team's to delete, retained). Remote `origin/claude/006-nullfix`
-  + `origin/codex/006-scale-contract` are stale doer branches (their work is merged
-  into the round branch); DELETE them in the close-out sweep. The
+  GENERATION slice + the BLENDER cleanup/pose-rig slice, integrated suite green; PR
+  after the acceptance gate); `origin/issue-4-world-eras` (a HUMAN branch, author
+  sentania, predates the team framework; NOT the team's to delete, retained). Remote
+  `origin/claude/006-nullfix` + `origin/codex/006-scale-contract` are stale doer
+  branches (work merged into the round branch); DELETE in the close-out sweep. The
   `claude/006-proposal`/`codex/006-proposal` are archived under `refs/archive/006/*`.
-- **Local-only doer branches (merged into the round branch, disposable):**
+- **Local-only doer branches (merged into the round branch, disposable at close-out):**
   `claude/006-nullfix`, `codex/006-scale-contract`, `agy/006-camera-calibration`,
-  and now `claude/006-pilot-gen` @ `061b2a6` (the pilot generation slice; merged
-  into round `1ece706`; retained only as the `lw-006-pilot-gen` worktree checkout).
+  `claude/006-pilot-gen` (generation slice, merged @ 1ece706), and now
+  `agy/006-blender-cleanup` @ `ee3a99d` (the Blender slice; merged into round
+  `611664c`; retained as the `lw-006-blender` worktree checkout).
 - **Worktrees (retained on purpose, round 006 in flight):** primary `longwalk`
-  (main); `lw-006-round` (round/006-two-rivers @ `1ece706`, the integration tree);
-  `lw-006-pilot-gen` (`claude/006-pilot-gen`, the generation slice, free/idle now);
+  (main); `lw-006-round` (round/006-two-rivers @ `611664c`, the integration tree,
+  no Blender fetched); `lw-006-blender` (`agy/006-blender-cleanup`, Blender 4.0.2
+  FETCHED here, free/idle now -- reuse it for a slice needing Blender, e.g.
+  candidate A's render); `lw-006-pilot-gen` (`claude/006-pilot-gen`, free/idle);
   `lw-006-claude` (`claude/006-nullfix`), `lw-006-codex` (`codex/006-scale-contract`),
-  `lw-006-agy` (`agy/006-camera-calibration`) - reuse a free worktree for the next
-  (Blender) slice, or `git worktree add` a fresh one off the round branch @ 1ece706.
-  All round-005 worktrees torn down.
+  `lw-006-agy` (`agy/006-camera-calibration`) - free/idle. For the next (candidate A)
+  slice, `git worktree add` a fresh one off the round branch @ 611664c, or reuse a
+  free one. All round-005 worktrees torn down.
 
 ## Open escalations to Scott
 
@@ -384,20 +605,45 @@ constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP: dispatch the AGY Blender cleanup + pose/facing-rig slice**
-(pilot sequence step 2; see the Phase section's "PILOT SEQUENCE" + "SCOPING THE
-NEXT (agy Blender) DISPATCH" for the scoped brief). Check the
-`.pka/inbound/orchestrator/` inbox FIRST (per-phase-boundary rule). Generation
-(step 1) is DONE, signed, merged (`1ece706`), suite green. Cut a fresh branch off
-`round/006-two-rivers` @ `1ece706` in a worktree, `tools/fetch_blender.sh` there,
-and dispatch agy DETACHED (its Blender ownership; no Meshy needed). Scope it to
-cleanup + a parametric pose/facing rig + a SMALL sanity render + the ledger, NOT
-the full production render (that is candidate A/B). Poll the end marker, verify
-from disk (re-run `render.sh`/`run_tests.sh` yourself), never from narration. Do
-NOT open the round PR until the acceptance gate passes (one PR per round). When the
-pilot clears the anonymized gate vs the spike, that is the moment to bring the
-result + cleanup ledger to Scott for the Meshy production-adoption call (decision
-009 escalation) AND the vision-bar surface (directive 1500).
+**IMMEDIATE NEXT STEP (this run's handoff): verify the DETACHED A fix-review
+(candidate-a-review-fix, claude, cap 3600s, stamp 20260718-014501).** Check inbox
+FIRST. Confirm Meshy balance still 2970 (free meshy_check_balance; no paid work).
+- B is DONE: integrated @ round **80435d1**, suite green. Nothing left on B.
+- Poll `lw-006-cand-a/.team/markers/candidate-a-review-fix-*-end.md`: read
+  branch_changed / uncommitted / cap_expired. Expect ONE marker commit on
+  codex/006-candidate-a: `.team/signoffs/codex-006-candidate-a-8212464520e9.md`.
+  If signed-off: RE-INTEGRATE A at 8212464 --no-ff onto round (currently 80435d1
+  = round + B; this replaces the OLD provisional-A deliverables from 1208ef0 with
+  byte-stable ones), then run the round suite GREEN. If branch_changed=no +
+  uncommitted=yes: COMMIT-ONLY marker rescue (claude's recurring no-commit bug).
+  If changes-requested (any drift / placeholder / em-dash): route fix to codex
+  (author), NO Meshy.
+- When A is byte-stable + clean-signed + integrated (B already is): run the round
+  suite GREEN, THEN step 4 (in-engine integration, claude) + step 5 (anonymized
+  acceptance gate A vs B vs the spike). Do NOT open the round PR until both
+  candidates are byte-stable + clean-signed + the acceptance gate passes.
+
+--- PRIOR NEXT-STEP (superseded, kept for context) ---
+Dispatch the render-candidate slices (pilot step 3). Check
+the `.pka/inbound/orchestrator/` inbox FIRST (per-phase-boundary rule). Steps 1-2
+are DONE, signed, merged (`611664c`), suite green. Start with **candidate A (CODEX,
+deterministic NPR/composite, NO Meshy -- safe to detach unsupervised):** cut a
+fresh branch off `round/006-two-rivers` @ `611664c` in a worktree, have codex run
+`tools/fetch_blender.sh` there (or pre-fetch), drive `tools/art/blender_pose_rig.py`
+for the FULL 8-facing x 6-pose walk render + passes, apply the deterministic
+NPR/composite treatment to painterly 2D, assemble the atlas via
+`build_player_walk.py`. Give a LARGE cap (full Cycles CPU render is tens of
+minutes) and verify from the end marker + tree next run. Peer reviewer for A =
+agy or claude (non-author). **Candidate B (CLAUDE) likely needs a PAID Meshy
+generative call -- dispatch it only in a run you can supervise** (verify prior
+attempt genuinely dead + no duplicate billable work before ANY relaunch; the
+double-launch that wasted 40 credits is the cautionary tale; never pass save_to
+to meshy_download_model). Then step 4 (integration, claude) and step 5 (acceptance
+gate). Do NOT open the round PR until the acceptance gate passes (one PR per round).
+When the pilot clears the anonymized gate vs the spike, THAT is the moment to bring
+the result + cleanup ledger to Scott for the Meshy production-adoption call
+(decision 009 escalation) AND the vision-bar surface (directive 1500), paired with
+a git-lfs/artifact-store decision for the binary footprint.
 
 **SURFACE TO SCOTT (not blocking, but his money): ~40 wasted Meshy credits** from
 a double-launch this run (details in the "ORCHESTRATION ERROR" block above). And
@@ -446,9 +692,64 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-17T~22:20Z (orchestrator run
-`orchestrator-run-20260717-213930`). This run drove the ROUND-006 MESHY PILOT
-GENERATION slice end to end: (1) Processed inbox 1620 ("meshy-live"); recorded the
+**Last updated:** 2026-07-18T~01:47Z (orchestrator run
+`orchestrator-run-20260717-013944`). This run: (1) verified from the tree that both
+prior detached byte-stability closers landed (A fix 8212464, B resign marker
+60ceb9c); balance 2970, no leak. (2) Confirmed B's codex sign-off is clean at
+f08e2c7 and INTEGRATED B --no-ff -> round 80435d1; round suite GREEN. (3) Caught
+that A's byte-stability fix 8212464 is UNSIGNED (agy's a56a370 sign-off predates it;
+8212464 regenerated all 50 PNGs), so dispatched a fresh non-author (claude) review
+of 8212464 DETACHED (cap 3600s, no Meshy, stamp 014501, proc tree alive); A stays
+un-reintegrated until it signs clean. Next run (or later this run): verify the A
+review from its end marker + tree, re-integrate A at 8212464, run suite, then steps
+4-5 (in-engine integration + anonymized acceptance gate A vs B vs spike).
+
+--- PRIOR RUN (`orchestrator-run-20260717-233648`) resolved the STEP-3 render candidates:
+(1) Verified from end markers (not narration) that both primary detached candidate
+dispatches from the prior run had ended: candidate A CLEAN + delivered atlas
+(a56a370); candidate B exit0 but branch_changed=no, uncommitted=yes -- it did the
+PAID work (20 credits, 2 retextures, balance 2990->2970, ledger clean) and rendered
+all passes but never committed. NO waste (balance matched the authored 20 exactly;
+no double-launch). (2) Peer-reviewed A with agy (non-author): signed-off; orchestrator
+independently re-verified (em-dash clean, no unseeded RNG, contract exact) and
+integrated A --no-ff -> round 1208ef0. (3) Recovered B across THREE claude dispatches
+(recurring no-commit bug: doer backgrounds work + ends turn on an intention to
+commit-after-a-monitor-event that never re-fires); a tiny COMMIT-ONLY dispatch finally
+landed 89a0b59 (clean/surgical: 60 files, zero raw passes, no em-dashes). (4) Peer-
+reviewed B with codex (non-author): changes-requested on a REAL determinism defect
+(clean reproduce drifts 1 channel/1px on 2 of 48 frames, violating constraint-7).
+(5) Dispatched the B determinism fix DETACHED (no Meshy, cap 3000s) to verify next
+run, and flagged that candidate A may share the same nondeterminism (agy didn't diff
+to codex's rigor). Every dispatch verified from end marker + tree. Meshy balance 2970,
+NO credits wasted this run. Nothing left to babysit synchronously; candidate-b-fix is
+detached and picked up next run.
+
+--- PRIOR RUN (blender cleanup slice, `orchestrator-run-20260717-222037`) ---
+This run drove the ROUND-006 MESHY PILOT
+BLENDER CLEANUP + pose/facing-rig slice (step 2) end to end and merged it:
+(1) Verified clean starting state (no stray/paid procs; generation slice merged
+@ 1ece706; no blocked markers). Inbox: nothing new since 1620. (2) Dispatched agy
+(capability seat: owns the Blender tooling, no Meshy needed) for cleanup + a
+parametric pose/facing rig + sanity render + ledger. agy delivered d5c8c1b but the
+harness STALLED after committing (had to SIGKILL). (3) Ran the peer gate with codex
+(the downstream atlas consumer = the right reviewer): codex changes-requested on
+d5c8c1b, finding 3 REAL defects (Blender-4.0 rename bug leaving frame suffixes so
+the naming contract was silently unmet; the +Y=NE facing assumption was WRONG
+(actually SW); run_tests.sh HUNG on Godot's import scan of the fetched Blender
+install). (4) agy fixed all 3 in 9cb284a but left a FORBIDDEN self-authored marker
++ scratch litter; a tight hygiene dispatch removed them (9f61a22). (5) Orchestrator
+INDEPENDENTLY VERIFIED the fixes from the tree (fresh sanity = exactly 30 contracted
+files no suffix; run_tests green). (6) codex re-reviewed + SIGNED OFF 9f61a22.
+(7) Merged --no-ff -> 611664c, integrated suite GREEN, pushed. No protected paths
+touched (no decision record needed). NO PAID SERVICE this whole run (agy has no
+Meshy; all inputs already committed; ZERO credits spent). Every dispatch verified
+from end marker + tree, never narration. Closed cleanly at ~61/90 min rather than
+cram the large candidate-A render slice into inadequate budget. NEXT: render
+candidates A (codex, deterministic, safe) + B (claude, PAID Meshy, supervise),
+integration, acceptance gate. Nothing left running.
+
+--- PRIOR RUN (generation slice, `orchestrator-run-20260717-213930`) ---
+Drove the ROUND-006 MESHY PILOT GENERATION slice end to end: (1) Processed inbox 1620 ("meshy-live"); recorded the
 capability re-division (Meshy wired for codex+claude only, NOT agy, so decision
 009's agy generation slice moved to claude-worker). (2) Cherry-picked Scott's
 `.mcp.json` infra commit (9a0e2c8) onto the round branch (`aa8eab5`, pushed),
