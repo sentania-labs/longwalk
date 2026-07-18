@@ -124,79 +124,127 @@ dominant first (all ZERO-COST composite fixes, no paid spend):
      (the plate is no longer seamless -- the richness-for-seamlessness trade the regen
      prompt deliberately made). Fix: tile-blend / offset-heal across seams.
 
-=== STATUS: decision 013 IMPL landed + QA6 = NOT-CONFUSABLE; DE-PEAK slice in flight =
-Decision 013 multiband reshape (claude `f81db85`) integrated + codex non-author
-signed + FF-integrated + suite/gate GREEN + PUSHED. Round head **`6bb94c6`** on
-origin (impl + signoff marker + agy QA6 report). agy QA PASS 6
-(`docs/art/village/qa-agy-dirt-006.md`, agy `6bb94c6`... report commit): verdict
-**NOT-CONFUSABLE** but CLOSED 2 of 3 pass-5 tells -- **muddy tone CLOSED, grid
-seams CLOSED, no new tells, no pass-4 regressions.** ONE dominant tell remains:
-**tiling / discrete embedded STONES** (IMPROVED-BUT-PRESENT).
+=== STATUS: DECISION 014 (source stone removal) PHASE 1 DONE -> PHASE 2 CRITIQUE ===
+**Phase 1 blind proposals ALL committed + orchestrator-verified from marker+tree
+(2026-07-18):**
+- claude `a1e99154ea6f677e2468dddec3883973365c7be2` (branch `claude/014-stone`):
+  NEW tool `declutter_dirt_source.py`, auto chroma-segmentation detect + pull-push
+  harmonic membrane fill + fixed-roll grain transplant; mid gain 0.55->1.30.
+  Rendered gates flat-core 19.22 >= 18.44, shimmer 10.07 <= 10.75. grey frac 2.68%->0.34%.
+- codex `d5725c5f41fd531380989c5aef96f88180fc3687` (branch `codex/014-stone`):
+  FIXED hand-annotated source ellipse list (NOT auto-threshold) + best-of-fixed-offset
+  exemplar patch transplant + feather; macro gain 0.14->0.65. Gates flat-core 18.75,
+  shimmer 10.09. Honest residual: a missed small stone stays source content.
+- agy `42ad6a17c3b02b7f65e3fb1c462f3dc76c784972` (branch `agy/014-stone-removal`):
+  `remove_stones` in grade_dirt_plate.py, HSL+local-contrast z-score auto mask +
+  box-blur fill + fine/mid band energy re-injection; lomid gain 1.55->1.67. Gates
+  flat-core 19.59, shimmer 10.33. (agy's prior dispatch finished the work but did NOT
+  commit; re-dispatched narrow commit-only, landed 42ad6a1, verified branch_changed:yes.)
+All three base off bdfaa28 (de-peak wall). Three genuinely distinct fill methods.
 
-**Orchestrator inspected the actual captures (ground-2x + spike):** the dirt path
-is covered in ~15-20 prominent grey lozenge STONES; the spike path is smooth dry
-dusty tan with fine speckle and NO embedded stones. Root cause: the source plate's
-mid-band energy is concentrated in PEAKY high-contrast discrete stone outliers
-(our mid RMS 5.57 is actually BELOW the spike's ~12-15, so it is a DISTRIBUTION
-problem, not magnitude). The stones live in the graded PLATE (core samples it
-directly), NOT the detail bake -- agy's pass-6 remediation named the wrong file.
-Fix = spatial mid-band DE-PEAKING in `grade_dirt_plate.py` (dissolve the stone
-outliers, HOLD mid RMS so flat-core stays, do not touch fine so shimmer stays).
-This is a measured CONTINUATION of decision 013's method, no new fork.
+**PHASE 2 CRITIQUE DONE + verified** (claude 38dae8a / codex b012bd3 / agy 770ebf7,
+each branch_changed:yes). Genuine adversarial round. Cross-critic convergence:
+agy's z-score mask misses stone bodies; claude's mid 1.30 + codex's macro 0.65
+revive killed tells; determinism unanimous-pass.
 
-**DE-PEAK SLICE DISPATCHED** (claude, run label `013-depeak-claude`, branch
-`claude/013-dirt-depeak` off round head 6bb94c6, cap 3600s) -- IN FLIGHT.
-Prompt+diagnosis: `.pka/round007/013-depeak-prompt.md`. It carries a HARD FALLBACK:
-if de-peaking enough to dissolve the stones drops core std below the flat-core
-floor, the worker STOPS and reports the "intrinsically pebbly source" WALL rather
-than reopening flat core. If that wall triggers, the next step is an orchestrator
-DESIGN DECISION (accept smoother dirt / commit dirt-plate MIPS [import-policy
-change, possible decision 014 or Scott escalation] / other), NOT more blind tuning.
+**PHASE 3 SYNTHESIS DONE -> decision 014 committed `a857db9` on round branch.**
+ORCHESTRATOR RENDERED DECODE (viewed all three committed 2x captures + spike
+myself, matched framing): agy `42ad6a1` ~15 stones REMAIN (fails objective);
+codex `d5725c5` ~12-15 stones REMAIN (hand-list incomplete, fails in render);
+claude `a1e9915` stones GONE (only method that works) but residuals = surviving
+amber/brown rocks + membrane-smooth islands + muddy mid mottling. Decode decisive
+over source-space proxies -> NO 2-2, NO four-ballot, NO critic. Synthesis = build
+on claude detector+donor-exclusion spine, GRAFT codex multiscale fill +
+object-level completeness check, REDUCE mid gain (both dissents recorded verbatim
+in 014). Not gate-required (no protected path). Division: claude implements,
+codex non-author signs off, agy QA7.
 
---- ON RESPAWN (de-peak slice), verify then proceed: ---
-1. **Verify the de-peak end marker** at
-   `/home/scott/claude/lw-007-claude/.team/markers/013-depeak-claude-<ts>-end.md`
-   (branch_sha_before 6bb94c6 -> after; branch_changed; cap_expired; uncommitted).
-   Read whether the HARD FALLBACK triggered (worker reports it in the marker). Then
-   INSPECT the tree: decode the committed plate + detail sha + captures, RE-RUN
-   `tools/run_tests.sh` + `tools/art/village_export_gate.sh`, and confirm BOTH hard
-   gates (core lum_std >= ~17.97; 0.5x dirt fine-grad <= ~10.75) + VIEW the ground-2x
-   capture yourself to judge whether the stones actually dissolved (do not trust the
-   proxy alone). If the fallback triggered (real wall) OR a gate failed: do NOT
-   integrate; make the DESIGN DECISION (accept / commit mips / escalate to Scott).
-   If it cleanly holds both gates and the stones are gone, proceed to sign-off.
-2. **codex NON-AUTHOR cross sign-off** on the claude commit (reviewed_by !=
-   authored_by): dispatch codex into an ephemeral detached review worktree
-   (`git worktree add -b rev/cxc-013 <wt> <claude-sha>`), it writes a
-   `.team/signoffs/` marker naming the EXACT claude commit; cherry-pick the marker;
-   `git worktree remove`. No push by the doer.
-3. **FF-integrate** the signed claude commit into `round/007-village` (round head is
-   ff2a801), cherry-pick the sign-off marker + (later) the QA report. Re-run suite +
-   export gate on the integrated tree. Then **push the round branch**.
-4. **agy QA PASS 6** (reuse `lw-007-agy`, fresh `agy/013-dirt-qa6` off the integrated
-   round head): multimodal confusability read; MUST explicitly re-check the two named
-   mid-district seams + whether the flatten dissolved muddy-tone + tiling.
-5. If agy verdict CONFUSABLE **and the orchestrator's own decoded read agrees** ->
-   **SURFACE A BUILD TO SCOTT** (his stated bar; cross-workspace `to: dalinar`, NOT
-   `to: scott`). If still NOT-CONFUSABLE, decode the actual artifacts (never
-   narration), diagnose the specific remaining gap, tee up the next fix (paid dirt
-   path stays CLOSED).
-6. After dirt clears: expand the one inn-green district to the full ~12-16-structure
-   village; open the ONE round PR + external Codex review; address findings; merge;
-   sweep (delete round + doer branches; leak guard).
+**IMPLEMENTATION IN FLIGHT:** claude dispatched on `claude/014-stone-impl` (off
+a1e9915, de-peak in ancestry). run `014-impl-claude-20260718`, cap 3000s.
+Prompt `.pka/round007/014-impl-claude-prompt.md`. RESUME: verify impl end
+marker + tree + BOTH hard gates + DECODE the new ground-2x yourself (stones AND
+amber rocks gone, no membrane smear, no muddy revival). Then codex NON-AUTHOR
+sign-off -> FF-integrate into round/007-village -> re-run suite+export gate ->
+PUSH round branch -> agy QA pass 7. If QA CONFUSABLE and my own decode agrees ->
+SURFACE BUILD TO SCOTT (to: dalinar). Else diagnose from artifacts, tee up next.
+
+=== (prior) NEXT: phase 2 adversarial critique ===
+
+=== (prior) DE-PEAK WALL VERIFIED -> DECISION 014 PHASE 1 ===
+Round head **`6bb94c6`** on origin (decision 013 impl + codex signoff + agy QA6).
+agy QA PASS 6 (`docs/art/village/qa-agy-dirt-006.md`): **NOT-CONFUSABLE**, CLOSED
+muddy tone + grid seams, no new tells, no regressions. ONE dominant tell left:
+discrete embedded STONES.
+
+**DE-PEAK SLICE bdfaa28 -- WALL TRIGGERED, VERIFIED by orchestrator.** claude
+`bdfaa28` (on local `claude/013-dirt-depeak`, off 6bb94c6; end marker
+`013-depeak-claude-20260718-115340-end.md`, branch_changed yes, cap not expired;
+"uncommitted" is only untracked .pka/.team scratch, not code). The worker did a
+rendered measurement and PROVED the HARD FALLBACK: NO luminance-band winsorize/
+de-peak removes the stones at ANY strength (incl. breaching both gates), because a
+painted rock is coherent across every frequency band at once, not a single-band
+outlier. Orchestrator CONFIRMED by viewing the actual artifacts: ground-2x capture
+(~15-20 grey lozenge stones + amber rock), the spike (smooth dusty tan, no path
+stones), AND the source plate itself
+(`.pka/round007/ground-source/dirt-regen-nbpro-019f74b2.png`): the stones are
+PAINTED CONTENT, and the dusty-tan substrate BETWEEN them is already spike-correct.
+The de-peak is a non-regressing mid-band improvement (kurtosis 3.27->3.09, both
+gates hold) that DID NOT move the visible tell. The luminance-band path is CLOSED.
+
+**ORCHESTRATOR DESIGN RULING (decision 014, mine at the wall):** the next
+iteration is ZERO-COST SOURCE-LEVEL stone removal -- detect the painted stones +
+amber rock + grass tufts and inpaint/synthesize the surrounding dusty-tan
+substrate over them, preserving the accepted richness. This is within team art
+authority (no engine/arch/dependency/constitution trigger), zero paid credits;
+the PAID regen path stays CLOSED as a fallback only if zero-cost removal fails.
+NOT escalating to Scott (per his autonomy directive 1500 + Q2 GO: iterate; surface
+only when confusable). Running the METHOD as a FULL-PROTOCOL EMPIRICAL round
+because reasonable engineers differ on removal method (detection mask + fill:
+cv2 inpaint vs patch/exemplar synthesis vs statistical resample) and each has a
+distinct new-tell failure mode; wrong pick = another full QA cycle. Not fast-lane.
+
+**DE-PEAK bdfaa28 is NOT integrated separately** (zero visible gain would waste a
+sign-off/QA cycle). Decision-014 candidates BASE OFF bdfaa28 so the de-peak
+wall-record + mid improvement ride along in ONE integration once a winner clears.
+
+Proposal prompt (same for all 3, blind): `.pka/round007/014-stone-removal-prop-prompt.md`.
+Two HARD gates unchanged: flat-core lum_std >= ~18.44 floor; 0.5x dirt fine-grad
+<= ~10.75. Source plate is the ONLY copy + untracked; each doer worktree needs a
+COPY of `.pka/round007/ground-source/` (do NOT overwrite the original).
+
+--- ON RESPAWN, verify then proceed (decision 014): ---
+1. **Verify each phase-1 proposal** from its end marker + tree + DECODED captures
+   (view ground-2x yourself; do not trust the proxy/narration). Each must hold BOTH
+   hard gates + run suite + export gate. A candidate that reopens flat core or leaves
+   a new tell (inpaint smear / patch seam / repetition) is disqualified.
+2. **PHASE 2 adversarial critique:** each doer reads the others, actively hunts new
+   tells introduced by each fill method. "Looks good" = failed round, re-dispatch.
+3. **PHASE 3 synthesis** -> `docs/decisions/014-*.md`: pick the removal method whose
+   rendered captures are actually stone-free without a new tell (my own decode is the
+   check, agy QA is the bar). Unanimous/majority = no four-ballot; a 2-2 contested
+   question invokes the critic (tiebreaker-only). Promote/implement the winner off
+   bdfaa28, codex NON-AUTHOR sign-off, FF-integrate into `round/007-village`, re-run
+   suite+gate, PUSH the round branch.
+4. **agy QA PASS 7** off the integrated head: multimodal confusability read; MUST
+   confirm the stones are gone + no new fill tell + no muddy/seam/flat-core
+   regression.
+5. If agy CONFUSABLE **and orchestrator's own decoded read agrees** -> **SURFACE A
+   BUILD TO SCOTT** (his bar; cross-workspace `to: dalinar`). Two of three pass-5
+   defects already closed; stones are the last. If still NOT-CONFUSABLE, decode the
+   artifacts (never narration), diagnose, tee up next fix (paid dirt stays a fallback,
+   escalate only if zero-cost source removal is also proven exhausted).
+6. After dirt clears: expand the inn-green district to the full ~12-16-structure
+   village; ONE round PR + external Codex review; address; merge; sweep.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ `6bb94c6` (integration tree; decision 013
-  committed; NOT yet pushed -- push after integration; origin at 2ca6f62).
-- `lw-007-claude` on `claude/013-dirt-impl` @ ff2a801+ (impl slice IN FLIGHT; the
-  013 proposal 531e701 + critique 035e9a6 are on the retired `claude/013-dirt-retune`).
-- `lw-007-codex` on `codex/013-dirt-retune` @ 8a5ef44+a04e79e (proposal+critique;
-  reuse for the non-author sign-off).
-- `lw-007-agy` on `agy/013-dirt-retune` @ 824c456+ab3bb78 (proposal+critique; reuse
-  for QA pass 6).
-- Prior integrated slices: claude 8cf9306 (dirt-retune), codex 7672b3a (bake), agy
-  79aaaa1 (qa5) -- all in round head history. Local-only deliberation/doer branches
-  archive to `refs/archive/007/*` at round close.
+- `lw-007-round` on `round/007-village` @ `6bb94c6` (== origin; integration tree).
+- `lw-007-claude` on `claude/013-dirt-depeak` @ `bdfaa28` (de-peak wall commit +
+  source plate; the ONLY copy of `.pka/round007/ground-source/*`).
+- `lw-007-codex` on `codex/013-dirt-retune`; `lw-007-agy` on `agy/013-dirt-retune`
+  (reuse for decision-014 proposals/critique/QA; rebranch off bdfaa28).
+- Prior integrated slices (claude 8cf9306, codex 7672b3a, agy 79aaaa1, claude
+  f81db85+signoff, agy QA6) all in round head 6bb94c6 history. Local doer/deliberation
+  branches archive to `refs/archive/007/*` at round close.
 
 ## Round 006 -- CLOSED (superseded)
 
