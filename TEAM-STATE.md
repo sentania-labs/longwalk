@@ -22,7 +22,8 @@ Keep the heading structure stable (orchestrator + Dashboard parse by heading).
 ## Current assignment
 
 **ROUND 007: Two Rivers village at spike fidelity, free-cam, no PC/no NPC.
-FULL PROTOCOL, contested, four-ballot. PHASE 1 (blind proposal) IN FLIGHT.**
+FULL PROTOCOL, four-ballot resolved 4-0 (Option H, decision 009).
+EXECUTION PHASE: first inn-green district, ZERO-CREDIT proof pass IN FLIGHT.**
 
 Scott redefined the milestone (2026-07-18T03:30Z, via dalinar relaying req
 c3ffe894; inbox `2026-07-18-0330-dalinar-vision-bar-answer-and-village-
@@ -76,6 +77,50 @@ bar, or on a real decision (constitution question, deadlock the critic can't
 settle). Check `.pka/inbound/orchestrator/` at EVERY phase boundary.
 
 ## Phase
+
+**EXECUTION PHASE (first inn-green district). ZERO-CREDIT PROOF PASS DISPATCHED.**
+
+Deliberation is fully closed (decision 009, 4-0 Option H, on `round/007-village` @
+`bc80b4d`). Signatures on 009 still placeholders; being folded into the execution
+slices (claude + codex sign their own line this pass; agy signs at QA time).
+Balance verified 2970, zero PENDING/IN_PROGRESS Meshy tasks (no zombie to double-
+spend). NO paid Meshy this pass by design.
+
+**Execution sequencing decision (de-risk before spend):** the first paid point is
+image-to-image generation of the occluded/net-new objects. Rather than spend
+first, this pass PROVES the whole rig (the load-bearing export-safety fix +
+free-cam + landmark registration + isolated-packaged capture) at ZERO CREDIT using
+sliced-only art plus flat-magenta `generated-pending` placeholders. Only after the
+rig ships sliced art through an isolated packaged export do we spend, supervised,
+on the generated objects, then run the real confusable-with-spike gate. This is
+decision 009's judge-then-spend inversion.
+
+**Dispatched (parallel, separate worktrees, off `round/007-village`):**
+- codex -> `codex/007-village-assets` (worktree `lw-007-codex`): asset production.
+  Slice unoccluded spike objects into anchored RGBA PNGs under
+  `res://assets/village/` + `manifest.json`; emit generated-pending placeholders
+  for `inn/cottage_rear/smithy_cluster/crown_foliage`; sign 009. Prompt:
+  `.pka/round007/exec-codex-assets-prompt.md`.
+- claude -> `claude/007-village-render` (worktree `lw-007-claude`): render
+  integration. `build_inn_green_district()` in town_layout (texture-ignorant),
+  village scene + `setup_free()` no-PC free-cam, manifest-driven export-safe
+  loading from `res://assets/village/`, projection 4-landmark reg at 0.5/1/2x, the
+  isolated-packaged export+capture gate (RUN TO COMPLETION this turn), Image.load
+  ban in run_tests. Sign 009. Prompt: `.pka/round007/exec-claude-render-prompt.md`.
+- agy: NOT dispatched yet (QA runs after a build+capture exists).
+
+Shared kit-id contract (join key) + runtime manifest schema are specified
+identically in both prompts. Env verified: Godot 4.3 binary `tools/godot/godot`,
+4.3.stable export templates installed, `export_presets.cfg` uses `all_resources`
+(no glob edit needed). A `.pck` isolated capture proves export-inclusion headless.
+
+**When both end markers land: verify from markers + tree (branch_changed,
+uncommitted_work, cap_expired), NOT narration. Then dispatch a cross peer sign-off
+(non-author reviews each branch), integrate both slices onto `round/007-village`
+locally (resolve any adjacent-line 009 signature merge trivially at integration),
+re-run the gate on the integrated tree. THEN the supervised paid generation pass.**
+
+<!-- prior phase history retained below for the record -->
 
 **PHASE 1 (blind proposal) COMPLETE + verified. PHASE 2 (adversarial critique)
 DISPATCHED + IN FLIGHT.**
@@ -291,9 +336,14 @@ Round-007's first decision record is **009**.
   never blocks the protocol.
 - `gh pr edit` is broken (GraphQL projectCards). Use REST `gh api -X PATCH
   repos/sentania-labs/longwalk/pulls/N ...`.
-- Inbox processed through the 03:30Z village-milestone redefinition. The three
-  older stuck escalations (walk-cycle art spike, PR#18 gate) are moot under the
-  redefinition.
+- Inbox processed through the 04:45Z dashboard steer. **Dashboard `/team` tab was
+  KILLED by Scott (inbox `2026-07-18-0445-dalinar-disable-dashboard-team-sync.md`):
+  stop the team-snapshot POST to `dashboard.int.sentania.net/api/team` (endpoint
+  is being removed, will 404). There is no in-repo sync tool (the POST was always
+  manual/orchestrator-side), so "disabled" == this and future runs simply DO NOT
+  POST. The dashboard-narration duty in the orchestrator brief is suspended; do
+  not treat a missing POST as a failure.** The three older stuck escalations
+  (walk-cycle art spike, PR#18 gate) are moot under the village redefinition.
 
 **Last updated:** 2026-07-18 (round 007 FULL DELIBERATION run: closed+archived
 round 006 as superseded; scoped the village milestone; cut `round/007-village`;
