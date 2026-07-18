@@ -53,6 +53,7 @@ class_name PlayerController2D
 const TownLayoutScript := preload("res://src/sim/town_layout.gd")
 const NavGridScript := preload("res://src/sim/nav_grid.gd")
 const IsoProjection := preload("res://src/render/iso/projection.gd")
+const CandidateArt := preload("res://src/render/town/candidate_art.gd")
 
 const SPEED := 220.0
 const TILE_SIZE := TownLayoutScript.TILE_SIZE
@@ -104,6 +105,18 @@ var _facing := Facing.DOWN
 var _walk_frame := 0
 var _walk_elapsed := 0.0
 
+# Walk-sheet shape. Defaults describe the round-005 4-facing proxy fold; a pilot
+# candidate replaces them with the true 8-facing x 6-pose sheet via
+# set_candidate(). _walk_frame_count is the columns of the active sheet;
+# _facing_is_octant selects whether _facing indexes the eight iso octants
+# directly (candidate) or the folded four proxy rows (default, via
+# _OCTANT_TO_FACING). _walk_cell_size is the atlas cell geometry the region math
+# uses: the hardcoded WALK_CELL_SIZE for the default proxy, the manifest
+# cell_size for a candidate.
+var _walk_frame_count := WALK_FRAME_COUNT
+var _facing_is_octant := false
+var _walk_cell_size := WALK_CELL_SIZE
+
 
 
 func set_appearance(appearance_variant: String) -> void:
@@ -116,6 +129,42 @@ func set_appearance(appearance_variant: String) -> void:
 	_walk_atlas = load(path)
 	_walk_texture.atlas = _walk_atlas
 	sprite.texture = _walk_texture
+	_apply_walk_frame()
+
+
+# Drive the true 8-facing x 6-pose pilot atlas for candidate `a` or `b` instead
+# of the folded 4-facing proxy. Everything about the sheet is read from the
+# candidate's manifest (facing count, frame count, cell size, contact anchor)
+# rather than hardcoded, and each of the eight iso octants indexes its own row
+# (no proxy fold). Callable straight after instantiate(), like set_appearance().
+func set_candidate(candidate_id: String) -> void:
+	var manifest := CandidateArt.load_json(CandidateArt.player_manifest_path(candidate_id))
+	var cell: float = float(manifest["cell_size"])
+	# The atlas region geometry is driven by the manifest cell size, not the
+	# hardcoded WALK_CELL_SIZE (which stays the default proxy value). _apply_walk_frame
+	# reads _walk_cell_size, so storing it here is what makes the candidate path
+	# genuinely manifest-driven.
+	_walk_cell_size = Vector2(cell, cell)
+	_walk_frame_count = int(manifest["frames_per_facing"])
+	_facing_is_octant = true
+
+	# The manifest facing order is the frozen iso octant order (E,SE,S,SW,W,NW,
+	# N,NE), so an octant id already IS its atlas row; assert that rather than
+	# trusting it silently.
+	var facing_order: Array = manifest["facing_order"]
+	assert(facing_order.size() == 8, "candidate atlas must declare 8 facings")
+
+	_walk_atlas = CandidateArt.load_texture(CandidateArt.player_atlas_path(candidate_id))
+	_walk_texture.atlas = _walk_atlas
+
+	var sprite: Sprite2D = get_node("Sprite2D")
+	sprite.texture = _walk_texture
+	# Pivot on the authored contact anchor. The sprite is centered, so its region
+	# center draws at the node; offsetting by (half_cell - anchor) moves the
+	# anchor pixel onto the node, i.e. onto the projected feet the display sets.
+	var anchor: Array = manifest["contact_anchor"]
+	sprite.centered = true
+	sprite.offset = Vector2(cell / 2.0 - float(anchor[0]), cell / 2.0 - float(anchor[1]))
 	_apply_walk_frame()
 
 
@@ -223,7 +272,9 @@ func _update_facing(direction: Vector2) -> void:
 	var octant := IsoProjection.facing_octant(IsoProjection.cell_to_screen(direction))
 	if octant == IsoProjection.FACING_NEUTRAL:
 		return
-	_facing = _OCTANT_TO_FACING[octant]
+	# A candidate sheet has one row per octant, so the octant is the row; the
+	# proxy sheet folds the eight octants onto its four rows.
+	_facing = octant if _facing_is_octant else _OCTANT_TO_FACING[octant]
 
 
 func _update_walk_animation(delta: float, moving: bool) -> void:
@@ -235,7 +286,7 @@ func _update_walk_animation(delta: float, moving: bool) -> void:
 	_walk_elapsed += delta
 	while _walk_elapsed >= WALK_FRAME_SECONDS:
 		_walk_elapsed -= WALK_FRAME_SECONDS
-		_walk_frame = (_walk_frame + 1) % WALK_FRAME_COUNT
+		_walk_frame = (_walk_frame + 1) % _walk_frame_count
 	_apply_walk_frame()
 
 
@@ -243,8 +294,8 @@ func _apply_walk_frame() -> void:
 	if _walk_atlas == null:
 		return
 	_walk_texture.region = Rect2(
-		Vector2(_walk_frame * WALK_CELL_SIZE.x, int(_facing) * WALK_CELL_SIZE.y),
-		WALK_CELL_SIZE
+		Vector2(_walk_frame * _walk_cell_size.x, int(_facing) * _walk_cell_size.y),
+		_walk_cell_size
 	)
 
 
