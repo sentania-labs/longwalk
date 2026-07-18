@@ -79,9 +79,94 @@ settle). Check `.pka/inbound/orchestrator/` at EVERY phase boundary.
 
 ## Phase
 
-**EXECUTION: FIRST PAID PASS DONE (6/6 objects generated, 18 credits, ACCEPTED).
-NEXT = codex processes candidates -> RGBA sprites + manifest; integrate; re-run
-gate; agy QA.**
+**EXECUTION: FIRST REAL-ART DISTRICT COMPLETE + QA'd. VERDICT = NOT-CONFUSABLE
+(honest QA gate did its job). Milestone NOT reached -> NOT surfaced to Scott.
+Round branch `5f1c5cc` pushed with all 3 decision-009 sigs. NEXT = method
+iteration on the GROUND/LANE treatment (the dominant confusability breaker),
+a genuine design fork -> FULL PROTOCOL blind proposals, best started on a fresh
+turn.**
+
+The whole processing->integration->gate->QA loop closed this run, all verified
+from end markers + tree + real gate runs. The buildings ARE spike-fidelity; the
+scene FAILS the confusable bar on GROUND rendering, not on the objects. This is
+exactly decision 009 item 9's "method failure at the gate changes the METHOD,
+not the count."
+
+**agy QA VERDICT (`docs/art/village/qa-agy-inn-green-001.md`, on round branch),
+3 ranked defects for the next iteration:**
+1. **Ground/paths (DOMINANT):** hard checkerboard of flat green diamond tiles +
+   solid tan diagonal path bands, vs the spike's continuous organic painterly
+   grass + soft worn dirt trails. No blending/transition. This is THE tell.
+2. **Halo cutouts on sliced props:** bushes/flowers/signpost (sliced from the
+   spike) retain harsh polygonal chunks of the spike's terrain background around
+   them, clashing with the flat tiles. (Asset-quality bug; re-cut with the border-
+   flood-fill that already worked on the buildings. Near fast-lane.)
+3. **Missing contact shadows + sparse gridded composition:** objects float; the
+   spike's tight organic cluster is replaced by grid-aligned placement.
+
+**NEXT-ITERATION TRIAGE (for the next run):** defect 1 (ground) is a real design
+fork -- continuous painterly ground plate vs blended/painterly overlapping tiles
+vs hybrid -- so it is FULL PROTOCOL (blind proposal / critique / synthesis), and
+touching the ground renderer likely re-touches `src/sim/town_layout.gd` +
+render, so a decision record (010) is in play. Defects 2 (re-cut halos) and 3
+(contact-shadow render pass) can ride as scoped slices once the ground method is
+chosen, or 2 can be fast-laned to codex independently. Do NOT expand to the full
+~12-16-structure village until a district passes the confusable bar. Do NOT
+surface to Scott until the team believes a screenshot genuinely passes it.
+
+=== THIS RUN (post-paid-pass) -- all verified from markers + tree + real gate runs ===
+
+- **Balance re-verified 2952** (meshy_check_balance), exact match. NO paid work
+  this run (processing/review/gate/QA all zero-credit).
+- **codex processing slice `5a70f178...` VERIFIED** (end marker codex-process-gen-
+  20260718-060035: exit0, branch_changed=yes, uncommitted=no, 547s). Replaced 6
+  magenta placeholders with real RGBA sprites from the paid Meshy raws (staged
+  `tools/art/generated_src/*.src.png` + provenance.json), added `process_assets.py`
+  (border-flood-fill bg removal + autocrop), updated test_art_manifest.py. Manifest
+  honest: 6 flipped to `generated`, native_px == real dims exactly.
+- **PEER SIGN-OFF DONE (claude, non-author):** claude review `6311c4c` on
+  `claude/007-village-render`, marker `.team/signoffs/codex-007-village-assets-
+  5a70f178e88f.md`, result **signed-off**. Genuine review: decoded all 6 PNGs,
+  confirmed NO punched-through alpha in grey-stone buildings, border flood-fill in
+  code (not global key), dims match, anchors bottom-centre, provenance honest,
+  export hygiene clean, tools/run_tests.sh green.
+- **INTEGRATED onto `round/007-village`:** merge `69d3ac9` (--no-ff of 5a70f17,
+  reviewed SHA preserved) + cherry-pick `af34077` (signoff marker) + captures
+  `30b75c5`. 5a70f17 touches NO protected paths. **Round head `30b75c5` PUSHED.**
+- **HONEST EXPORT GATE RE-RAN + PASSED on all 16 real assets** (orchestrator ran it
+  as integration verification; script+audit already committed/reviewed):
+  `VILLAGE_GATE_PASS` + `VILLAGE EXPORT GATE PASSED`. 16/16 resolve through
+  ResourceLoader from an isolated `.pck` (non-repo cwd), 4 landmarks project at
+  0.5x (all IN), 1x (all IN), 2x (2 IN / 2 scroll off-viewport -- expected for a
+  zoomed-in free-cam; gate still PASS), non-mutation guard clean. Fresh captures
+  `docs/art/village/village-inn-green-{0.5x,1x,2x}.png` committed @ 30b75c5.
+- **FULL SUITE GREEN on integrated tree** (19 village-render checks + all
+  active-path suites): manifest join 16/16, crown sorts above, no CharacterBody2D,
+  camera starts FREE with no follow target.
+- **ORCHESTRATOR VISUAL READ (1x capture vs spike):** buildings (half-timbered
+  cottages, mossy slate roofs, stone foundations, 2-story inn + hanging sign,
+  smithy w/ anvil+grindstone+forge, painterly oak, bush/flower/rock clusters) are
+  genuinely spike-idiom -- a real achievement. DECISIVE GAP: the GROUND is a hard
+  isometric diamond TILE GRID (alternating light/dark checkerboard) and the lanes
+  are straight diamond-band tiles, vs the spike's CONTINUOUS painterly grass +
+  organically-worn soft dirt trails. Also: objects may lack the spike's soft
+  contact shadows (float risk), grass more saturated/flat, composition sparser
+  than the spike's tight cluster. => NOT yet confusable. Below the bar.
+- **agy QA DONE + VERIFIED (agy's FIRST execution dispatch, `b438beb` on
+  `agy/007-qa`, end marker agy-qa-district-20260718-062218: exit0, branch_changed,
+  uncommitted=no, 63s).** Genuine multimodal work (defects are specific to the real
+  captures, not a no-op): **VERDICT NOT-CONFUSABLE** + 3 ranked defects (above) +
+  method-update section, and signed decision 009 @ 2026-07-18T06:22:51Z.
+- **agy QA + 009 sig INTEGRATED onto round branch** (merge, --no-ff). **All 3
+  decision-009 sigs now present** (claude 05:25:08Z, codex 05:03:08Z, agy
+  06:22:51Z) -> consensus gate satisfiable for the eventual round PR. **Round head
+  `5f1c5cc` PUSHED.**
+- **HYGIENE:** leak guard OK (no doer branches on origin; only round/007-village),
+  zero open PRs (correct -- round PR opens only when a district passes the bar).
+
+=== PRIOR (paid pass, still true) ===
+
+**FIRST PAID PASS DONE (6/6 objects generated, 18 credits, ACCEPTED).**
 
 === SUPERVISED FIRST PAID PASS: COMPLETE (this run) ===
 
@@ -117,6 +202,14 @@ asset-production authority: it JUDGES/processes each candidate into a game-ready
 RGBA sprite and authors the manifest/asset repo change (below).
 
 === NEXT (dispatched / to dispatch this run) ===
+
+**IN FLIGHT (this run):** codex dispatched DETACHED to process the candidates
+(label `codex-process-gen`, stamp `20260718-060035`, cap 1800s, worktree
+`lw-007-codex`). Prompt: `.pka/round007/codex-process-generated-prompt.md`. Raws
+staged at `lw-007-codex/tools/art/generated_src/<id>.src.png`. Poll end marker
+`lw-007-codex/.team/markers/codex-process-gen-20260718-060035-end.md`; verify
+branch_changed + tree, not narration. If dead, re-dispatch is SAFE (no spend;
+reproducible). Do NOT re-run Meshy.
 
 1. **codex (asset seat):** process the 6 staged RGB candidates in
    `.pka/round007/generated/` into game-ready RGBA sprites -- BORDER FLOOD-FILL bg
@@ -384,14 +477,14 @@ integration + town_layout + free-cam, agy=multimodal QA.
    pass his "confusable with the spike" bar (directive 1500 posture).
 
 **Live worktrees + branches (all LOCAL; only `round/007-village` is on origin):**
-- `lw-007-round` on `round/007-village` @ `5a42736` (integration tree, pushed).
-- `lw-007-claude` on `claude/007-village-render` @ `c164ef7` (render + gate fix +
-  its signoff of codex + claude 009 sig). Reuse for the next claude dispatch.
-- `lw-007-codex` on `codex/007-village-assets` @ `54e3811` (real assets + manifest
-  + process_assets + codex 009 sig + its signoff of claude's c164ef7). Reuse for
-  the paid generation dispatch.
-- `lw-007-agy` on `agy/007-ballot` (idle; agy's first execution dispatch is QA of
-  the first real-asset capture, after the paid pass).
+- `lw-007-round` on `round/007-village` @ `5f1c5cc` (integration tree, pushed;
+  all real art + gate captures + all 3 decision-009 sigs + agy QA).
+- `lw-007-claude` on `claude/007-village-render` @ `6311c4c` (render + gate fix +
+  its signoff of codex processing 5a70f17 + claude 009 sig). Reuse next.
+- `lw-007-codex` on `codex/007-village-assets` @ `5a70f17` (real assets + manifest
+  + process_assets + processed generated sprites + codex 009 sig). Reuse next.
+- `lw-007-agy` on `agy/007-qa` @ `b438beb` (QA report + agy 009 sig; agy stashed
+  its old 007-ballot marker cruft). Reuse for the next QA dispatch.
 - Deliberation branches `<d>/007-{proposal,critique,ballot}` hold the decision-009
   cited artifact SHAs; archive under `refs/archive/007/*` at round close.
 - Doer execution branches are LOCAL-ONLY (never push). The paid-pass integration
@@ -488,15 +581,18 @@ Round-007's first decision record is **009**.
   not treat a missing POST as a failure.** The three older stuck escalations
   (walk-cycle art spike, PR#18 gate) are moot under the village redefinition.
 
-**Last updated:** 2026-07-18 (round 007 EXECUTION run: dispatched both slices
-parallel [codex assets 019bbd9, claude render+gate 17611ac]; ran a cross peer-
-review that CAUGHT A REAL DEFECT [claude's gate regenerated placeholders before
-export, would overwrite real assets -- codex changes-requested]; fix landed
-[c164ef7] + codex re-signed [54e3811]; integrated both onto round/007-village
-resolving asset add/add to codex's real art + the 009 sig conflict; suite green +
-the HONEST export gate PASSED on real assets [16/16 resolve from an isolated .pck,
-non-mutation guard clean]; pushed round branch @ 5a42736. Handled the 0445 inbox
-steer [dashboard /team POST disabled]. Every dispatch verified from end marker +
-tree. Balance 2970, ZERO paid Meshy. Stopped at a clean pre-spend milestone. NEXT:
-supervised FIRST PAID pass -- generate the 6 generated-pending objects via image-
-to-image, per the NEXT block above.)
+**Last updated:** 2026-07-18 (round 007 EXECUTION run: closed the whole
+process->sign->integrate->gate->QA loop on the FIRST REAL-ART district. codex's
+paid-Meshy processing slice [5a70f17] peer-signed by claude [genuine per-object
+alpha review, border-flood-fill confirmed, no punched-through stone]; integrated
+onto round/007-village [--no-ff, reviewed SHA preserved]; RE-RAN the honest export
+gate on all 16 real assets [VILLAGE_GATE_PASS, 16/16 resolve from isolated .pck,
+landmarks project 0.5/1/2x, non-mutation guard clean]; full suite green; agy's
+FIRST dispatch delivered multimodal QA [VERDICT NOT-CONFUSABLE + 3 ranked defects]
+and signed decision 009 [all 3 sigs now present]; pushed round branch @ 5f1c5cc.
+Inbox: nothing newer than the already-processed 0445 steer. Balance re-verified
+2952, ZERO paid Meshy this run. Every dispatch verified from end marker + tree,
+not narration. Milestone honestly NOT reached [ground/lane tile grid is the tell]
+-> deliberately NOT surfaced to Scott. Stopped at a clean milestone; NEXT run runs
+the GROUND-treatment method iteration as FULL PROTOCOL blind proposals [decision
+010 in play], per the Phase block.)
