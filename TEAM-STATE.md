@@ -43,6 +43,45 @@ fill-islands (015). **agy QA PASS 8 = CONFUSABLE**, orchestrator decode AGREES a
 request_id `6110faed`, filed 2026-07-18 16:42Z) per his confusable bar. Awaiting
 his checkpoint read. The PAID PATH IS DONE and CLOSED; zero paid spend from here.
 
+=== FRESHEST: WIP WINDOWS BUILD PRODUCED + ART ITERATION PAUSED (holding for Scott's playtest) ==
+**Housekeeping dispatch (2026-07-18, this run). Two things done, both durable:**
+
+1. **DOWNLOADABLE WIP WINDOWS BUILD produced** from `round/007-village @ 3c4c905`.
+   - Location for Scott: **`/home/scott/claude/longwalk-build-round007/`**
+     (`longwalk-village-wip.exe` [134,195,680 bytes, embed_pck single-file],
+     `README.md` labeling it WIP, `screenshots/` [village 0.5x/1x/2x +
+     ground-dirt-2x + REFERENCE-spike]). exe sha256
+     `cc8a0d0d0d2ee594fab3b67eb7e64ec612a7ca5fb01da3d2bdb9e4046e3c0c19`.
+   - Boots STRAIGHT INTO `scenes/village.tscn` (free-cam district, no PC/NPC).
+     Achieved by a TRANSIENT uncommitted `main_scene` toggle in the lw-007-round
+     worktree during export, then `git checkout project.godot` REVERTED it (tree
+     clean, main_scene back to title_screen, protected path untouched in history).
+   - Method: stock "Windows Desktop" release preset, Godot 4.3-stable, headless
+     `--import` then `--export-release`. VERIFIED 3 ways: (a) PE `MZ` header +
+     nonzero 134MB; (b) round export gate PASS on this tree (`VILLAGE_GATE_PASS`,
+     assets checksum `b8fac2b4...`, non-mutation guard clean) = the round-006
+     art-shipping regression proof that the packaged bundle ships REAL village art;
+     (c) xvfb real-renderer boot of the exe's embedded pck: rc=0, 60 frames, clean
+     quit, ZERO script/missing-asset errors (only harmless ALSA no-soundcard noise).
+   - build/ is gitignored; the download dir is OUTSIDE all worktrees (durable, not
+     tied to a worktree that may get cleaned). Nothing committed to any repo.
+
+2. **ART-POLISH ITERATION PAUSED per Scott's explicit instruction (relayed in this
+   dispatch).** Do NOT start any new art/ground/dirt sub-round; do NOT spend any
+   more Meshy credits, regardless of QA8's CONFUSABLE verdict. He wants HIS OWN
+   playtest verdict from inside this build to decide whether the remaining ground
+   gap (if any) warrants further iteration or the environment is called good and
+   the project moves to its next milestone. QA8 ran and is on record; per his
+   instruction it does NOT auto-trigger a fix round.
+
+**Inbox at this run:** Both cross-workspace responses were `status: partial`
+(descriptive reads, NOT Scott's verdict). `6110faed` (dalinar): the inn-green
+district reads spike-family at 0.5x/1x; at 2x the dirt shows more mottling than
+fully uniform, but the confusable call is Scott's subjective ruling, not a proxy's;
+surfaced to Scott's queue, hold at checkpoint. `c3ffe894` (dalinar): older A/B
+vision-bar ask, also reserved for Scott, stay paused. **Scott's own playtest
+verdict is still PENDING.** No new orchestrator inbox beyond these two.
+
 === STATUS: DECISION 015 INTEGRATED + PUSHED; QA8 = CONFUSABLE; SURFACED TO SCOTT ==
 **Decision 015 (dirt fill quality) COMPLETE + on origin @ round head `3c4c905`.**
 THIS RUN verified everything from marker+tree+self-run gates+decoded PNGs, never
@@ -142,10 +181,18 @@ codex NON-AUTHOR sign-off `3c4c905`, agy QA8 CONFUSABLE `b8083e7`. All integrate
 + pushed (round head `3c4c905`). See STATUS block above for the full verify trail.
 
 --- ON RESPAWN, do in order: ---
+0. **HARD HOLD (Scott's explicit instruction, honor above everything below):** the
+   WIP Windows build is delivered (`/home/scott/claude/longwalk-build-round007/`)
+   and art-polish iteration is PAUSED. Do NOT start any art/ground/dirt sub-round
+   and do NOT spend Meshy credits until Scott gives his OWN playtest verdict on
+   that build. QA8's CONFUSABLE verdict does NOT auto-trigger a fix round. If no
+   Scott verdict is in the inbox, the correct action is to WAIT, not to iterate or
+   re-surface. The GO/expand and tell-named branches below are GATED on his verdict
+   arriving first.
 1. **Check inbox `.pka/inbound/`** for Scott's reply to surface request_id
    `6110faed` (also `.pka/inbound/orchestrator/`). Fetch --all; scan doer branches
    for `.team/blocked/`.
-2. **Branch on Scott's checkpoint read:**
+2. **Once Scott's playtest verdict lands, branch on it:**
    - **If Scott says CONFUSABLE / GO** (or approves the screenshots): proceed to
      FULL-VILLAGE EXPANSION. Scale the confirmed-fidelity inn-green district to the
      full ~12-16-structure Two Rivers village (cottages, inn-anchor, dirt lanes,
@@ -261,7 +308,23 @@ are full-protocol converged records touching NO protected path (orchestrator syn
   (integrated). NOTE for next: lw-007-codex still on codex/015-fill, lw-007-agy on
   agy/015-qa8 (LOCAL only; rebranch off round head for the next slice, don't leak).
 
-**Last updated:** 2026-07-18 (DECISION 015 INTEGRATED + PUSHED + QA8 CONFUSABLE +
+**Last updated:** 2026-07-18 (HOUSEKEEPING: WIP WINDOWS BUILD DELIVERED + ART
+ITERATION PAUSED. Produced downloadable self-contained
+`longwalk-village-wip.exe` at `/home/scott/claude/longwalk-build-round007/` from
+round head 3c4c905, boots straight into scenes/village.tscn free-cam via a
+transient-then-reverted main_scene toggle [project.godot clean, protected path
+untouched in history]. Verified 3 ways: PE/MZ+134MB, export gate PASS
+[VILLAGE_GATE_PASS, checksum b8fac2b4, art-shipping regression proof], xvfb
+real-render boot rc=0 no errors. README labels it WIP + names QA8 CONFUSABLE +
+carries the honest 2x-mottling caveat. PAUSED all art-polish per Scott's explicit
+instruction: no new sub-round, zero Meshy spend, holding for HIS playtest verdict;
+QA8 does NOT auto-trigger a fix round. Inbox: both cross-workspace replies
+[6110faed, c3ffe894] are partial/descriptive, Scott's own verdict still pending.
+Sweep clean [origin = main + round/007-village + issue-4-world-eras, no doer leaks,
+0 open PRs]. No repo commits from the build; TEAM-STATE update goes to main. PRIOR
+STATE BELOW UNCHANGED.)
+
+**PRIOR update:** 2026-07-18 (DECISION 015 INTEGRATED + PUSHED + QA8 CONFUSABLE +
 SURFACED TO SCOTT. Verified claude impl b3eecac from marker+tree [exit 0, not cap-
 killed, 1 commit, project.godot absent, no tracked uncommitted]. Self-ran gates:
 suite GREEN, export gate PASS [checksum b8fac2b4], decode_dirt_gates flat-core
