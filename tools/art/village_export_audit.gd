@@ -74,14 +74,17 @@ func _run() -> void:
 	print("all %d manifest assets resolved through ResourceLoader with declared dims" % manifest.size())
 
 	# --- (2b) continuous-ground statics resolve from the bundle (decision 010
-	# step 9). These are NOT manifest placements: the ground shader, its two
-	# tiling swatches, the CPU-baked warp field, and the contact-shadow decal.
-	# A stock export that silently dropped any of them would ship a blank/checker
-	# ground or unshadowed floating objects; assert each is packed and loads. ---
+	# step 9, PLATE fallback). These are the resources the ground shader binds by
+	# fixed path, NOT manifest placements: the ground shader, its two painterly
+	# PLATES (sampled once across the district), the CPU-baked warp field, and the
+	# contact-shadow decal. A stock export that silently dropped any of them would
+	# ship a blank ground or unshadowed floating objects; assert each is packed
+	# and loads. The plates ALSO carry manifest entries, so loop (2) additionally
+	# asserts their native_px equality. ---
 	var ground_statics := [
 		"res://src/render/town/ground.gdshader",
-		"res://assets/village/ground_grass_tile.png",
-		"res://assets/village/ground_dirt_tile.png",
+		"res://assets/village/ground_grass_plate.png",
+		"res://assets/village/ground_dirt_plate.png",
 		"res://assets/village/ground_warp.png",
 		"res://assets/village/shadow_decal.png",
 	]

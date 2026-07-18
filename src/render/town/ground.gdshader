@@ -1,11 +1,22 @@
 shader_type canvas_item;
 
-// Continuous village ground plane (decision 010). This shader paints the WHOLE
-// district as one field instead of N flat per-cell diamonds (the checkerboard
-// tell agy QA flagged). It runs on a single quad whose UV array is set to the
-// CELL coordinates of its corners (see village_render.gd::_build_ground), so the
-// UV varying handed to fragment() is fractional CELL space by affine
-// interpolation, with NO per-frame screen->iso inversion.
+// Continuous village ground plane (decision 010, PLATE fallback). This shader
+// paints the WHOLE district as one field instead of N flat per-cell diamonds
+// (the checkerboard tell agy QA flagged). It runs on a single quad whose UV
+// array is set to the CELL coordinates of its corners (see
+// village_render.gd::_build_ground), so the UV varying handed to fragment() is
+// fractional CELL space by affine interpolation, with NO per-frame screen->iso
+// inversion.
+//
+// PLATE SAMPLING (decision 010 PLATE fallback, pre-authorized 4-0). The
+// tileable-swatch approach failed the 8x8 zoom gate: a paid painterly field
+// carries faint quasi-regular structure that reads as a repeat only under
+// high-frequency TILING. So the grass/dirt textures are painterly PLATES
+// sampled ACROSS THE WHOLE DISTRICT exactly once (paint_uv = cell / grid_size),
+// not tiled per cell. Sampled once, that structure is just texture detail, not
+// a periodic tell. Only the SAMPLING FREQUENCY changed from the swatch design;
+// the quad, the cell-space UV, the lane mask, the domain warp, the protected
+// lane core, and the separate contact-shadow layer are all unchanged.
 //
 // DETERMINISM (constitution, decision 010 step 4): this shader does NOT hash any
 // noise live. In-shader GLSL float-hash value noise diverges across GPU
@@ -19,11 +30,16 @@ shader_type canvas_item;
 // at `warp_amp` (<= 0.2 cell). The visually solid lane never advertises
 // traversability the sim lacks.
 
-// Tiling painterly swatches, sampled in cell space. repeat_enable makes the
-// swatch tile regardless of the texture's import mode; the mipmap filter keeps
-// them from shimmering when the free-cam zooms out.
-uniform sampler2D grass_tex : repeat_enable, filter_linear_mipmap;
-uniform sampler2D dirt_tex : repeat_enable, filter_linear_mipmap;
+// Painterly PLATES, sampled ONCE across the district (see header). At the
+// default plate_repeat = 1.0 the UV stays in 0..1 and never wraps, so
+// repeat_disable is correct and there is no tile-boundary seam at all. The
+// mipmap filter is declared so the plate uses a mip chain wherever one exists;
+// like every other texture in this repo the plates import with Godot's default
+// settings (no committed .import, mips off), so today this falls back to
+// base-level linear. That is already clean at 0.5x for these low-frequency
+// painterly fields, and the filter is future-proof if mips are ever enabled.
+uniform sampler2D grass_tex : repeat_disable, filter_linear_mipmap;
+uniform sampler2D dirt_tex : repeat_disable, filter_linear_mipmap;
 
 // CPU-baked warp field (R,G = a signed 2D displacement encoded around 0.5). Flat
 // mid-grey encodes zero displacement (straight edges) for the provisional
@@ -39,9 +55,12 @@ uniform sampler2D lane_mask : repeat_disable, filter_linear;
 // the mask's 0..1 sample space.
 uniform vec2 grid_size = vec2(16.0, 14.0);
 
-// Swatch repeat rate: how many texture tiles per ground cell. Picked so the
-// swatch stays crisp at 2x (codex's texel-density budget).
-uniform float tiles_per_cell = 1.0;
+// Plate repeat across the district. 1.0 = the plate covers the whole district
+// exactly once (a single sample, NO tiling, so no repeat structure, the whole
+// point of the plate fallback). A value <= ~2.0 may be set if 1x reads too soft
+// at 2x zoom, but anything above 1.0 re-tiles the plate and can reintroduce a
+// faint seam (the paint UV is NOT warped), so prefer the fewest repeats: 1.0.
+uniform float plate_repeat = 1.0;
 
 // Warp displacement amplitude in CELL units. Decision 010 caps this at 0.2 so a
 // 1-cell lane's central 0.5 cell (radius 0.25) is never reached by the warp.
@@ -60,11 +79,14 @@ void fragment() {
 	// UV is fractional CELL space (the quad's UV array is its cell corners).
 	vec2 cell = UV;
 
-	// --- paint lookups with explicit gradients (decision 010 step 6) ---
-	// textureGrad keeps hardware mip selection correct: we hand it the true
-	// screen-space derivative of the (unwarped) paint UV, so the warped mask
-	// sampling below can never corrupt the paint's LOD choice.
-	vec2 paint_uv = cell * tiles_per_cell;
+	// --- plate paint lookups with explicit gradients (decision 010 step 6) ---
+	// The grass/dirt PLATES span the whole district once: cell / grid_size maps
+	// the district's cell rectangle onto the plate's 0..1 UV, so the plate is
+	// sampled a single time, not tiled. textureGrad keeps hardware mip selection
+	// correct: we hand it the true screen-space derivative of the (unwarped)
+	// paint UV, so the warped mask sampling below can never corrupt the paint's
+	// LOD choice.
+	vec2 paint_uv = (cell / grid_size) * plate_repeat;
 	vec2 ddx = dFdx(paint_uv);
 	vec2 ddy = dFdy(paint_uv);
 	vec4 grass = textureGrad(grass_tex, paint_uv, ddx, ddy);

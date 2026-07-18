@@ -30,14 +30,14 @@ const GroundShader := preload("res://src/render/town/ground.gdshader")
 const ASSET_DIR := "res://assets/village/"
 const MANIFEST_PATH := "res://assets/village/manifest.json"
 
-# Continuous-ground assets (decision 010). The two painterly swatches and the
-# CPU-baked warp field are sampled by ground.gdshader in cell space; the
-# shadow decal grounds each object. These are static res:// resources loaded
-# through ResourceLoader (export-safe, proven by the export gate's added
-# assertions), NOT manifest placements: they are ground paint, not objects.
-# codex owns the real pixels; integration swaps them over the placeholders.
-const GRASS_TILE_PATH := "res://assets/village/ground_grass_tile.png"
-const DIRT_TILE_PATH := "res://assets/village/ground_dirt_tile.png"
+# Continuous-ground assets (decision 010, PLATE fallback). The two painterly
+# PLATES (sampled ONCE across the district, not tiled per cell) and the CPU-baked
+# warp field are sampled by ground.gdshader in cell space; the shadow decal
+# grounds each object. These are static res:// resources loaded through
+# ResourceLoader (export-safe, proven by the export gate's added assertions).
+# codex owns the real pixels; integration swaps them over the provisional plates.
+const GRASS_PLATE_PATH := "res://assets/village/ground_grass_plate.png"
+const DIRT_PLATE_PATH := "res://assets/village/ground_dirt_plate.png"
 const WARP_PATH := "res://assets/village/ground_warp.png"
 const SHADOW_DECAL_PATH := "res://assets/village/shadow_decal.png"
 
@@ -47,10 +47,11 @@ const SHADOW_DECAL_PATH := "res://assets/village/shadow_decal.png"
 # ramp lands in the last texel (1/K cell) instead of spreading a full cell.
 const MASK_TEXELS_PER_CELL := 4
 
-# Ground shader tuning. tiles_per_cell is the swatch repeat rate (codex tunes to
-# its texel-density budget); warp_amp is capped at 0.2 cell and the core_frac is
+# Ground shader tuning. plate_repeat is how many times the painterly plate spans
+# the district: 1.0 samples it exactly once (no tiling, no repeat structure, the
+# point of the plate fallback). warp_amp is capped at 0.2 cell and core_frac is
 # the unwarped solid-dirt fraction of every PATH cell (decision 010 step 5).
-const GROUND_TILES_PER_CELL := 1.0
+const GROUND_PLATE_REPEAT := 1.0
 const GROUND_WARP_AMP := 0.18
 const GROUND_CORE_FRAC := 0.5
 
@@ -134,8 +135,8 @@ static func _load_res(path: String) -> Resource:
 # a single MeshInstance2D spanning the whole district's projected diamond. The
 # mesh's UV array is set to the CELL corners of its vertices, so the fragment
 # shader receives fractional CELL space by affine interpolation, with no
-# per-frame screen->iso inversion. ground.gdshader paints tiling grass/dirt
-# swatches in cell space and blends them by the render-derived lane mask.
+# per-frame screen->iso inversion. ground.gdshader paints the grass/dirt PLATES
+# sampled once across the district and blends them by the render-derived lane mask.
 func _build_ground() -> void:
 	var geo := ground_quad_geometry(_layout.width, _layout.height)
 	var arrays := []
@@ -181,19 +182,19 @@ static func ground_quad_geometry(width: int, height: int) -> Dictionary:
 	return {"verts": verts, "uvs": uvs, "indices": indices}
 
 
-# Build the ground ShaderMaterial: wire the swatches, the CPU-baked warp field,
-# the runtime-derived lane mask, and the tuning uniforms. A swatch that fails to
+# Build the ground ShaderMaterial: wire the two plates, the CPU-baked warp field,
+# the runtime-derived lane mask, and the tuning uniforms. A plate that fails to
 # resolve leaves that sampler unset (the shader still runs); the export gate is
 # the load-bearing proof the real assets ship.
 func _build_ground_material() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = GroundShader
-	mat.set_shader_parameter("grass_tex", _load_res(GRASS_TILE_PATH))
-	mat.set_shader_parameter("dirt_tex", _load_res(DIRT_TILE_PATH))
+	mat.set_shader_parameter("grass_tex", _load_res(GRASS_PLATE_PATH))
+	mat.set_shader_parameter("dirt_tex", _load_res(DIRT_PLATE_PATH))
 	mat.set_shader_parameter("warp_tex", _load_res(WARP_PATH))
 	mat.set_shader_parameter("lane_mask", _build_lane_mask())
 	mat.set_shader_parameter("grid_size", Vector2(_layout.width, _layout.height))
-	mat.set_shader_parameter("tiles_per_cell", GROUND_TILES_PER_CELL)
+	mat.set_shader_parameter("plate_repeat", GROUND_PLATE_REPEAT)
 	mat.set_shader_parameter("warp_amp", GROUND_WARP_AMP)
 	mat.set_shader_parameter("core_frac", GROUND_CORE_FRAC)
 	return mat
