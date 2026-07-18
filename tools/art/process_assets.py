@@ -22,6 +22,7 @@ def remove_border_background(
     max_chroma: int = 18,
     feather_radius: float = 1.0,
     decontaminate_rgb: bool = False,
+    remove_enclosed_neutral: bool = False,
 ) -> Image.Image:
     """Remove a smooth neutral background connected to the image border.
 
@@ -90,6 +91,17 @@ def remove_border_background(
                 pending.append((nx, ny))
     background |= exterior
 
+    if remove_enclosed_neutral:
+        # Generated flora uses a neutral grey matte. Key neutral pixels across
+        # the full image so pockets enclosed by thin stems do not survive the
+        # border flood. The luminance floor protects dark flower centres and
+        # subject shadows, while the chroma guard protects green stems and
+        # vivid petals.
+        channel_max = rgb.max(axis=2)
+        channel_min = rgb.min(axis=2)
+        neutral = (channel_max - channel_min <= max_chroma) & (channel_min >= 96)
+        background |= neutral
+
     # The contract contains one isolated object. Keep its largest connected
     # foreground component so disconnected lighting seams and compression
     # flecks cannot survive as sprite content.
@@ -150,19 +162,33 @@ def remove_border_background(
     return result
 
 
-def autocrop_and_fit(image: Image.Image, target_size: tuple[int, int]) -> Image.Image:
+def autocrop_and_fit(image: Image.Image, target_size: tuple[int, int], crop_padding: int = 0) -> Image.Image:
     """Crop transparent margins and fit within target_size without distortion."""
     alpha = image.getchannel("A")
     bbox = alpha.getbbox()
     if bbox is None:
         raise ValueError("background removal produced an empty image")
     image = image.crop(bbox)
-    scale = min(target_size[0] / image.width, target_size[1] / image.height)
+    available_size = (
+        target_size[0] - crop_padding * 2,
+        target_size[1] - crop_padding * 2,
+    )
+    if available_size[0] <= 0 or available_size[1] <= 0:
+        raise ValueError("crop padding leaves no room for sprite content")
+    scale = min(available_size[0] / image.width, available_size[1] / image.height)
     output_size = (
         max(1, round(image.width * scale)),
         max(1, round(image.height * scale)),
     )
     fitted = image.resize(output_size, Image.Resampling.LANCZOS)
+    if crop_padding > 0:
+        padded = Image.new(
+            "RGBA",
+            (fitted.width + crop_padding * 2, fitted.height + crop_padding * 2),
+            (0, 0, 0, 0),
+        )
+        padded.alpha_composite(fitted, (crop_padding, crop_padding))
+        fitted = padded
     pixels = np.asarray(fitted).copy()
     nearly_transparent = pixels[:, :, 3] <= 1
     pixels[nearly_transparent] = 0
@@ -239,8 +265,13 @@ def process_manifest(path: Path) -> list[Path]:
                 int(asset.get("max_chroma", 18)),
                 float(asset.get("feather_radius", 1.0)),
                 bool(asset.get("decontaminate_rgb", False)),
+                bool(asset.get("remove_enclosed_neutral", False)),
             )
-            image = autocrop_and_fit(image, tuple(asset["target_size"]))
+            image = autocrop_and_fit(
+                image,
+                tuple(asset["target_size"]),
+                int(asset.get("crop_padding", 0)),
+            )
             destination.parent.mkdir(parents=True, exist_ok=True)
             image.save(destination)
             written.append(destination)
