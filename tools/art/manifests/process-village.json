@@ -1,0 +1,20 @@
+{
+  "assets": [
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/ground_grass.png", "crop": [930, 65, 1058, 129], "polygon": [[64, 0], [128, 32], [64, 64], [0, 32]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/ground_lane.png", "crop": [294, 383, 422, 447], "polygon": [[64, 0], [128, 32], [64, 64], [0, 32]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/tree_large.png", "crop": [18, 51, 348, 411], "polygon": [[116, 0], [219, 2], [292, 49], [329, 127], [303, 212], [247, 270], [218, 345], [170, 359], [126, 349], [91, 297], [48, 282], [14, 231], [0, 159], [29, 75]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/bush_a.png", "crop": [676, 307, 755, 384], "polygon": [[22, 6], [57, 0], [78, 30], [66, 66], [33, 76], [0, 58], [3, 25]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/bush_b.png", "crop": [983, 529, 1121, 612], "polygon": [[23, 17], [73, 0], [116, 15], [137, 45], [112, 79], [45, 82], [0, 60]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/sign_post.png", "crop": [151, 463, 231, 590], "polygon": [[9, 4], [61, 22], [79, 47], [56, 56], [48, 99], [68, 111], [62, 126], [20, 126], [0, 111], [15, 98]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/rock_a.png", "crop": [34, 388, 112, 456], "polygon": [[19, 4], [53, 0], [77, 28], [64, 57], [29, 67], [0, 51], [3, 22]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/rock_b.png", "crop": [198, 425, 283, 480], "polygon": [[16, 8], [52, 0], [84, 24], [73, 48], [31, 54], [0, 39]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/flower_cluster_a.png", "crop": [91, 400, 180, 477], "polygon": [[24, 5], [59, 0], [88, 28], [78, 62], [48, 76], [8, 64], [0, 31]]},
+    {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/flower_cluster_b.png", "crop": [1002, 514, 1119, 597], "polygon": [[17, 17], [62, 0], [102, 12], [116, 47], [91, 78], [39, 82], [0, 58]]},
+    {"output": "../../../assets/village/cottage_front.png", "placeholder_size": [280, 300]},
+    {"output": "../../../assets/village/fence_section.png", "placeholder_size": [144, 96]},
+    {"output": "../../../assets/village/inn.png", "placeholder_size": [420, 380]},
+    {"output": "../../../assets/village/cottage_rear.png", "placeholder_size": [280, 300]},
+    {"output": "../../../assets/village/smithy_cluster.png", "placeholder_size": [360, 320]},
+    {"output": "../../../assets/village/crown_foliage.png", "placeholder_size": [300, 220]}
+  ]
+}

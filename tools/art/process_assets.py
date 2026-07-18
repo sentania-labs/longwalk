@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 
 LIGHT_VECTOR = (18, 9)
@@ -58,6 +58,32 @@ def process_manifest(path: Path) -> list[Path]:
     data = json.loads(path.read_text(encoding="utf-8"))
     written: list[Path] = []
     for asset in data["assets"]:
+        if "crop" in asset:
+            source = (path.parent / asset["source"]).resolve()
+            destination = (path.parent / asset["output"]).resolve()
+            crop = tuple(asset["crop"])
+            image = Image.open(source).convert("RGBA").crop(crop)
+            mask = Image.new("L", image.size, 0)
+            points = asset.get("polygon", [[0, 0], [image.width, 0], [image.width, image.height], [0, image.height]])
+            ImageDraw.Draw(mask).polygon([tuple(point) for point in points], fill=255)
+            image.putalpha(mask)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            image.save(destination)
+            written.append(destination)
+            continue
+        if "placeholder_size" in asset:
+            destination = (path.parent / asset["output"]).resolve()
+            size = tuple(asset["placeholder_size"])
+            image = Image.new("RGBA", size, (0, 0, 0, 0))
+            inset = max(4, min(size) // 16)
+            ImageDraw.Draw(image).polygon(
+                [(size[0] // 2, inset), (size[0] - inset, size[1] - inset), (inset, size[1] - inset)],
+                fill=(255, 0, 255, 255),
+            )
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            image.save(destination)
+            written.append(destination)
+            continue
         source = (path.parent / asset["source"]).resolve()
         destination = (path.parent / asset["output"]).resolve()
         image = Image.open(source).convert("RGBA")
