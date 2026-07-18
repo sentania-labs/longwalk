@@ -142,45 +142,52 @@ pre-authorized for exactly this in the reframe, precedent exists (dirt regen
 019f74b2). **AUTHORIZED under deliberate-spend; deferred to the TOP of a fresh
 turn (never a paid spend at a run tail).**
 
+**=== PROGRESS THIS RUN (2026-07-18, all durable + pushed) ===**
+Round head advanced `4022fb8 -> 3000e93 -> 4e506dd` on origin. Sequence:
+- Bake slice (d0c861c) claude-signed (bd169cf), FF+marker integrated -> `3000e93`,
+  suite green, pushed.
+- PAID FLORA REGEN done + verified (45 credits, balance **2892**; 5 clean
+  neutral-grey sprites; provenance `.pka/round007/composition/flora-regen/`).
+- Codex flora finish (`codex/016-flora` f196cf8) claude-signed (8083068),
+  FF+marker integrated -> `4e506dd`, suite + village export gate GREEN, pushed.
+  Flora now clean in-scene (verified the 1x capture: no cutout edges, spike style).
+- CLAUDE RENDER SLICE **IN FLIGHT** (`claude/016-render` off 4e506dd, run
+  render-016-20260718-182928, detached, cap 2400s). D1 below-sprite contact/cast
+  layer (retire shadow_decal) + D2 footprint-field sampling in ground.gdshader +
+  D4 per-kit tonal, tuned vs spike at 0.5x/1x/2x. Before-render ref at
+  `.pka/round007/composition/before-render-1x.png`.
+
 **ON RESPAWN / NEXT ACTION (in order):**
 1. Check inbox `.pka/inbound/orchestrator/` (Scott steers mid-run).
-2. **PAID FLORA REGEN (full supervision, do at turn TOP):** `meshy_check_balance`
-   (record before), `meshy_list_tasks status=PENDING` must be empty, cost-confirm.
-   Regen the 5 named flora against a NEUTRAL/grey background (clean-mattable),
-   matching the spike style (`docs/art/iso-five-asset-spike.png`); prefer
-   nano-banana-pro image-to-image off the existing sliced sprites or the spike.
-   NEVER `save_to`; download to `.pka/round007/composition/flora-regen/`; record
-   task ids + balance after. Balance 2937, ample.
-3. Dispatch CODEX to FINISH the bake (`codex/016-bake`): rematte the regenerated
-   neutral-bg flora (decontamination now trivial) + feather + tonal + basal
-   contact nest + manifest, extending its slice. This completes impl slice 1.
-4. Dispatch CLAUDE NON-AUTHOR sign-off on the COMPLETE codex bake (claude != codex
-   author, engaged in critique). Integrate bake into round branch FF (preserve
-   signed SHA), re-run suite + export gate on the integrated tree.
-5. Dispatch CLAUDE render slice (`claude/016-render` off integrated round head)
-   consuming codex's seam_policy: sample the field in `ground.gdshader` at a named
-   insertion point (lane core semantics unchanged), wire the below-sprite short
-   contact/cast shadow layer (retire `shadow_decal.png`), apply per-kit tonal
-   transforms, KEEP the CanvasModulate; TUNE vs spike at 0.5x/1x/2x. codex
-   NON-AUTHOR sign-off, integrate FF, re-run gates.
-6. Dispatch AGY QA vs the BINDING rubric
+2. **VERIFY RENDER SLICE from its end marker + tree**
+   (`/home/scott/claude/lw-016-render/.team/markers/render-016-*-end.md`):
+   branch_changed, exit, cap, uncommitted. If in flight still, `pgrep -af 'claude -p'`
+   + poll. DECODE its best 1x capture vs spike + before-render-1x.png yourself.
+3. Dispatch CODEX NON-AUTHOR sign-off on `claude/016-render` (codex != author).
+   Ephemeral detached review worktree at the render head. FF integrate + marker
+   cherry-pick onto round branch, re-run suite + export gate, push round branch.
+4. Dispatch AGY QA vs the BINDING rubric
    `.pka/round007/composition/qa-rubric-composed-scene.md` (composed scene at 1x
-   vs spike, D1-D4). If CONFUSABLE -> SURFACE A BUILD to Scott (cross-workspace
-   `to: dalinar`) for his OWN playtest verdict; do NOT auto-expand the village.
-   If NOT-CONFUSABLE -> iterate the named tell off round head.
+   vs spike, D1-D4). agy worktree: rebranch off integrated round head.
+   If CONFUSABLE -> SURFACE A BUILD to Scott (cross-workspace `to: dalinar`) for
+   his OWN playtest verdict (automated seat alone was insufficient last time); do
+   NOT auto-expand the village. If NOT-CONFUSABLE -> diagnose the named tell
+   rigorously (inspect artifacts, not narration) and iterate off round head.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ `4022fb8` (== origin; integration tree;
-  decision 016 record).
-- `lw-007-codex` on `codex/016-bake` @ `d0c861c` (IMPL slice 1 bake DONE, suite
-  green, D3 flora blocked; NOT yet signed/integrated). Proposal
+- `lw-007-round` on `round/007-village` @ **`4e506dd`** (== origin; integration
+  tree; bake + flora integrated).
+- `lw-016-render` on `claude/016-render` off 4e506dd (RENDER SLICE IN FLIGHT).
+- `lw-007-codex` on `codex/016-flora` @ `f196cf8` (flora finish, signed +
+  integrated). Prior `codex/016-bake` @ d0c861c also in history. Proposal
   `codex/016-composition` @ `4e0ee74`, critique `d6b4bc7`.
 - `lw-007-claude` on `claude/016-composition` @ `dcbd23e`/`c615220` (proposal +
   critique; holds the ONLY copy of `.pka/round007/ground-source/*` [paid dirt
-  sources, URLs expired, do NOT overwrite]). Rebranch to `claude/016-render` off
-  the integrated bake for slice 2.
+  sources, URLs expired, do NOT overwrite]). UNTOUCHED (render slice uses a fresh
+  worktree lw-016-render, not this one).
 - `lw-007-agy` on `agy/016-composition` @ `b906ac6`/`c707ff1` (proposal +
   critique). Rebranch to `agy/016-qa` off the integrated round head for QA.
+- Review worktrees lw-016-review / lw-016-review2 were ephemeral, REMOVED.
 - Prior 007 slices (010-015) in round history. Old doer branches
   (`claude/015-*`, `codex/015-fill`, `agy/015-qa8`, the `016-composition`
   proposal/critique branches, etc.) still exist LOCAL; archive to
@@ -263,26 +270,24 @@ copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
 - Inbox processed through `2026-07-18-1730` (the composition verdict, actioned
   this run). Older partials `6110faed` / `c3ffe894` were descriptive reads, now
   superseded by Scott's direct playtest verdict.
+- **Two STALE cross-workspace responses surfaced in the codex worktree's untracked
+  `.pka/inbound` this run** (`308f0465`, `a1c32de4`), addressed `to: lw-007-codex`,
+  NOT to me, NOT in my main inbox. Both are responses to superseded requests from
+  earlier runs: (1) vault escalated the flora authorization to Scott (report
+  `scott/reports/2026-07-18-lw-007-flora-authorization-needed.md`) - MOOT, my
+  supervisor's respawn directly authorized this turn's regen and it is
+  orchestrator-decidable; (2) a PARALLEL non-role-briefed claude sign-off of the
+  bake (`cc1848f`) - redundant, my proper role-briefed sign-off bd169cf is already
+  integrated, both agree. No action; noted for visibility. If Scott's report reply
+  lands later disagreeing, escalate then (spend already made under direct
+  supervisor authorization).
 
-**Last updated:** 2026-07-18 (DECISION 016 PHASES 1-3 COMPLETE + RECORD PUSHED;
-IMPL SLICE 1 [codex bake] DONE+VERIFIED [d0c861c, suite GREEN, D1 shadows + D2
-footprint field + seam_policy contract + byte-stability test]; D3 FLORA BLOCKED
-on a scoped Meshy regen [chromatic painted-grass boundaries, no recoverable
-matte] which I AUTHORIZED under deliberate-spend + DEFERRED off this run tail
-[marker on main + codex branch]. NEXT TURN TOP: supervised flora regen -> codex
-finish rematte -> claude sign-off + integrate -> claude render slice -> agy QA vs
-new rubric -> surface to Scott if CONFUSABLE. Detail below. Reframe to composition/integration [Scott
-playtest verdict], wrote binding composed-scene QA rubric + scope. Ran phase 1
-blind proposals [claude dcbd23e / codex 4e0ee74 / agy b906ac6] and phase 2
-adversarial critiques [claude c615220 / codex d6b4bc7 / agy c707ff1], all
-verified from END markers + tree, genuine convergence via mutual concessions.
-Synthesized decision 016 @ 4022fb8 [pushed]: offline-baked footprint field in
-ground.gdshader [D2], offline basal contact + short cast extending existing
-derive_shadows [D1], offline flora rematte + RGB decontamination [D3], one light
-vector + per-kit tonal transforms, ground grade fixed [D4]. Runtime-vs-offline
-ruled 3-1 OFFLINE [decided w/o critic], claude dissent verbatim. Division:
-codex=bake, claude=render, agy=QA. Dispatched codex bake slice [016-bake-codex,
-off 4022fb8]. NEXT: verify bake from marker+tree, self-run gates, then claude
-render slice, cross sign-offs, agy QA vs new rubric, surface to Scott if
-CONFUSABLE. Two tree-verified findings anchored synthesis: claude cast-height
-bug [inn=1 vs tree=10], derive_shadows already exists at process_assets.py:157.)
+**Last updated:** 2026-07-18 (BAKE + FLORA both signed + integrated + pushed;
+round head 3000e93 then 4e506dd. PAID FLORA REGEN done [45 credits, balance 2892,
+5 clean neutral-grey sprites, verified clean in-scene]. Codex flora finish f196cf8
+signed 8083068. RENDER SLICE claude/016-render IN FLIGHT off 4e506dd
+[run render-016-20260718-182928, detached cap 2400s]: D1 below-sprite contact/cast
++ D2 footprint-field sampling + D4 per-kit tonal, tuned vs spike. NEXT: verify
+render from end marker + tree, decode its 1x vs spike/before, codex non-author
+sign-off, integrate + gates + push, then AGY QA vs binding rubric; if CONFUSABLE
+surface a build to Scott [to: dalinar] for his own playtest verdict.)
