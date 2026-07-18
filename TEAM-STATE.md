@@ -79,7 +79,60 @@ settle). Check `.pka/inbound/orchestrator/` at EVERY phase boundary.
 
 ## Phase
 
-**EXECUTION: ZERO-CREDIT RIG PROVEN + INTEGRATED. NEXT = SUPERVISED FIRST PAID PASS.**
+**EXECUTION: FIRST PAID PASS DONE (6/6 objects generated, 18 credits, ACCEPTED).
+NEXT = codex processes candidates -> RGBA sprites + manifest; integrate; re-run
+gate; agy QA.**
+
+=== SUPERVISED FIRST PAID PASS: COMPLETE (this run) ===
+
+Generated all 6 `generated-pending` objects via Meshy image-to-image (Option H,
+decision 009), each conditioned on a spike-derived style crop. Method validated
+by a single 3-credit probe (cottage_front) BEFORE batch spend; probe passed
+(clean isolated spike-fidelity cottage on flat grey), so batched the other 5.
+
+- Model **nano-banana** (3 cr/call). **18 credits total.** Balance **2970 -> 2952**
+  (verified via meshy_check_balance both before and after; exact match, no leak).
+- NO PENDING/IN_PROGRESS tasks before spend (verified meshy_list_tasks: all prior
+  SUCCEEDED); no stray dispatch proc. No double-spend.
+- All 6 ACCEPTED on my visual judgment vs the spike (I Read each PNG): inn
+  (two-story, hanging sign, tall chimney), smithy_cluster (anvil+grindstone+open
+  forge bay), cottage_front, cottage_rear (plain gable back, no door),
+  crown_foliage (dappled oak canopy, no trunk), fence_section (mossy post-and-rail).
+  Every one is genuinely confusable with the spike's painterly idiom.
+- **Durable artifacts (raw Meshy URLs EXPIRE ~20min, these downloads are the ONLY
+  copies -- do NOT regenerate, that double-spends):**
+  - `.pka/round007/generated/*.png` (6 raw RGB 1024x1024 on flat grey) +
+    `provenance.json` (task ids, credits, ref crops, spike boxes, balances).
+  - `.pka/round007/generated-backup/` (identical backup copy, insurance).
+  - `.pka/round007/style-crops/*.png` (5 spike crops used as img2img references).
+- Task IDs: cottage_front 019f73c9-0b57-7ae2-b7e7-aaf2f4b0e1b1; inn
+  019f73ca-9820-7b39-b712-cee433e2af4b; cottage_rear 019f73ca-2d9e-7495-a687-c3d12bf13934;
+  smithy_cluster 019f73ca-3954-70a6-a8f0-da818a14ea26; crown_foliage
+  019f73ca-4513-749b-94a0-b7b75a9062a5; fence_section 019f73ca-4d61-749c-b0ff-4049d57bd9d1.
+
+DIVISION note: I (orchestrator) ran the paid generation DIRECTLY as the supervised
+first spend (my explicit mandate: per-object cost-confirm, watch balance,
+double-spend guard). This is art generation, not code authoring. codex retains
+asset-production authority: it JUDGES/processes each candidate into a game-ready
+RGBA sprite and authors the manifest/asset repo change (below).
+
+=== NEXT (dispatched / to dispatch this run) ===
+
+1. **codex (asset seat):** process the 6 staged RGB candidates in
+   `.pka/round007/generated/` into game-ready RGBA sprites -- BORDER FLOOD-FILL bg
+   removal (NOT global grey key: buildings contain grey stone; a global key punches
+   holes), autocrop to content bbox, size sensibly for the iso grid; set manifest
+   `native_px` == the ACTUAL final PNG dims (claude's gate asserts equality) and a
+   correct `anchor_px` (ground-contact: bottom-centre for buildings, attach point
+   for crown); overwrite `assets/village/<id>.png`; flip `provenance` to
+   `generated` with source metadata. Commit on `codex/007-village-assets`.
+2. Peer sign-off (claude or agy, non-author) of codex's asset commit.
+3. Integrate onto `round/007-village`; claude RE-RUNS the honest export gate on the
+   real generated assets; agy multimodal QA the 0.5/1/2x capture vs the spike.
+4. Only if the district capture passes the confusable-with-spike bar do we expand
+   to the full ~12-16-structure village.
+
+=== EARLIER (zero-credit rig, still true) ===
 
 === WHAT IS DONE (this run, all verified from end markers + tree + a real gate run) ===
 
