@@ -13,6 +13,14 @@ sys.path.insert(0, str(ROOT / "tools/art"))
 from ingest_generated_sheet import ManifestError, ingest, validate_sheet
 from process_assets import autocrop_and_fit, derive_shadows, remove_border_background
 
+VILLAGE_ASSETS = ROOT / "assets/village"
+VILLAGE_GROUND_IDS = {
+    "ground_grass_plate": ("ground_plate", (1024, 1024), "generated"),
+    "ground_dirt_plate": ("ground_plate", (1024, 1024), "generated"),
+    "ground_warp": ("ground_warp", (256, 256), "generated"),
+    "shadow_decal": ("shadow", (256, 128), "generated"),
+}
+
 
 def manifest(root: pathlib.Path) -> pathlib.Path:
     path = root / "manifest.json"
@@ -29,6 +37,18 @@ def manifest(root: pathlib.Path) -> pathlib.Path:
 
 
 def main() -> int:
+    village_manifest = json.loads((VILLAGE_ASSETS / "manifest.json").read_text(encoding="utf-8"))
+    village_records = {record["id"]: record for record in village_manifest["objects"]}
+    for asset_id, (kind, dimensions, provenance) in VILLAGE_GROUND_IDS.items():
+        record = village_records[asset_id]
+        assert record["kind"] == kind
+        assert tuple(record["native_px"]) == dimensions
+        assert record["provenance"] == provenance
+        asset_path = VILLAGE_ASSETS / record["png"]
+        assert asset_path.exists(), f"missing village asset: {asset_path}"
+        with Image.open(asset_path) as village_image:
+            assert village_image.size == dimensions, f"native_px mismatch for {asset_id}"
+
     with tempfile.TemporaryDirectory() as temp:
         root = pathlib.Path(temp)
         image = Image.new("RGB", (32, 32), "#FF00FF")
