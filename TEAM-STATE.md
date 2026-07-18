@@ -56,61 +56,80 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-**Dispatched:** phase 1 blind proposals, 2026-07-18 ~17:15Z (run stamp
-`20260718-171534`).
+**Dispatched:** phase 1 `20260718-171534`, phase 2 `20260718-172217`. Phases
+1-3 DONE. Implementation IN FLIGHT (codex bake).
 
-=== WHERE WE ARE: PHASE 1 (BLIND PROPOSAL) DISPATCHED + IN FLIGHT ===
-Three blind proposals dispatched into separate worktrees off round head
-`3c4c905`, cap 2400s, self-contained prompt
-`.pka/round007/composition/prompt-proposal.md`:
-- claude -> `claude/016-composition` in `lw-007-claude`, label
-  `016-prop-claude`, marker `.team/markers/016-prop-claude-20260718-171534-*.md`.
-- codex -> `codex/016-composition` in `lw-007-codex`, label `016-prop-codex`,
-  marker `016-prop-codex-20260718-171534-*.md`.
-- agy -> `agy/016-composition` in `lw-007-agy`, label `016-prop-agy`,
-  marker `016-prop-agy-20260718-171534-*.md`.
-Logs: `.pka/round007/composition/prop-{claude,codex,agy}.log`. All three
-confirmed ALIVE at launch (adapters spawned, start markers written, no
-premature end marker).
+=== WHERE WE ARE: PHASES 1-3 DONE; IMPL SLICE 1 (codex bake) IN FLIGHT ===
+**Round head `4022fb8`** on origin (== decision 016 record, pushed
+3c4c905..4022fb8). Full protocol ran cleanly this run, all verified from
+end markers + tree:
+- **Phase 1 blind proposals** (all committed, real, verified branch_changed):
+  claude `dcbd23ec1065ad89cdf1e9ef3773bfcedb40b266`, codex
+  `4e0ee74ba63ead63a0ce28ee5acf278706ac71e2`, agy
+  `b906ac6afe719a8fba4c8d0608efd833d8b89aaf`.
+- **Phase 2 critiques** (all committed, genuine adversarial + mutual concessions,
+  NOT a "looks good" round): claude `c615220a4a7554544b48260d4166baf5d60e00f8`,
+  codex `d6b4bc7392dbc6778a6fce87f1f1caef4ff2ac16`, agy
+  `c707ff1fa135155627d4d43da929e640f1fe7b60`.
+- **Phase 3 synthesis:** `docs/decisions/016-composition-integration.md` @
+  `4022fb8`. Converged: OFFLINE-baked footprint field in ground.gdshader (D2),
+  offline basal contact + short cast extending the ALREADY-EXISTING
+  `process_assets.py::derive_shadows` (D1), offline flora rematte + RGB
+  decontamination + feather (D3), one measured light vector + per-kit tonal
+  transforms with the ground CanvasModulate held FIXED (D4). Runtime-vs-offline
+  field ruled **3-1 for OFFLINE** (codex+agy+orch vs claude), decided WITHOUT
+  critic (3-1, not 2-2). claude's runtime dissent recorded VERBATIM in the
+  record. Two tree-verified findings drove it: claude's cast-height ordering is
+  broken on the manifest (inn native_y-anchor=1 vs tree=10), and the offline
+  shadow pipeline already exists in `tools/art/process_assets.py:157`.
+- **Division of labor:** codex = offline bake (footprint field + shadow masks +
+  flora rematte + manifest schema + byte-stability test); claude = render
+  integration + capture-tuning; agy = composed-scene QA seat (new rubric).
+
+**IMPL SLICE 1 IN FLIGHT:** codex bake dispatched into `lw-007-codex` on
+`codex/016-bake` (off `4022fb8`), cap 3000s, prompt
+`.pka/round007/composition/prompt-impl-codex-bake.md`, label `016-bake-codex`,
+run stamp SEE below / marker `lw-007-codex/.team/markers/016-bake-codex-*-end.md`,
+log `.pka/round007/composition/impl-codex-bake.log`.
 
 **ON RESPAWN / NEXT ACTION (in order):**
 1. Check inbox `.pka/inbound/orchestrator/` (Scott steers mid-run).
-2. Verify each phase-1 proposal from its END marker, NOT narration:
-   `ls lw-007-<w>/.team/markers/016-prop-<w>-*-end.md`; read `branch_sha_before`
-   vs `branch_sha_after` + `branch_changed` + `uncommitted_work` + `cap_expired`.
-   For AGY specifically: confirm workdir in marker == real `lw-007-agy` (agy
-   adapter can no-op into a scratch project). Then `git -C lw-007-<w> log
-   --oneline -1 <branch>` + read the committed proposal file. Record each full
-   40-char proposal SHA.
-3. If any proposal is missing/uncommitted (cap-kill mid-write, or agy scratch
-   no-op), RE-DISPATCH that one worker (do not fabricate a proposal it didn't
-   make; a worker with no real angle can be dropped and recorded, but a
-   dispatch that died is re-run).
-4. When all committed: DECODE nothing yet (proposals are docs). Move to PHASE 2
-   (adversarial critique) using `roles/phases/2-critique.md`: dispatch each
-   worker to critique the OTHER two proposals (share the two SHAs/paths). A
-   round where everyone says "looks good" is a FAILED round, send it back.
-5. Then PHASE 3 synthesis (orchestrator, `roles/phases/3-synthesis.md`):
-   write `docs/decisions/016-composition-integration.md`, losing objections
-   VERBATIM, divide labor by capability. Contested question -> four ballots
-   (orch + 3 doers); 2-2 invokes critic (`roles/critic.md`, cursor ask-mode);
-   3-1 / 4-0 decides without critic.
-6. Implementation off round head, gates (suite + export gate + decode PNGs),
-   NON-AUTHOR sign-off, integrate FF (preserve signed SHA), agy QA against the
-   NEW composed-scene rubric. If QA clears CONFUSABLE -> SURFACE A BUILD to
-   Scott for his OWN playtest verdict (cross-workspace `to: dalinar`), do NOT
-   auto-expand.
+2. Verify the codex bake from its END marker (branch_sha before/after,
+   branch_changed, uncommitted_work, cap_expired), NOT narration. Read the
+   commits + the manifest schema note codex reports. If cap-killed with
+   uncommitted work, RE-DISPATCH a finish. If codex hit the flora HARD-STOP,
+   look for a `.team/blocked/` marker on `codex/016-bake` naming which flora need
+   scoped regen -> cherry-pick the block onto main, escalate the paid regen call.
+3. Self-run the suite + export gate on the codex tree; decode the new assets.
+4. Dispatch CLAUDE render-integration slice (branch `claude/016-render` off the
+   integrated bake) consuming codex's schema: sample the field in
+   `ground.gdshader` at a named insertion point, wire the below-sprite short-cast
+   shadow layer (retire `shadow_decal.png`), apply per-kit tonal transforms, keep
+   the CanvasModulate; TUNE against the spike at 0.5x/1x/2x.
+5. Cross NON-AUTHOR sign-offs (codex signs claude's render, claude signs codex's
+   bake; both non-author, both engaged in critique), integrate FF preserving
+   signed SHAs, re-run gates on the integrated round tree.
+6. Dispatch AGY QA against the BINDING new rubric
+   `.pka/round007/composition/qa-rubric-composed-scene.md` (composed scene at 1x
+   vs spike, D1-D4). If CONFUSABLE -> SURFACE A BUILD to Scott (cross-workspace
+   `to: dalinar`) for his OWN playtest verdict; do NOT auto-expand the village.
+   If NOT-CONFUSABLE -> iterate the named tell.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ `3c4c905` (== origin; integration tree).
-- `lw-007-claude` on `claude/016-composition` @ `3c4c905` (phase-1 in flight;
-  also holds the ONLY copy of `.pka/round007/ground-source/*` [paid dirt
-  sources, URLs expired, do NOT overwrite]).
-- `lw-007-codex` on `codex/016-composition` @ `3c4c905` (phase-1 in flight).
-- `lw-007-agy` on `agy/016-composition` @ `3c4c905` (phase-1 in flight).
-- Prior 007 slices (010-015) all in round head `3c4c905` history. Old doer
-  branches (`claude/015-*`, `codex/015-fill`, `agy/015-qa8`, etc.) still exist
-  LOCAL; archive to `refs/archive/007/*` at round close.
+- `lw-007-round` on `round/007-village` @ `4022fb8` (== origin; integration tree;
+  decision 016 record).
+- `lw-007-codex` on `codex/016-bake` @ `4022fb8`+ (IMPL slice 1 in flight).
+  Proposal `codex/016-composition` @ `4e0ee74`, critique `d6b4bc7`.
+- `lw-007-claude` on `claude/016-composition` @ `dcbd23e`/`c615220` (proposal +
+  critique; holds the ONLY copy of `.pka/round007/ground-source/*` [paid dirt
+  sources, URLs expired, do NOT overwrite]). Rebranch to `claude/016-render` off
+  the integrated bake for slice 2.
+- `lw-007-agy` on `agy/016-composition` @ `b906ac6`/`c707ff1` (proposal +
+  critique). Rebranch to `agy/016-qa` off the integrated round head for QA.
+- Prior 007 slices (010-015) in round history. Old doer branches
+  (`claude/015-*`, `codex/015-fill`, `agy/015-qa8`, the `016-composition`
+  proposal/critique branches, etc.) still exist LOCAL; archive to
+  `refs/archive/007/*` at round close.
 
 ## Prior round-007 state (decisions 010-015, DONE, kept for lineage)
 
@@ -190,15 +209,19 @@ copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
   this run). Older partials `6110faed` / `c3ffe894` were descriptive reads, now
   superseded by Scott's direct playtest verdict.
 
-**Last updated:** 2026-07-18 (REFRAME TO COMPOSITION/INTEGRATION. Scott
-playtested the WIP build -> district NOT passed; texture LOCKED/DONE, fix the
-SEAMS [grounding/contact-shadow, object-terrain interaction, flora cutout edges,
-lighting coherence]. Wrote the binding rewritten composed-scene QA rubric FIRST
-[.pka/round007/composition/qa-rubric-composed-scene.md] + assignment scope, per
-Scott's sequencing. Triaged FULL PROTOCOL [genuine seam-treatment forks], set up
-decision 016. Rebranched all three doer worktrees off round head 3c4c905
-[ground-source preserved in lw-007-claude], verified Meshy billing clean [2937,
-no pending]. DISPATCHED phase-1 blind proposals into the three worktrees
-[run stamp 20260718-171534], all confirmed alive + in flight. NEXT: verify each
-proposal from its END marker [agy: check workdir==real not scratch], record the
-three 40-char SHAs, then phase 2 critique.)
+**Last updated:** 2026-07-18 (DECISION 016 FULL PROTOCOL PHASES 1-3 COMPLETE +
+RECORD PUSHED; IMPL SLICE 1 IN FLIGHT. Reframe to composition/integration [Scott
+playtest verdict], wrote binding composed-scene QA rubric + scope. Ran phase 1
+blind proposals [claude dcbd23e / codex 4e0ee74 / agy b906ac6] and phase 2
+adversarial critiques [claude c615220 / codex d6b4bc7 / agy c707ff1], all
+verified from END markers + tree, genuine convergence via mutual concessions.
+Synthesized decision 016 @ 4022fb8 [pushed]: offline-baked footprint field in
+ground.gdshader [D2], offline basal contact + short cast extending existing
+derive_shadows [D1], offline flora rematte + RGB decontamination [D3], one light
+vector + per-kit tonal transforms, ground grade fixed [D4]. Runtime-vs-offline
+ruled 3-1 OFFLINE [decided w/o critic], claude dissent verbatim. Division:
+codex=bake, claude=render, agy=QA. Dispatched codex bake slice [016-bake-codex,
+off 4022fb8]. NEXT: verify bake from marker+tree, self-run gates, then claude
+render slice, cross sign-offs, agy QA vs new rubric, surface to Scott if
+CONFUSABLE. Two tree-verified findings anchored synthesis: claude cast-height
+bug [inn=1 vs tree=10], derive_shadows already exists at process_assets.py:157.)
