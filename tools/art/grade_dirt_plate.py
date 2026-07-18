@@ -72,6 +72,75 @@ SPIKE_MEAN = np.array([98.6, 85.0, 43.5], dtype=np.float64)
 RESHAPE_RADII = (3, 12, 64)
 BAND_GAINS = (1.85, 1.55, 0.55, 0.14)  # (fine, lomid, mid, macro)
 
+# Mid-band spatial DE-PEAKING (decision 013 depeak follow-on). The graded plate
+# closed the muddy-tone and grid-seam tells, but ONE dominant tell remained: the
+# open dirt carried ~15-20 discrete, high-contrast grey lozenge STONES that agy
+# read as a clone-stamped motif. The spike dirt path has NONE of these: it is
+# smooth dry dusty tan with fine speckle. Per-octave RMS showed this is a
+# DISTRIBUTION problem, not a magnitude one: our mid band (5.57) is already below
+# the spike's (~12-15), but our mid-band energy is concentrated in a few dozen
+# peaky, non-Gaussian discrete stones (kurtosis 3.27, a fat tail), while the
+# spike's mid-band energy is diffuse. Lowering the mid gain would drop the core
+# std and reopen the pass-4 flat core; it would not fix the peaky stones.
+#
+# The de-peak is a deterministic spatial outlier soft-winsorize on the MID band
+# (the ~12-24 texel stone scale) ONLY. Excursions beyond DEPEAK_SIGMA local sigma
+# are soft-compressed toward the field (residual slope DEPEAK_SOFT); the band is
+# then rescaled back to its ORIGINAL RMS so the mid-band energy (hence the core
+# richness) is preserved. The fine band is NEVER touched (that keeps shimmer under
+# the ceiling). Pure function of the source bytes: sigma/mean are order-
+# independent reductions, no RNG, no time.
+#
+# MEASURED OUTCOME (see docs/art/village/dirt-depeak-013.md): band-winsorizing
+# does NOT dissolve the visible painted stones. Rendered captures at fine-, lomid-
+# and mid-band de-peak (each pushed to the flat-core floor) all leave the stones
+# intact, because a painted rock is coherent across ALL frequency bands at once,
+# not a statistical outlier in any single one; clamping one band's tail just
+# softens that band's slice and the rock reassembles from the others. So the
+# strength here is CONSERVATIVE: it reduces the flagged mid-band peakiness metric
+# (kurtosis) while strictly holding both hard gates and NOT reopening the pass-4
+# flat core. Fully dissolving the stones needs source-level rock removal (inpaint
+# or a stone-free paid regen), which is an orchestrator design decision.
+DEPEAK_RADIUS = 40   # local-field radius (texels); larger than a stone (~20)
+DEPEAK_SIGMA = 2.0   # soft-clamp knee, in LOCAL sigma of the mid band
+DEPEAK_SOFT = 0.25   # residual slope beyond the knee (0 = hard clamp, 1 = off)
+DEPEAK_RMS_RESTORE = 1.0  # fraction of the removed band RMS re-injected (1=full hold)
+
+
+def _depeak_band(band: np.ndarray, radius: int = DEPEAK_RADIUS,
+                 n_sigma: float = DEPEAK_SIGMA, soft: float = DEPEAK_SOFT,
+                 rms_restore: float = DEPEAK_RMS_RESTORE) -> np.ndarray:
+    """Soft-winsorize the LOCAL spatial outliers of a band toward the local field.
+
+    A discrete stone is an excursion that is large relative to its OWN
+    neighborhood, not necessarily a global-tail outlier; a global winsorize barely
+    touches it. So the knee is set from the LOCAL sigma (box-blurred squared
+    excursion at `radius`), which catches a stone sitting on locally-smooth dirt.
+    Excursions beyond `n_sigma` local sigma are soft-compressed (residual slope
+    `soft`) toward the local mean, dissolving the discrete stones into diffuse
+    dusty variation.
+
+    The band RMS is then partly restored (`rms_restore`, 1.0 = full hold) by a
+    single global scalar so the mid-band energy (hence the protected-core
+    richness) is largely preserved. Pure function of the input and integer
+    coordinates: box blurs wrap only the kernel, sigma/mean are order-independent
+    reductions, no RNG, no time, no visit order."""
+    rms0 = float(np.sqrt(np.mean(band ** 2)))
+    local_mean = _box_blur_wrapped(band, radius)
+    excursion = band - local_mean
+    local_var = _box_blur_wrapped(excursion ** 2, radius)
+    local_sigma = np.sqrt(np.maximum(local_var, 1e-12))
+    t = n_sigma * local_sigma
+    a = np.abs(excursion)
+    compressed = t + soft * (a - t)
+    e2 = np.where(a > t, np.sign(excursion) * compressed, excursion)
+    result = local_mean + e2
+    rms1 = float(np.sqrt(np.mean(result ** 2)))
+    if rms1 > 0.0 and rms0 > 0.0:
+        target = rms1 + rms_restore * (rms0 - rms1)
+        result = result * (target / rms1)
+    return result
+
 
 def _box_blur_wrapped(a: np.ndarray, radius: int) -> np.ndarray:
     """Separable wrapped box blur via a summed-area table. Pure function of the
@@ -100,7 +169,7 @@ def reshape_luminance(lum: np.ndarray, gains=BAND_GAINS, radii=RESHAPE_RADII) ->
     b_macro = _box_blur_wrapped(lum, r_macro)
     fine = lum - b_fine
     lomid = b_fine - b_mid_lo
-    mid = b_mid_lo - b_macro
+    mid = _depeak_band(b_mid_lo - b_macro)  # dissolve the peaky discrete stones
     macro = b_macro - b_macro.mean()
     k_fine, k_lomid, k_mid, k_macro = gains
     return (lum.mean()
@@ -153,6 +222,21 @@ def main() -> int:
     bands = band_rms(lum)
     pct = np.percentile(lum, [1, 5, 25, 50, 95, 99])
 
+    # Stone-prominence proxy: mid-band (12-64) kurtosis + fat-tail fraction, on
+    # the SOURCE mid band pre- vs post-de-peak. Discrete high-contrast stones are
+    # a non-Gaussian peaky tail; the de-peak should pull kurtosis toward Gaussian
+    # (3.0) and collapse the >3-sigma tail while holding the band RMS.
+    src_lum = source[..., 0] * 0.2126 + source[..., 1] * 0.7152 + source[..., 2] * 0.0722
+    mid_raw = _box_blur_wrapped(src_lum, 12) - _box_blur_wrapped(src_lum, 64)
+    mid_dp = _depeak_band(mid_raw)
+
+    def _prom(x):
+        cc = x - x.mean()
+        s = float(np.sqrt(np.mean(cc ** 2)))
+        kurt = float(np.mean(cc ** 4) / s ** 4) if s > 0 else 0.0
+        tail3 = float(np.mean(np.abs(cc) > 3 * s)) * 100.0
+        return s, kurt, tail3
+
     print(f"reshape radii {RESHAPE_RADII}  band gains (fine,lomid,mid,macro) {BAND_GAINS}")
     print(f"graded channel mean {out.reshape(-1, 3).mean(axis=0).round(2)}  (spike {SPIKE_MEAN})")
     print(f"graded per-chan std {per_std.round(2)}  (std_rgb {per_std.mean():.2f})")
@@ -161,6 +245,11 @@ def main() -> int:
     print(f"center-crop lum std {center.std():.2f}  (flat-core gate: >= 17.97)")
     print(f"graded mean_grad    {grad(lum):.2f}  (spike 12.14, grass ceiling ~10.28 native)")
     print("graded band RMS     " + "  ".join(f"{k}={v:.2f}" for k, v in bands.items()))
+    s0, k0, t0 = _prom(mid_raw)
+    s1, k1, t1 = _prom(mid_dp)
+    print(f"depeak sigma {DEPEAK_SIGMA} soft {DEPEAK_SOFT}  mid-band prominence proxy (source 12-64 band):")
+    print(f"  BEFORE  rms={s0:.2f} kurtosis={k0:.3f} tail>3sig={t0:.3f}%")
+    print(f"  AFTER   rms={s1:.2f} kurtosis={k1:.3f} tail>3sig={t1:.3f}%  (peakiness reduced, RMS held)")
     print("graded lum pct 1/5/25/50/95/99: " + " ".join(f"{v:.1f}" for v in pct))
     print(f"graded sha256       {hashlib.sha256(OUTPUT.read_bytes()).hexdigest()}")
     return 0

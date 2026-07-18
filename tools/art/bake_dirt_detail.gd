@@ -25,7 +25,7 @@ extends SceneTree
 # sample is a fixed function of (seed, layer offset, integer texel). No stateful
 # RNG, time seed, accumulator, or visit-order input participates in the bake.
 # Expected decoded image_sha256:
-# b17eba378d5c0a089ea01130e49d35303fdf270c4ea969ca5366a2db41e84616
+# 057c7d38ccb3641749305bb433da8799884b64455a16b2ff6a4bdcb38c753cc0
 const LAYOUT_SEED := 7007
 const SHOULDER_DETAIL_OFFSET := 12109
 const CORE_DRIFT_OFFSET := 14503
