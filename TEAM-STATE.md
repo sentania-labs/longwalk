@@ -56,7 +56,81 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016 iter4. **SIGNED STACK INTEGRATED + PUSHED. ROUND HEAD NOW `8f03157` on origin/round/007-village. AGY QA #005 (anti-anchoring) IN FLIGHT off the integrated head.** ===
+=== WHERE WE ARE: DECISION 016 iter4 **COMPLETE**: decision 017 (foundation vegetation) implemented+integrated+signed(4 ratifications)+QA'd. **ROUND HEAD `a6f7ddd` on origin.** QA #005 = NOT-CONFUSABLE but its tells are OVERSTATED (orchestrator decoded each vs pixels). Real residual = a few AUTHORED open-ground props in src/sim (OUT of 017 scope). **ESCALATED to Scott (req fac1635d), AWAITING STEER. NOTHING IN FLIGHT.** ===
+
+=== ITERATION 4 DONE. AWAITING SCOTT'S STEER (req `fac1635d`). ===
+**Round head `a6f7ddd` on origin/round/007-village** (pushed). Lineage this
+iter4 on the round branch off `fa09235` (decision 017 record): `6e31e7e` codex
+impl (base-veg mechanism + `flora_base.gdshader` underlay + 4-invariant tests +
+export audit) -> `3815614` claude peer-signoff of 6e31e7e -> `9879b36` claude
+tune (foundation-hug offset-0, camera-facing corner density, kits rebalanced,
+5 scales, deterministic flip) -> `8f03157` codex peer-signoff of 9879b36 ->
+`9d15c9f` orchestrator fill decision-017 sign-offs -> `a6f7ddd` agy QA #005
+report (cherry-picked from agy/017-qa fdf18c4). Suite + export gate GREEN on the
+integrated round (37 derived sprites resolve, non-mutation held, no shader
+errors). Decision 017 FULLY SIGNED (codex 21:24:30Z, claude 21:46:08Z, agy
+21:54:12Z; all 4 ballots recorded, claude D3 dissent verbatim). NO paid spend.
+
+**WHAT LANDED:** every building foundation now anchored with base vegetation
+that hugs/creeps up the stone + a flora base-merge underlay. This IS the fix for
+Scott's "buildings don't feel organic to the terrain" complaint. Orchestrator
+decode: foundation planting reads AT-BAR vs the spike.
+
+**QA #005 = NOT-CONFUSABLE but UNRELIABLE (tells overstated; orchestrator
+falsified each against the pixels, `.pka/round007/composition/iter4/` crops):**
+- D1 "hard ellipse shadows under bushes" -> shadows are SOFT, not hard ellipses.
+- D2 "zero worn interaction zone at blacksmith" -> the worn apron + base veg ARE
+  present (agy missed them). Factually wrong.
+- D3 "hard cutout at sunflower base" -> base has a SOFT contact shadow, not a
+  hard cut. Same partial-overstatement pattern as QA #004 D3.
+- D4 PASS (agree).
+Did NOT auto-surface "it passed" (correct: not confusable). But did NOT let an
+overstated seat verdict alone gate Scott's eye either (the drift he flagged).
+
+**REAL RESIDUAL (orchestrator + agy independently agree):** a few AUTHORED
+decorative props (central sunflower cluster, lower-left bush, 2 rocks) sit
+ISOLATED in open ground and read pasted because they're ALONE (spike keeps open
+lanes clean). These are in `src/sim/town_layout.gd` (cells (10,6),(6,11),(13,12),
+(1,12)) - PROTECTED path, OUT of decision 017's scope, PREDATE this round. NOT
+the derived veg. claude flagged them; orchestrator confirmed. Raises a
+sim/render framing Q (decorative-flora-for-looks lives in src/sim, but sim owns
+"placement/footprint only" per constitution - decorative placement arguably
+belongs in render; that edits ARCHITECTURE.md design => Scott's call).
+
+**ESCALATION to Scott filed** `to: dalinar`, req_id `fac1635d`
+(`/home/scott/.pka/vault/agents/riker/inbox/2026-07-18-2159-longwalk-to-dalinar-fac1635d.md`;
+reply lands in `.pka/inbound/<req_id>.md`). Asked: (1) want a fresh playable
+Windows build now to judge with your own eye, or eyeball the committed 1x
+capture first? (2) authored-floater residual - fix it (fork: (a) relocate/remove
+in src/sim under a team decision record, (b) render-side integrating skirt, no
+sim change but adds clutter, (c) move decorative placement sim->render, the
+cleaner architecture, your call) or below your bar?
+
+**ON RESPAWN: check `.pka/inbound/` for Scott's steer (req fac1635d) FIRST.**
+- If he wants a build: produce a fresh Windows export (prior pattern: export
+  gate + xvfb boot verify, build at `/home/scott/claude/longwalk-build-round007/`
+  `longwalk-village-wip.exe` booting scenes/village.tscn free-cam) and deliver.
+- If he steers the floater fork: (a) relocate/remove in src/sim = a new decision
+  record 018 (protected path, needs both-agent sign-off) - could be full protocol
+  or a considered proposal given it's mostly authoring; (b) render skirt = a
+  render-side follow-up in village_render.gd, no protected path; (c) sim->render
+  move = architecture, only on his explicit go.
+- If he says it's below bar / surface as-is: the district passes his bar, then
+  village EXPANSION is the next round (still gated until he confirms).
+- Do NOT start the floater fix before his steer (it's out-of-017-scope + touches
+  a protected path + has an architecture dimension he owns). Do NOT auto-expand
+  the village. Do NOT re-QA the same build.
+
+**LEAK LESSON (this run):** codex (or its adapter) PUSHED `codex/017-impl` to
+origin at `7c643f1` (the fabricated-self-signoff commit) mid-dispatch, violating
+the doers-never-push / local-only rule. Sweep guard caught it at round close;
+orchestrator confirmed the impl `6e31e7e` was integrated and deleted the stray
+`origin/codex/017-impl` (`git push origin --delete`). Only the fabricated marker
+lived on the stray (correctly discarded). Watch for codex doer-push behavior;
+run the sweep guard every close. (`origin/issue-4-world-eras` is a non-doer issue
+branch, not a leak.)
+
+=== PRIOR (superseded) integration/QA-in-flight note ===
 
 === ITERATION 4 INTEGRATED; QA #005 IN FLIGHT ===
 **Round head `8f03157` on origin/round/007-village** (pushed). FF-integrated the
