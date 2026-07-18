@@ -110,9 +110,12 @@ var _walk_elapsed := 0.0
 # set_candidate(). _walk_frame_count is the columns of the active sheet;
 # _facing_is_octant selects whether _facing indexes the eight iso octants
 # directly (candidate) or the folded four proxy rows (default, via
-# _OCTANT_TO_FACING).
+# _OCTANT_TO_FACING). _walk_cell_size is the atlas cell geometry the region math
+# uses: the hardcoded WALK_CELL_SIZE for the default proxy, the manifest
+# cell_size for a candidate.
 var _walk_frame_count := WALK_FRAME_COUNT
 var _facing_is_octant := false
+var _walk_cell_size := WALK_CELL_SIZE
 
 
 
@@ -137,7 +140,11 @@ func set_appearance(appearance_variant: String) -> void:
 func set_candidate(candidate_id: String) -> void:
 	var manifest := CandidateArt.load_json(CandidateArt.player_manifest_path(candidate_id))
 	var cell: float = float(manifest["cell_size"])
-	assert(cell == WALK_CELL_SIZE.x, "candidate atlas cell size %d must match WALK_CELL_SIZE" % cell)
+	# The atlas region geometry is driven by the manifest cell size, not the
+	# hardcoded WALK_CELL_SIZE (which stays the default proxy value). _apply_walk_frame
+	# reads _walk_cell_size, so storing it here is what makes the candidate path
+	# genuinely manifest-driven.
+	_walk_cell_size = Vector2(cell, cell)
 	_walk_frame_count = int(manifest["frames_per_facing"])
 	_facing_is_octant = true
 
@@ -287,8 +294,8 @@ func _apply_walk_frame() -> void:
 	if _walk_atlas == null:
 		return
 	_walk_texture.region = Rect2(
-		Vector2(_walk_frame * WALK_CELL_SIZE.x, int(_facing) * WALK_CELL_SIZE.y),
-		WALK_CELL_SIZE
+		Vector2(_walk_frame * _walk_cell_size.x, int(_facing) * _walk_cell_size.y),
+		_walk_cell_size
 	)
 
 

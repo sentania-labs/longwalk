@@ -23,7 +23,6 @@ extends SceneTree
 const StarterTownScene := preload("res://scenes/starter_town.tscn")
 const CandidateArt := preload("res://src/render/town/candidate_art.gd")
 const Iso := preload("res://src/render/iso/projection.gd")
-const CELL := 160
 const CANDIDATES := ["a", "b"]
 
 
@@ -59,14 +58,19 @@ func _verify_candidate(candidate: String) -> bool:
 	var expected_facings: int = manifest["facing_order"].size()
 	var expected_frames: int = int(manifest["frames_per_facing"])
 	var anchor: Array = manifest["contact_anchor"]
+	# Cell geometry is derived from the manifest, not hardcoded, so a manifest
+	# cell_size that does not divide the atlas cleanly into the declared
+	# facings x frames is caught here by geometry rather than slipping past a
+	# hardcoded constant.
+	var cell: int = int(manifest["cell_size"])
 
 	# --- Player atlas shape --------------------------------------------------
 	var player = town.get_node("World/Player")
 	player.set_physics_process(false)
 	var atlas: Texture2D = player._walk_atlas
 	var atlas_image := atlas.get_image()
-	var facings := int(atlas_image.get_height() / CELL)
-	var frames := int(atlas_image.get_width() / CELL)
+	var facings := int(atlas_image.get_height() / cell)
+	var frames := int(atlas_image.get_width() / cell)
 	if facings != expected_facings or frames != expected_frames:
 		_fail("candidate %s atlas is %dx%d cells, expected %dx%d" % [
 			candidate, frames, facings, expected_frames, expected_facings])
@@ -74,7 +78,7 @@ func _verify_candidate(candidate: String) -> bool:
 
 	# --- Player pivot on the contact anchor ----------------------------------
 	var sprite: Sprite2D = player.get_node("Sprite2D")
-	var expected_offset := Vector2(CELL / 2.0 - float(anchor[0]), CELL / 2.0 - float(anchor[1]))
+	var expected_offset := Vector2(cell / 2.0 - float(anchor[0]), cell / 2.0 - float(anchor[1]))
 	if not sprite.offset.is_equal_approx(expected_offset):
 		_fail("candidate %s player offset %s, expected %s" % [candidate, sprite.offset, expected_offset])
 		return false
@@ -101,7 +105,7 @@ func _verify_candidate(candidate: String) -> bool:
 		return false
 
 	# --- The scene actually renders the candidate figure ---------------------
-	if not await _verify_render(candidate, town, player, facings, frames):
+	if not await _verify_render(candidate, town, player, frames, cell):
 		return false
 
 	print("  candidate %s: %d facings x %d frames resolve, player+cottage pivots conform" % [
@@ -134,7 +138,7 @@ func _verify_cottage(candidate: String, town) -> bool:
 	return true
 
 
-func _verify_render(candidate: String, town, player, facings: int, frames: int) -> bool:
+func _verify_render(candidate: String, town, player, frames: int, cell: int) -> bool:
 	# The live-viewport capture needs a real GPU frame. Under the dummy display
 	# (--headless with no GL context) RenderingServer.frame_post_draw never
 	# fires, so skip the capture there rather than hang; the atlas-content and
@@ -161,7 +165,7 @@ func _verify_render(candidate: String, town, player, facings: int, frames: int) 
 	await RenderingServer.frame_post_draw
 	var viewport_image := root.get_texture().get_image()
 	var center := viewport_image.get_size() / 2
-	var crop := Rect2i(center.x - CELL / 2, center.y - CELL, CELL, CELL)
+	var crop := Rect2i(center.x - cell / 2, center.y - cell, cell, cell)
 	if not _region_has_opaque(viewport_image, Rect2(crop.position, crop.size)):
 		_fail("candidate %s: viewport render at the figure is empty" % candidate)
 		return false
