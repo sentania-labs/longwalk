@@ -34,14 +34,60 @@ Scott Q2 GO): autonomous back-to-back iteration; surface a build to Scott ONLY
 when the team believes a screenshot genuinely passes the confusable bar.
 
 **WHERE WE ARE:** one inn-green district at spike fidelity for BUILDINGS +
-GROUND (010) + LANE (011) + DIRT FIDELITY (012) + DIRT RE-TUNE (013) +
-**SOURCE-LEVEL STONE REMOVAL (decision 014) INTEGRATED + PUSHED**. Round head
-**`e08786f`** on origin. The stones tell (dominant since QA6) is CLOSED. QA7 is
-NOT-CONFUSABLE for ONE new reason: the stone-removal FILL left membrane-smooth /
-muddy islands. That is the decision-015 target (see STATUS below). The PAID PATH
-IS DONE and CLOSED; zero paid spend from here (all remaining dirt work zero-cost).
+GROUND (010) + LANE (011) + DIRT FIDELITY (012) + DIRT RE-TUNE (013) + STONE
+REMOVAL (014) + **DIRT FILL QUALITY (decision 015) INTEGRATED + PUSHED**. Round
+head **`3c4c905`** on origin. ALL THREE dominant dirt tells now CLOSED in
+sequence: grey stones (014), amber/brown rocks (014), membrane-smooth muddy
+fill-islands (015). **agy QA PASS 8 = CONFUSABLE**, orchestrator decode AGREES at
+0.5x/1x/2x. **SURFACED A BUILD (screenshots) TO SCOTT** (cross-workspace
+request_id `6110faed`, filed 2026-07-18 16:42Z) per his confusable bar. Awaiting
+his checkpoint read. The PAID PATH IS DONE and CLOSED; zero paid spend from here.
 
-=== STATUS: DECISION 014 INTEGRATED + PUSHED; QA7 = NOT-CONFUSABLE (fill islands) ==
+=== STATUS: DECISION 015 INTEGRATED + PUSHED; QA8 = CONFUSABLE; SURFACED TO SCOTT ==
+**Decision 015 (dirt fill quality) COMPLETE + on origin @ round head `3c4c905`.**
+THIS RUN verified everything from marker+tree+self-run gates+decoded PNGs, never
+narration:
+- **Impl `b3eecac`** (claude, run 015-impl-claude-20260718-154711, 2184s, exit 0,
+  not cap_expired, branch_changed yes, ONE commit). project.godot NOT in commit +
+  header intact; no tracked uncommitted work (only untracked .pka/.team scratch).
+  Energy-matched mid graft (MID_GAIN 1.40->1.20, lands 1.03x, no over-graft) +
+  codex local-tone anchor (base+local_tone-box(base) over 32px known substrate) +
+  mid HELD at 014 baseline 1.25 (codex mid-2.50 rejected, muddy revival impossible)
+  + only lomid lifted 1.55->2.00 + explicit rolled validity-mask grain (kills agy
+  jigsaw). BAND_GAINS (1.95, 2.00, 1.25, 0.14).
+- **ORCHESTRATOR SELF-RUN GATES on b3eecac:** suite GREEN (deterministic bake
+  byte-identical). export gate PASS (checksum b8fac2b4..., non-mutation guard clean).
+  decode_dirt_gates.gd: **flat-core lum_std 18.54 >= 18.44** floor, shoulder-dirt
+  gradient 10.50 (vs accepted-014 10.35, +1.45%, intended dry-speckle trade), core
+  gradient 9.04. Own numeric decode (center crop): blur-island low-freq std
+  9.09->7.89 (-13%, the win), speckle hi-freq 11.87->12.16 (+2.4%), tone mean
+  84.33->84.73 (stable, no muddy revival). Visual decode ground-2x + village-2x:
+  014 membrane-smooth muddy islands CLOSED into continuous dry-tan speckle,
+  stones/amber still gone, no new clone/seam/jigsaw/global-mud tell.
+- **codex NON-AUTHOR sign-off `3c4c905`** (rev/015-signoff off b3eecac, run
+  015-signoff-codex-20260718-163205, 268s, exit 0, marker only 1 file). reviewed_by
+  codex-worker != authored_by claude-worker, reviewed_sha == b3eecac exact.
+  Independently reproduced byte-identical (plate/detail sha256 match), suite+export
+  gate pass, flat-core 18.54, **open-window 12-64 mid RMS 10.46** (near baseline
+  11.01, far below rejected 17.68), decoded islands closed no new tell.
+  `.team/signoffs/claude-015-fill-impl-b3eecacb038d.md`.
+- **INTEGRATED linear FF:** round 94ee00b -> b3eecac (signed impl) -> 3c4c905
+  (marker), signed SHA b3eecac preserved (no rebase). Re-ran suite+export gate on
+  integrated tree (same checksum b8fac2b4...). **PUSHED origin 94ee00b..3c4c905.**
+- **agy QA PASS 8 = CONFUSABLE** (`docs/art/village/qa-agy-dirt-008.md`, agy
+  `b8083e7` on agy/015-qa8 off 3c4c905, run 015-qa8-agy-20260718-163914, workdir
+  == real lw-007-agy [NOT scratch], branch_changed yes, exit 0). QA7 fill islands
+  closed, muddy tone gone, no new tell, no regression. **Orchestrator own decode at
+  0.5x/1x/2x AGREES: CONFUSABLE** (district reads spike-family; dirt = coherent dry
+  trodden earth; no shimmer/crawl at 0.5x).
+- **SURFACED TO SCOTT** (cross-workspace to: dalinar, request_id `6110faed`,
+  2026-07-18 16:42Z): the four export-gate screenshots + spike side-by-side,
+  honest scope (ONE inn-green district, not yet full village; no clickable exe
+  yet). Ask: do the screenshots clear the confusable bar? If yes -> full-village
+  expansion + free-cam playable Windows build. If no -> iterate the named tell.
+  Response lands in `.pka/inbound/6110faed-*.md`.
+
+=== SUPERSEDED (decision 014 detail; kept for lineage) ==
 **Decision 014 (source-level stone removal) COMPLETE + on origin.** Full protocol
 ran last run (blind proposal claude a1e9915 / codex d5725c5 / agy 42ad6a1;
 critique claude 38dae8a / codex b012bd3 / agy 770ebf7; synthesis a857db9). Winner:
@@ -80,138 +126,61 @@ project.godot absent).
   muddy-tone regression INSIDE the fill islands only. No tiling/seam/shimmer
   regression. Orchestrator's own decode + district-2x view AGREE with agy.
 
-=== DECISION 015 (fill-quality: kill the membrane-smooth muddy islands) -- NEXT ===
-**Triage = FULL PROTOCOL.** The "obvious" fix already exists and proved
-insufficient: declutter_dirt_source.py ALREADY does pull-push membrane (low band) +
-GRAIN_RADIUS grain transplant (fine band) + a decision-014 multiscale mid-band
-graft (MID_LO 16 / MID_HI 64 / MID_GAIN 3.80 / MID_FEATHER 3) added SPECIFICALLY
-to kill membrane-smooth islands -- yet agy STILL sees blurry+muddy islands. Root
-cause is genuinely uncertain and has method alternatives with distinct failure
-modes: (a) pull-push membrane fills with a low-band MEAN darker than local dusty
-tan -> muddy; (b) MID_GAIN too low / MID_FEATHER too wide leaves large footprints
-flat; (c) fine grain transplant amplitude insufficient -> soft; (d) donor field
-tone/variance mismatch. A wrong pick = another full QA cycle. NOT fast-lane.
-NOT escalating to Scott (autonomy directive 1500 + Q2 GO: iterate; surface only
-when confusable; stones were the last dominant tell and are now closed).
+=== DECISION 015 LINEAGE (full-protocol converged, now DONE) ===
+Full protocol ran in one prior run off round head 2302d30. Blind proposals:
+claude `d48c7d2` (energy-matched graft, MID_GAIN 3.80->1.40), codex `5bb9579`
+(clean-patch full-band fill), agy `ff9f0e4` (over-graft MID_GAIN 5.0). Critiques:
+claude 1b18a9c / codex fe9d943 / agy ff829b2. agy DISQUALIFIED (over-graft +12.36
+mid deficit + md5-proven STALE ground capture + 2-peer + decode). Contested
+question (codex clone-stamp visible at district?) resolved by orchestrator decode:
+NOT visible (32px high-pass confines the 83.7% translation to sub-32px speckle). No
+2-2, no four-ballot, no critic. Synthesis = claude clone-immune energy-matched mid-
+graft spine + codex local-tone anchoring + minimal global lift (reject codex mid-
+2.50) + validity-mask grain. Losing objections recorded VERBATIM in
+`docs/decisions/015-*.md`. Decision record `94ee00b`. Impl by claude `b3eecac`,
+codex NON-AUTHOR sign-off `3c4c905`, agy QA8 CONFUSABLE `b8083e7`. All integrated
++ pushed (round head `3c4c905`). See STATUS block above for the full verify trail.
 
-Base decision-015 candidates OFF round head **e08786f** (has the working
-detector+removal). TWO HARD GATES unchanged: flat-core center-crop lum_std >= ~18.44
-floor; 0.5x dirt fine-grad <= ~10.75 (shimmer). ADD an objective fill-island check:
-the removed-stone footprints must match local dusty speckle statistics (fine-band
-std + tone mean) within the surrounding substrate, no low-freq blur island, no
-darker-than-local muddy tone. Source plate is the ONLY copy + untracked; each doer
-worktree needs a COPY of `.pka/round007/ground-source/` (do NOT overwrite original).
-`src/render/town/` + tools/art NOT protected; `src/sim/` untouched.
-
-**PHASE 1 BLIND PROPOSALS DONE + VERIFIED + DECODED (all off round head 2302d30):**
-- **claude `d48c7d2`** (branch claude/015-fill, elapsed 2019s): root cause = mid
-  graft OVER-grafts (MID_GAIN 3.80 = ~1.85x local mid energy) -> the graft became
-  the island + muddy DC + ~16% fine-grain dropout holes. Fix: MID_GAIN 3.80->1.40
-  (energy-match), 2nd decorrelated roll fills grain holes, restore core std GLOBALLY
-  via grade band gains (lomid 1.55->2.00, mid 1.25->1.35, fine UNCHANGED). Island
-  check inside/ring: fine 1.05x, mid 1.06x, tone -0.56. Gates flat-core 18.92,
-  shimmer unchanged. 20/20 recall.
-- **codex `5bb9579`** (codex/015-fill, 1069s): root cause = structural gaps (9.88%
-  zero mid-feather from erode(mask,3), 16.31% zero fine grain) + 2.54 lum muddy. Fix:
-  REPLACE separate mid+fine grafts with ONE coherent full-band clean-patch fill (4
-  fixed rolls pick first donor outside mask, re-centered 32px, >=35% real patch).
-  Grade (1.55,1.55,2.50,0.14). Island check fine 1.148x (14.8%), tone -0.27. Gates
-  flat-core 20.94, shimmer 9.32. 20/20 recall.
-- **agy `ff9f0e4`** (agy/015-fill, 759s): root cause = dark-rim mask anchoring +
-  feather erosion. Fix: DILATE mask 4px + INCREASE MID_GAIN 3.80->5.0. Island check
-  mid deficit +7.39 (OVER, not matched). Gates flat-core 18.88, shimmer 9.48.
-All 3 verified from end markers (branch_changed yes, exit 0, not cap_expired).
-
-**ORCHESTRATOR RENDERED DECODE (viewed all 3 ground-2x vs c10a54c baseline + spike):
-claude ~ codex >> agy.** claude closes the muddy islands best (dry tan, continuous,
-cleanest center). codex closes them too (slightly more dark mid-structure center-
-right). **agy did NOT close the tell -- its ground-2x is nearly identical to the
-decision-014 muddy-island baseline; the MID_GAIN 5.0 over-graft entrenched the
-island (its own +7.39 mid deficit predicted this).** Strong 2-converge-1-dissent:
-claude+codex independently reach matched island energy (the decode rewards it);
-agy's opposite direction (over-graft) loses at the render, same failure mode as its
-decision-014 candidate. Decode is decisive over the gate numbers (agy passes 18.88
-yet the island persists).
-
-**PHASE 2 CRITIQUE DONE + VERIFIED** (claude 1b18a9c / codex fe9d943 / agy ff829b2,
-all branch_changed yes, exit 0, not cap_expired). Genuine adversarial round:
-- claude found codex's fill is the most footprint-honest (mid -1.22) BUT codex's
-  GRADE (mid 1.25->2.50) revives global muddy mid (+60% open-window: 17.68 vs base
-  11.01). PROVED agy's ground-2x capture is STALE (md5 e792d297 == 2302d30 baseline,
-  never regenerated -> agy decode unsupported). agy over-graft = +12.36 mid deficit.
-- codex found claude's global lomid lift (1.55->2.00) coarsens the whole road +
-  claude's shimmer-unchanged claim overstated (shoulder 10.35->10.47). Recommends
-  claude's graft as the BASELINE. agy disqualified.
-- agy measured codex's clean-patch = 83.69% of masked pixels share offset (307,461)
-  = fixed-vector clone-stamp + 8,475 internal seam pixels. Recommends codex tone-
-  matching + claude MID_GAIN reduction, minus codex clone + minus claude global lift.
-
-**PHASE 3 SYNTHESIS DONE -> decision 015 committed round head `94ee00b` + PUSHED.**
-ORCHESTRATOR DECODE resolved the contested question (codex clone visible?): viewed
-codex village-inn-green-2x, NO visible clone/seam at district scale (32px high-pass
-confines the 83.7% translation to sub-32px speckle, as claude assessed; agy's visual-
-severity claim refuted, like its own stale-capture decode). agy DISQUALIFIED (2 peers
-+ decode + stale capture). RULING: build on claude's clone-immune energy-matched mid-
-graft spine + GRAFT codex local-tone anchoring (`base+local_tone-box(base)`, all 3
-praised) + MINIMAL global grade lift remeasured from captures (reject codex mid-2.50)
-+ explicit validity-mask grain (kills agy's jigsaw) + optional small anchor-off-
-shadow-rim nudge (NOT 4px dilation). 2 of 3 doers' own recs point at claude's spine.
-Losing objections recorded VERBATIM in the record (agy proposal claim; claude's
-codex-full-fill-spine rec I did not fully adopt). No 2-2, no four-ballot, no critic.
-Division: claude implements, codex NON-AUTHOR signs off, agy QA8.
-
-**IMPLEMENTATION DISPATCHED + IN FLIGHT (2026-07-18 15:47:11Z)** on
-`claude/015-fill-impl` off round head 94ee00b (decision record already in ancestry,
-so integration is a clean FF to the signed impl -- NO cherry-pick needed this time).
-Run `015-impl-claude-20260718-154711`, cap 3000s, start marker confirmed + adapter
-alive at launch+20s. Prompt `.pka/round007/015-fill-impl-prompt.md`. Log
-`.pka/round007/015-impl-claude-dispatch.log`.
-
---- ON RESPAWN (decision 015), do in order: ---
-1. Check inbox `.pka/inbound/orchestrator/`. Fetch --all; scan doer branches for
-   .team/blocked/.
-2. **VERIFY the impl** from end marker
-   `lw-007-claude/.team/markers/015-impl-claude-20260718-154711-end.md` (branch_changed
-   yes, not cap_expired, ONE impl commit; missing marker = still running via pgrep, or
-   cap-killed with work uncommitted like the 014 first attempt -> re-dispatch a FINISH
-   that preserves in-progress work). Confirm project.godot NOT in the commit (running
-   godot clobbers its pinned-version header -> revert, never commit). RUN suite + BOTH
-   hard gates + DECODE ground-2x + village-inn-green-2x yourself (muddy islands gone,
-   dry tan crisp speckle, stones/amber gone, NO clone/seam/jigsaw/global-mud tell).
-   Check the open-window mid RMS is ~baseline (~11), not codex's 17.68.
-3. **codex NON-AUTHOR sign-off** (ephemeral detached review worktree off the impl SHA;
-   reviewed_by codex != authored_by claude; byte-reproduce + gates from captures).
-4. **FF-integrate** the signed impl into round/007-village (round head 94ee00b -> impl
-   SHA is a clean FF), re-run suite + export gate + DECODE, PUSH round branch. Then
-   cherry-pick codex's sign-off marker if it is a separate commit.
-5. **agy QA PASS 8** off the integrated head. If CONFUSABLE **and my own decode agrees**
-   -> **SURFACE A BUILD TO SCOTT** (cross-workspace `to: dalinar`). Stones + amber +
-   (now) fill islands closed = the known tells are gone. Else decode artifacts (never
-   narration), diagnose, tee up next.
-6. After dirt clears: expand inn-green district to the full ~12-16-structure village;
-   ONE round PR + external Codex review; address; merge; sweep. -> docs/decisions/015-*.md
-   (unanimous/majority = no four-ballot; a 2-2 contested question invokes the critic
-   tiebreaker-only). Winner impl off e08786f, codex NON-AUTHOR sign-off, FF-integrate
-   into round/007-village, re-run suite+export gate, PUSH round branch.
-5. **agy QA PASS 8** off integrated head. If CONFUSABLE **and orchestrator's own
-   decode agrees** -> **SURFACE A BUILD TO SCOTT** (cross-workspace `to: dalinar`).
-   Stones + amber closed; fill islands are the last known tell. Else decode
-   artifacts (never narration), diagnose, tee up next.
-6. After dirt clears: expand inn-green district to full ~12-16-structure village;
-   ONE round PR + external Codex review; address; merge; sweep.
+--- ON RESPAWN, do in order: ---
+1. **Check inbox `.pka/inbound/`** for Scott's reply to surface request_id
+   `6110faed` (also `.pka/inbound/orchestrator/`). Fetch --all; scan doer branches
+   for `.team/blocked/`.
+2. **Branch on Scott's checkpoint read:**
+   - **If Scott says CONFUSABLE / GO** (or approves the screenshots): proceed to
+     FULL-VILLAGE EXPANSION. Scale the confirmed-fidelity inn-green district to the
+     full ~12-16-structure Two Rivers village (cottages, inn-anchor, dirt lanes,
+     hedges, gardens, trees, flora, props), and wire the free ("disincorporated")
+     drag-pan/zoom camera with NO PC / NO NPC (camera-follow paths that assume a PC
+     may need a free-cam mode -- in scope). Deliverable = a PLAYABLE Windows build.
+     Triage the expansion (likely FULL PROTOCOL for layout/scene design; the dirt
+     ART is settled). ONE round PR to main + external Codex review; address; merge;
+     sweep. This is the round-007 milestone deliverable.
+   - **If Scott names a remaining tell** (grass too olive, dirt too mottled, etc.):
+     triage it, run the protocol against the specific tell off round head 3c4c905,
+     iterate. Do NOT expand the village until the art bar is settled to his eye.
+   - **If NO reply yet** and this is a fresh respawn: do NOT re-surface (a POST/ask
+     is not the protocol; a missing reply is not a failure). The confusable bar is
+     met by the team's own read; if autonomy directive 1500 + Q2 GO still hold, it
+     is defensible to BEGIN full-village expansion autonomously rather than idle --
+     but getting Scott's checkpoint read first is the lower-risk path the surface
+     was written for. Prefer waiting one respawn cycle for his read before spending
+     the expansion effort; if still silent, begin expansion and note it.
+3. Whatever the branch: verify every dispatch from marker+tree+self-run gates+
+   decoded PNGs, never narration. codex/agy never push; only orchestrator pushes
+   the round branch. agy adapter can no-op into scratch -- verify workdir in marker.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ `94ee00b` (== origin; integration tree;
-  has decision 015 record + QA7 report + decision-014 impl/signoff).
-- `lw-007-claude` on `claude/015-fill-impl` @ `94ee00b` at dispatch (impl in flight;
-  also holds the ONLY copy of `.pka/round007/ground-source/*`). Its 015 proposal is
-  `claude/015-fill` @ d48c7d2, critique 1b18a9c.
+- `lw-007-round` on `round/007-village` @ `3c4c905` (== origin; integration tree;
+  decision 015 record + signed impl + signoff marker + all prior 007 slices).
+- `lw-007-claude` on `claude/015-fill-impl` @ `b3eecac` (signed 015 impl; also holds
+  the ONLY copy of `.pka/round007/ground-source/*`). 015 proposal `claude/015-fill`
+  @ d48c7d2, critique 1b18a9c.
 - `lw-007-codex` on `codex/015-fill` @ `5bb9579` (proposal), critique fe9d943.
-  Reuse for the codex NON-AUTHOR sign-off of the impl (ephemeral rev/ worktree).
-- `lw-007-agy` on `agy/015-fill` @ `ff9f0e4` (proposal), critique ff829b2. Reuse for
-  agy QA8.
-- Prior 007 slices (010-014 + decision 015 record) all in round head 94ee00b history.
-  Local doer/deliberation branches archive to `refs/archive/007/*` at round close.
+  Reuse (ephemeral rev/ worktree) for the next codex NON-AUTHOR sign-off.
+- `lw-007-agy` on `agy/015-qa8` @ `b8083e7` (QA8 report). Reuse for the next agy QA.
+- rev/015-signoff worktree REMOVED this run (signoff integrated into round head).
+- Prior 007 slices (010-015) all in round head 3c4c905 history. Local doer/
+  deliberation branches archive to `refs/archive/007/*` at round close.
 
 ## Round 006 -- CLOSED (superseded)
 
@@ -271,7 +240,7 @@ no PENDING, `meshy_check_balance` before/after, cost-confirm, NEVER `save_to`).
 001-008 on main. Round-007 decisions **009** (art method), **010** (ground/lane),
 **011** (lane geometry), **012** (dirt fidelity + item-5 paid-regen path), **013**
 (dirt re-tune multiband reshape), **014** (source-level stone removal), **015** (dirt
-fill quality) all on the round branch @ 94ee00b. 009-012 signed 4-0; 013 + 014 + 015
+fill quality) all on the round branch @ 3c4c905. 009-012 signed 4-0; 013 + 014 + 015
 are full-protocol converged records touching NO protected path (orchestrator synthesis
 + cited proposal/critique SHAs, not gate-required). Round-006's own 009/010 archive-only.
 
@@ -284,26 +253,31 @@ are full-protocol converged records touching NO protected path (orchestrator syn
   (checked at start).
 - `gh pr edit` is broken (GraphQL projectCards). Use REST `gh api -X PATCH
   repos/sentania-labs/longwalk/pulls/N ...`.
-- No round PR is open (correct -- opens only once the district passes the bar).
-- **Sweep (verify next run before close):** 0 open team PRs expected; origin should
-  carry only `main`, `round/007-village` @ e08786f, unrelated `issue-4-world-eras`;
-  run the leak guard (no doer/rev branches on origin). Ephemeral codex review
-  worktrees removed. NOTE: lw-007-codex still on rev/014-signoff and lw-007-agy on
-  agy/014-qa7 (LOCAL only; rebranch off e08786f for decision 015, don't leak).
+- No round PR is open (correct -- opens only for the full-village milestone once
+  Scott confirms the art bar and the district is expanded).
+- **Sweep DONE this run + clean:** 0 open team PRs; origin carries only `main`,
+  `round/007-village` @ `3c4c905`, unrelated `issue-4-world-eras`; leak guard PASS
+  (no doer/rev branches on origin). rev/015-signoff worktree+branch REMOVED
+  (integrated). NOTE for next: lw-007-codex still on codex/015-fill, lw-007-agy on
+  agy/015-qa8 (LOCAL only; rebranch off round head for the next slice, don't leak).
 
-**Last updated:** 2026-07-18 (DECISION 015 FILL-QUALITY, full-protocol converged round
-in ONE run on top of decision-014 integration. Blind proposal [claude d48c7d2 energy-
-match / codex 5bb9579 clean-patch / agy ff9f0e4 over-graft] + adversarial critique
-[claude 1b18a9c / codex fe9d943 / agy ff829b2], every dispatch verified from marker+
-tree, all 3 proposals DECODED by orchestrator. agy DISQUALIFIED [over-graft +12.36 mid
-deficit + STALE ground capture md5-proven]. Contested question [codex clone visible?]
-resolved by decode [not visible at district scale]. Synthesis = claude clone-immune
-graft spine + codex tone-anchoring + minimal global lift + validity-mask grain; reject
-agy over-graft + codex mid-2.50; losing objections verbatim. Decision 015 committed +
-pushed [round head 94ee00b]. claude impl DISPATCHED + IN FLIGHT [run 015-impl-claude-
-20260718-154711 off 94ee00b]. RESUME: verify impl marker+tree+gates+DECODE, codex non-
-author signoff, FF-integrate, push, agy QA8, surface to Scott iff confusable + my
-decode agrees. Every dispatch verified from marker+tree+decoded PNGs+self-run gates.)
+**Last updated:** 2026-07-18 (DECISION 015 INTEGRATED + PUSHED + QA8 CONFUSABLE +
+SURFACED TO SCOTT. Verified claude impl b3eecac from marker+tree [exit 0, not cap-
+killed, 1 commit, project.godot absent, no tracked uncommitted]. Self-ran gates:
+suite GREEN, export gate PASS [checksum b8fac2b4], decode_dirt_gates flat-core
+18.54>=18.44, shoulder 10.50 [+1.45% vs accepted-014]; own numeric decode blur-
+island -13% / speckle +2.4% / tone stable; visual decode islands CLOSED. codex NON-
+AUTHOR sign-off 3c4c905 [reviewed_by codex != authored_by claude, byte-reproduced,
+open-window mid RMS 10.46 near baseline 11.01]. FF-integrated linear [94ee00b ->
+b3eecac signed -> 3c4c905 marker, signed SHA preserved], re-ran suite+gate on
+integrated tree, PUSHED origin 94ee00b..3c4c905. agy QA8 = CONFUSABLE [b8083e7,
+workdir==real lw-007-agy verified], orchestrator own decode at 0.5x/1x/2x AGREES.
+ALL 3 dirt tells [stones/amber/fill-islands] now closed. SURFACED screenshots to
+Scott [cross-workspace request_id 6110faed, honest scope: district not full village].
+Sweep clean, rev worktree removed. RESUME: check inbox for Scott's reply; if GO ->
+full-village expansion + free-cam playable Windows build; if tell named -> iterate;
+if silent -> prefer one wait cycle then begin expansion. Every dispatch verified
+from marker+tree+decoded PNGs+self-run gates, never narration.)
 
 **PRIOR update:** 2026-07-18 (DECISION 014 INTEGRATED + PUSHED + QA7. Verified
 c10a54c from marker+tree [project.godot absent, tree clean], decoded before/after
