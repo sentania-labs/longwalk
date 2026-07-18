@@ -116,6 +116,9 @@ echo "=== test_lane_mask_consumption.gd ==="
 echo "=== test_footprint_field_bake.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_footprint_field_bake.gd
 
+echo "=== test_footprint_apron_r.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_footprint_apron_r.gd
+
 echo "=== deterministic dirt-detail repeat bake ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://tools/art/bake_dirt_detail.gd
 DIRT_DETAIL_FIRST_SHA="$(sha256sum "${REPO_ROOT}/assets/village/ground_dirt_detail.png" | cut -d' ' -f1)"

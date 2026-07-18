@@ -254,11 +254,26 @@ void fragment() {
 	// cut. This never touches the lane core (max() only lifts coverage) and
 	// reuses dirt_toned for palette continuity with the lanes.
 	vec4 fp = texture(footprint_field, mask_uv);
+	// R is the AUTHORED building-apron coverage (bake contract, decision 016 D2:
+	// "R is building-apron coverage"). The bake encodes it deterministically from
+	// the layout footprints, so the apron consumes R as the coverage authority
+	// rather than re-deriving the whole ring from G. G and B refine that authored
+	// coverage: G shapes the shader-tunable soft edge falloff (and restricts the
+	// band to just OUTSIDE the footprint so the apron hugs foundations rather than
+	// flooding their interior), B intensifies the worn pool at door thresholds.
+	float apron_coverage = fp.r;                    // authored coverage (bake R)
 	float dist_cells = (fp.g - 0.5) * 4.0;          // signed cells: + outside footprint
-	// Worn ring just OUTSIDE the footprint edge (dist 0 -> apron_width_cells).
-	float ring = (1.0 - smoothstep(0.0, apron_width_cells, dist_cells)) * step(0.0, dist_cells);
-	// Door-threshold pool: reaches a little further than the plain apron.
-	float door_pool = fp.b * (1.0 - smoothstep(0.0, apron_width_cells * 1.6, max(dist_cells, 0.0)));
+	// G-driven edge falloff: soft ring just OUTSIDE the footprint edge (dist 0 ->
+	// apron_width_cells), gated so the apron only lives on the exterior seam.
+	float edge_falloff = (1.0 - smoothstep(0.0, apron_width_cells, dist_cells)) * step(0.0, dist_cells);
+	// The worn ring is the AUTHORED coverage shaped by the G edge falloff. Zeroing
+	// the baked R zeroes the ring here (asserted by test_footprint_apron_r), so the
+	// baked coverage is honestly consumed, never dead.
+	float ring = apron_coverage * edge_falloff;
+	// Door-threshold pool: B intensifies the seam at manifest doors, reaching a
+	// little further than the plain apron. Bounded to the exterior seam by the same
+	// authored coverage so it deepens the apron rather than inventing a new one.
+	float door_pool = fp.b * apron_coverage * (1.0 - smoothstep(0.0, apron_width_cells * 1.6, max(dist_cells, 0.0)));
 	float apron_cov = max(ring * apron_strength, door_pool * door_strength);
 	// Slightly darker, more trampled dirt tone for the apron band only.
 	vec4 apron_dirt = vec4(dirt_rgb * (1.0 - apron_tone), dirt.a);
