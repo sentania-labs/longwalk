@@ -1,5 +1,50 @@
 {
   "district": "inn-green",
+  "interaction_field": {
+    "png": "footprint_interaction_field.png",
+    "native_px": [256, 224],
+    "texels_per_cell": 16,
+    "channels": {
+      "r": "building apron coverage, 0 outside and 1 at or inside footprint",
+      "g": "signed distance in cells encoded as clamp(0.5 + distance / 4.0, 0, 1)",
+      "b": "independent deterministic entrance wear, not lane_density",
+      "a": "opaque"
+    },
+    "layout_fingerprint_sha256": "b0d1209c7f376cced1b5e25f24b63073997c550da1cd783768fdff8b4dc51529",
+    "decoded_rgba8_sha256": "e5c916cf1c294deef7c985a2f5b4b08b9964bc45ebb0ea129fcb0610bc18f684"
+  },
+  "seam_policy": {
+    "light_vector_px": [12, 6],
+    "shadow_semantics": "basal alpha only; short cast and contact masks share sprite dimensions",
+    "doors": {
+      "inn": {"footprint_uv": [0.5, 1.0]},
+      "cottage_front": {"footprint_uv": [0.5, 1.0]},
+      "cottage_rear": {"footprint_uv": [0.5, 1.0]},
+      "smithy_cluster": {"footprint_uv": [0.68, 1.0]}
+    },
+    "shadows": {
+      "inn": {"contact": "seams/inn_contact.png", "cast": "seams/inn_cast.png"},
+      "cottage_front": {"contact": "seams/cottage_front_contact.png", "cast": "seams/cottage_front_cast.png"},
+      "cottage_rear": {"contact": "seams/cottage_rear_contact.png", "cast": "seams/cottage_rear_cast.png"},
+      "smithy_cluster": {"contact": "seams/smithy_cluster_contact.png", "cast": "seams/smithy_cluster_cast.png"},
+      "tree_large": {"contact": "seams/tree_large_contact.png", "cast": "seams/tree_large_cast.png"},
+      "bush_a": {"contact": "seams/bush_a_contact.png", "cast": "seams/bush_a_cast.png"},
+      "bush_b": {"contact": "seams/bush_b_contact.png", "cast": "seams/bush_b_cast.png"},
+      "fence_section": {"contact": "seams/fence_section_contact.png", "cast": "seams/fence_section_cast.png"},
+      "sign_post": {"contact": "seams/sign_post_contact.png", "cast": "seams/sign_post_cast.png"},
+      "rock_a": {"contact": "seams/rock_a_contact.png", "cast": "seams/rock_a_cast.png"},
+      "rock_b": {"contact": "seams/rock_b_contact.png", "cast": "seams/rock_b_cast.png"},
+      "flower_cluster_a": {"contact": "seams/flower_cluster_a_contact.png", "cast": "seams/flower_cluster_a_cast.png"},
+      "flower_cluster_b": {"contact": "seams/flower_cluster_b_contact.png", "cast": "seams/flower_cluster_b_cast.png"}
+    },
+    "tonal_targets": {
+      "building": {"mid_rgb": [124, 105, 61], "highlight_guard": 196},
+      "wood_prop": {"mid_rgb": [103, 82, 43], "highlight_guard": 188},
+      "stone": {"mid_rgb": [112, 108, 82], "highlight_guard": 184},
+      "flora": {"mid_rgb": [67, 78, 29], "highlight_guard": 176},
+      "flower": {"mid_rgb": [79, 81, 34], "highlight_guard": 168, "saturation_guard": 72}
+    }
+  },
   "objects": [
     {"id": "ground_grass", "png": "ground_grass.png", "kind": "ground", "anchor_px": [64, 32], "native_px": [128, 64], "provenance": "slice"},
     {"id": "ground_lane", "png": "ground_lane.png", "kind": "ground", "anchor_px": [64, 32], "native_px": [128, 64], "provenance": "slice"},

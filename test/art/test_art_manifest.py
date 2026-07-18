@@ -39,6 +39,20 @@ def manifest(root: pathlib.Path) -> pathlib.Path:
 def main() -> int:
     village_manifest = json.loads((VILLAGE_ASSETS / "manifest.json").read_text(encoding="utf-8"))
     village_records = {record["id"]: record for record in village_manifest["objects"]}
+    interaction = village_manifest["interaction_field"]
+    assert interaction["native_px"] == [256, 224]
+    assert interaction["channels"]["b"].endswith("not lane_density")
+    with Image.open(VILLAGE_ASSETS / interaction["png"]) as field:
+        assert field.size == (256, 224) and field.mode == "RGBA"
+    seams = village_manifest["seam_policy"]
+    assert seams["light_vector_px"] == [12, 6]
+    assert set(seams["doors"]) == {"inn", "cottage_front", "cottage_rear", "smithy_cluster"}
+    for kit_id, record in seams["shadows"].items():
+        source_size = tuple(village_records[kit_id]["native_px"])
+        for kind in ("contact", "cast"):
+            path = VILLAGE_ASSETS / record[kind]
+            assert path.exists(), f"missing {kind} seam for {kit_id}"
+            assert Image.open(path).size == source_size
     for asset_id, (kind, dimensions, provenance) in VILLAGE_GROUND_IDS.items():
         record = village_records[asset_id]
         assert record["kind"] == kind

@@ -186,6 +186,24 @@ def process_manifest(path: Path) -> list[Path]:
     data = json.loads(path.read_text(encoding="utf-8"))
     written: list[Path] = []
     for asset in data["assets"]:
+        if asset.get("operation") == "derive_shadows":
+            source = (path.parent / asset["source"]).resolve()
+            output_dir = (path.parent / asset["output_dir"]).resolve()
+            image = Image.open(source).convert("RGBA")
+            cast, contact = derive_shadows(
+                image,
+                int(asset["contact_y"]),
+                tuple(data["shadow_policy"]["light_vector"]),
+                int(asset.get("footprint_slice", data["shadow_policy"]["footprint_slice"])),
+            )
+            output_dir.mkdir(parents=True, exist_ok=True)
+            for kind, mask in (("cast", cast), ("contact", contact)):
+                target = output_dir / f"{asset['id']}_{kind}.png"
+                rgba = np.zeros((mask.height, mask.width, 4), dtype=np.uint8)
+                rgba[:, :, 3] = np.asarray(mask)
+                Image.fromarray(rgba, "RGBA").save(target)
+                written.append(target)
+            continue
         if asset.get("operation") == "remove_border_background":
             source = (path.parent / asset["source"]).resolve()
             destination = (path.parent / asset["output"]).resolve()

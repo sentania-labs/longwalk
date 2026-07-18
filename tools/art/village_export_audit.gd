@@ -90,6 +90,7 @@ func _run() -> void:
 		"res://assets/village/lane_mask.png",
 		"res://assets/village/lane_density.png",
 		"res://assets/village/ground_dirt_detail.png",
+		"res://assets/village/footprint_interaction_field.png",
 		"res://assets/village/shadow_decal.png",
 	]
 	for path in ground_statics:
@@ -101,6 +102,20 @@ func _run() -> void:
 			_fail("ground asset did not resolve through ResourceLoader: %s" % path)
 			return
 	print("all %d continuous-ground statics resolved through ResourceLoader" % ground_statics.size())
+
+	# Seam masks are render-only records rather than placement objects. Resolve
+	# every declared path from the packaged bundle so the manifest contract
+	# cannot name a source-tree-only PNG.
+	var manifest_file := FileAccess.open("res://assets/village/manifest.json", FileAccess.READ)
+	var manifest_data: Dictionary = JSON.parse_string(manifest_file.get_as_text())
+	for kit_id in manifest_data["seam_policy"]["shadows"]:
+		var shadow_record: Dictionary = manifest_data["seam_policy"]["shadows"][kit_id]
+		for shadow_kind in ["contact", "cast"]:
+			var shadow_path := "res://assets/village/" + str(shadow_record[shadow_kind])
+			if not ResourceLoader.exists(shadow_path) or ResourceLoader.load(shadow_path) == null:
+				_fail("seam asset absent from bundle: %s" % shadow_path)
+				return
+	print("all declared seam masks resolved through ResourceLoader")
 
 	# --- Stand up the district scene ---
 	var village = VillageScene.instantiate()
