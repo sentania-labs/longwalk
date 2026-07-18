@@ -97,6 +97,20 @@ class DistrictPlacement:
 		blocks = p_blocks
 
 
+# Authored semantic lane geometry. Coordinates and widths are measured in
+# cells, including fractional positions. Rendering may derive a mask from this
+# data, but the sim contract itself remains texture-free and viewport-free.
+class LanePath:
+	var points: PackedVector2Array
+	var half_widths: PackedFloat32Array
+
+	func _init(p_points: PackedVector2Array, p_half_widths: PackedFloat32Array) -> void:
+		assert(p_points.size() >= 2)
+		assert(p_points.size() == p_half_widths.size())
+		points = p_points
+		half_widths = p_half_widths
+
+
 var width: int
 var height: int
 # ground[y][x] -> GroundTile
@@ -105,14 +119,16 @@ var buildings: Array[BuildingPlacement]
 # Generic authored placements (inn-green district). Empty for the legacy
 # starter town, which uses `buildings` above. See DistrictPlacement.
 var placements: Array
+var lanes: Array[LanePath]
 
 
-func _init(p_width: int, p_height: int, p_ground: Array, p_buildings: Array[BuildingPlacement], p_placements: Array = []) -> void:
+func _init(p_width: int, p_height: int, p_ground: Array, p_buildings: Array[BuildingPlacement], p_placements: Array = [], p_lanes: Array[LanePath] = []) -> void:
 	width = p_width
 	height = p_height
 	ground = p_ground
 	buildings = p_buildings
 	placements = p_placements
+	lanes = p_lanes
 
 
 func ground_tile_at(cell: Vector2i) -> int:
@@ -228,15 +244,6 @@ static func build_inn_green_district() -> TownLayout:
 			row.append(GroundTile.GRASS)
 		ground.append(row)
 
-	# Lane junction: a horizontal lane and a vertical lane crossing near the
-	# green's center. PATH is the lane terrain (render maps it to ground_lane).
-	var lane_y := 8
-	var lane_x := 8
-	for x in range(width):
-		ground[lane_y][x] = GroundTile.PATH
-	for y in range(height):
-		ground[y][lane_x] = GroundTile.PATH
-
 	var placements: Array = []
 	# Blocking structures.
 	placements.append(DistrictPlacement.new("inn", "building_anchor", Vector2i(5, 2), Vector2i(4, 3), true))
@@ -264,4 +271,80 @@ static func build_inn_green_district() -> TownLayout:
 	placements.append(DistrictPlacement.new("flower_cluster_a", "flower", Vector2i(10, 6), Vector2i(1, 1), false))
 	placements.append(DistrictPlacement.new("flower_cluster_b", "flower", Vector2i(14, 6), Vector2i(1, 1), false))
 
-	return TownLayout.new(width, height, ground, [] as Array[BuildingPlacement], placements)
+	# Three gently curved, hand-authored walks pool into one central green. The
+	# width swells at entrances and the meeting place, then narrows between.
+	# These literals are the only lane source of truth. No seeded or stateful
+	# generator participates in the authored map.
+	var lanes: Array[LanePath] = [
+		LanePath.new(
+			PackedVector2Array([Vector2(0.0, 8.2), Vector2(3.0, 6.6), Vector2(5.2, 7.0), Vector2(7.8, 7.8), Vector2(10.5, 7.1), Vector2(13.0, 5.6), Vector2(16.0, 7.2)]),
+			PackedFloat32Array([0.72, 0.88, 0.48, 1.05, 0.52, 0.86, 0.68])
+		),
+		LanePath.new(
+			PackedVector2Array([Vector2(10.0, 0.0), Vector2(9.5, 3.0), Vector2(10.0, 5.6), Vector2(7.8, 7.8), Vector2(9.4, 10.1), Vector2(9.1, 14.0)]),
+			PackedFloat32Array([0.62, 0.46, 0.58, 1.05, 0.48, 0.64])
+		),
+		LanePath.new(
+			PackedVector2Array([Vector2(7.8, 7.8), Vector2(10.1, 8.6), Vector2(12.2, 9.35)]),
+			PackedFloat32Array([1.05, 0.52, 0.82])
+		),
+	]
+	_rasterize_lanes(ground, lanes, placements, width, height)
+	return TownLayout.new(width, height, ground, [] as Array[BuildingPlacement], placements, lanes)
+
+
+static func _rasterize_lanes(ground: Array, lane_paths: Array[LanePath], district_placements: Array, width: int, height: int) -> void:
+	for y in range(height):
+		for x in range(width):
+			var cell := Vector2i(x, y)
+			if _cell_blocked_by_placements(cell, district_placements):
+				continue
+			for lane in lane_paths:
+				if _cell_square_intersects_lane(cell, lane):
+					ground[y][x] = GroundTile.PATH
+					break
+
+
+static func _cell_blocked_by_placements(cell: Vector2i, district_placements: Array) -> bool:
+	for placement in district_placements:
+		if placement.blocks and cell.x >= placement.cell.x and cell.x < placement.cell.x + placement.footprint.x \
+				and cell.y >= placement.cell.y and cell.y < placement.cell.y + placement.footprint.y:
+			return true
+	return false
+
+
+# Conservative cell-square intersection. Each segment is subdivided so the
+# linearly varying local width is tightly bounded by its two local endpoints.
+# The upper bound cannot omit a true hit and may include a boundary cell,
+# which is intentional for nav continuity.
+static func _cell_square_intersects_lane(cell: Vector2i, lane: LanePath) -> bool:
+	var rect := Rect2(Vector2(cell), Vector2.ONE)
+	for i in range(lane.points.size() - 1):
+		var a := lane.points[i]
+		var b := lane.points[i + 1]
+		for part in range(16):
+			var t0 := float(part) / 16.0
+			var t1 := float(part + 1) / 16.0
+			var local_a := a.lerp(b, t0)
+			var local_b := a.lerp(b, t1)
+			var width_a := lerpf(lane.half_widths[i], lane.half_widths[i + 1], t0)
+			var width_b := lerpf(lane.half_widths[i], lane.half_widths[i + 1], t1)
+			if _segment_rect_distance(local_a, local_b, rect) <= maxf(width_a, width_b):
+				return true
+	return false
+
+
+static func _segment_rect_distance(a: Vector2, b: Vector2, rect: Rect2) -> float:
+	if rect.has_point(a) or rect.has_point(b):
+		return 0.0
+	var corners := [rect.position, rect.position + Vector2(rect.size.x, 0.0), rect.end, rect.position + Vector2(0.0, rect.size.y)]
+	var distance := INF
+	for i in range(4):
+		var edge_a: Vector2 = corners[i]
+		var edge_b: Vector2 = corners[(i + 1) % 4]
+		if Geometry2D.segment_intersects_segment(a, b, edge_a, edge_b) != null:
+			return 0.0
+		distance = minf(distance, Geometry2D.get_closest_point_to_segment(a, edge_a, edge_b).distance_to(a))
+		distance = minf(distance, Geometry2D.get_closest_point_to_segment(b, edge_a, edge_b).distance_to(b))
+		distance = minf(distance, Geometry2D.get_closest_point_to_segment(edge_a, a, b).distance_to(edge_a))
+	return distance
