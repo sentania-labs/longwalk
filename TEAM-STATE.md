@@ -56,42 +56,58 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016. RENDER SEAM WORK (D1/D4) DONE + INTEGRATED + PUSHED. ROUND HEAD `5777b83`. QA #004 (RELIABLE) = NOT-CONFUSABLE; REMAINING GAP = FOUNDATION/FLORA-BASE VEGETATION (D2/D3). ITERATION 4 = FULL PROTOCOL; **PHASE 1 BLIND PROPOSALS DISPATCHED + IN FLIGHT** (all 3 doers). ===
+=== WHERE WE ARE: DECISION 016. ROUND HEAD `5777b83`. ITERATION 4 (D2/D3 base veg) = FULL PROTOCOL. **PHASE 1 DONE (3 blind proposals committed); PHASE 2 ADVERSARIAL CRITIQUE DISPATCHED + IN FLIGHT.** ===
 
-=== ITERATION 4 (D2/D3 base vegetation), PHASE 1 IN FLIGHT ===
-Scope + goal: `.pka/round007/composition/iter4/assignment.md`. Shared blind
-proposal prompt: `.pka/round007/composition/iter4/proposal-prompt.md`. Design
-fork (why full protocol): D2 foundation anchoring = discrete prop placement vs
-baked foundation-vegetation seam mask vs shader base-skirt. D3 flora base
-feather-AO / root-merge is the smaller secondary piece.
+=== ITERATION 4 (D2/D3 base vegetation), PHASE 2 IN FLIGHT ===
+Scope + goal: `.pka/round007/composition/iter4/assignment.md`. Design fork: D2
+foundation anchoring = discrete prop placement vs baked mask vs shader skirt.
 
-**Three blind proposals DISPATCHED 2026-07-18 21:00:10 (detached setsid, cap
-1800s), all off round head `5777b83`:**
-- claude -> worktree `lw-016-render`, branch `claude/016-baseveg`, run_id
-  `baseveg-prop-claude-20260718-210010`. Log `.pka/round007/composition/iter4/logs/prop-claude.log`.
-- codex -> worktree `lw-007-codex`, branch `codex/016-baseveg`, run_id
-  `baseveg-prop-codex-20260718-210010`. Log `.../logs/prop-codex.log`.
-- agy -> worktree `lw-007-agy`, branch `agy/016-baseveg`, run_id
-  `baseveg-prop-agy-20260718-210010`. Log `.../logs/prop-agy.log`.
-Start markers confirmed present for all three; dispatch.sh pids 449148/449149/
-449150 alive at launch. Each doer commits its proposal
-(`docs/proposals/<prefix>-016-baseveg.md`) on its own branch and reports the SHA;
-doers do NOT push.
+**PHASE 1 DONE. Three blind proposals committed off `5777b83` (all verified from
+end markers + tree, uncommitted "yes" on codex/agy was only untracked
+.pka/.team noise, proposal commits clean; agy workdir confirmed = real worktree,
+NOT a scratch no-op):**
+- **claude** `65bfca1b2606cdd6e331494c8df111d51a040718` (claude/016-baseveg,
+  worktree lw-016-render): D2 Option 1 discrete placement; determinism via
+  hand-rolled FNV-1a (avoids hash()/RNG); D3 = base-AO band in object.gdshader.
+  199-line proposal, thorough.
+- **codex** `46a1c2691f6d59dd1f986e58056b1b82ae2bf4e8` (codex/016-baseveg,
+  worktree lw-007-codex): D2 Option 1; determinism via explicit positional
+  integer mixing (not hash()/RNG); most thorough candidate rejection (door +
+  collision w/ existing fences/sign/tree); D3 = SEPARATE flora_base.gdshader
+  underlay reusing contact mask; invariance + export tests.
+- **agy** `1ff6a8ce8518e1ea79a157cd40dff521c097a0cf` (agy/016-baseveg, worktree
+  lw-007-agy): D2 Option 1; **determinism via stateful RandomNumberGenerator +
+  hash() (LIKELY CONSTITUTION VIOLATION - no stateful/sequential RNG in
+  placement; claude+codex both independently avoided this)**; D3 = base-AO
+  darken in object.gdshader. 30-line proposal, terse but complete.
+- **CONVERGENCE: D2 fork is 3-0 for Option 1 (discrete deterministic prop
+  placement, reuse existing kits, render-only, NO paid spend).** Divergences to
+  settle in synthesis: (a) agy's determinism mechanism is the defect; use a pure
+  positional hash (claude FNV / codex integer-mix). (b) D3 shader approach
+  (in-object band vs separate underlay shader). (c) candidate rejection
+  thoroughness (codex most robust).
 
-**ON RESPAWN (if respawned mid-phase-1): DO NOT RE-DISPATCH.** Verify from end
-markers: `<worktree>/.team/markers/baseveg-prop-<doer>-20260718-210010-end.md`
-(branch_sha_before vs after, branch_changed, uncommitted_work). Then `git -C
-<worktree> log --oneline -1` should show the proposal commit past `5777b83`. If a
-doer's proc is dead (pgrep dispatch.sh/adapter for baseveg-prop) and no commit,
-inspect its log + `.team/blocked/`, re-dispatch that one only. Once all 3
-proposals committed + verified -> record SHAs -> PHASE 2 adversarial critique
-(each doer reads the other two, dispatch `roles/phases/2-critique.md`-shaped
-prompt into its worktree) -> PHASE 3 four-ballot synthesis + decision record 017
-(or a 016 addendum; likely a new decision record for the base-veg approach) ->
-implementation -> cross sign-off -> gates -> FF integrate -> QA #005
-(anti-anchoring) + orchestrator decode -> if CONFUSABLE + agree, surface build to
-Scott (`to: dalinar`). Four-ballot: orchestrator + claude + codex + agy; critic
-(cursor) ONLY on a 2-2 split.
+**PHASE 2 DISPATCHED 2026-07-18 21:06:13 (detached setsid, cap 1800s), each doer
+critiques the OTHER TWO (worktrees share object store; peers read via `git show
+<sha>:...`):**
+- claude -> lw-016-render, run_id `baseveg-crit-claude-20260718-210613`.
+- codex -> lw-007-codex, run_id `baseveg-crit-codex-20260718-210613`.
+- agy -> lw-007-agy, run_id `baseveg-crit-agy-20260718-210613`.
+Prompts `.pka/round007/composition/iter4/crit-prompt-<doer>.md`. Each commits
+ONE critique `docs/critiques/<prefix>-016-baseveg-crit.md`; doers do NOT push.
+
+**ON RESPAWN (mid-phase-2): DO NOT RE-DISPATCH.** Verify end markers
+`<worktree>/.team/markers/baseveg-crit-<doer>-20260718-210613-end.md`
+(branch_changed, uncommitted). `git -C <worktree> log --oneline -1` should show a
+critique commit past each proposal SHA. If a proc is dead + no commit, inspect
+log + `.team/blocked/`, re-dispatch that one only. Once all 3 critiques
+committed -> record SHAs -> PHASE 3 four-ballot synthesis (orchestrator + claude
++ codex + agy; critic/cursor ONLY on a 2-2 split) + decision record (new NNN or
+016 addendum) with agy's determinism dissent recorded VERBATIM if it loses ->
+divide labor by capability -> implementation -> cross sign-off (reviewer !=
+author) -> gates -> FF integrate -> push round -> QA #005 anti-anchoring +
+orchestrator decode -> if CONFUSABLE + agree, surface build to Scott
+(`to: dalinar`).
 
 **Round head `5777b83` on origin/round/007-village** (pushed). Nothing dispatched
 at turn end. Lineage this run on the round branch (all verified from end markers +
