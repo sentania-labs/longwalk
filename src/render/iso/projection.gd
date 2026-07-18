@@ -214,3 +214,34 @@ static func building_contact_cell(origin_cell: Vector2i, footprint: Vector2i) ->
 		float(origin_cell.x) + float(footprint.x) / 2.0,
 		float(origin_cell.y) + float(footprint.y)
 	)
+
+
+# --- Inn-green district landmark registration (decision 009 item 9) ----------
+#
+# Four district landmarks registered against this frozen projection contract so
+# the first-district export gate can verify their placement at 0.5x / 1x / 2x
+# zoom. Each value is the landmark's ground-CONTACT point in CELL space (the
+# same space depth_key / building_contact_cell speak), matching the authored
+# placements in src/sim/town_layout.gd build_inn_green_district(). Kept here (the
+# projection module) rather than in the render scene so the registration is
+# stated once against the projection math it is registered in, and the gate
+# imports one contract, not two.
+const INN_GREEN_LANDMARKS := {
+	# inn anchor: building_contact_cell((5,2),(4,3))
+	"inn": Vector2(7.0, 5.0),
+	# front cottage: building_contact_cell((2,4),(2,2))
+	"cottage_front": Vector2(3.0, 6.0),
+	# lane junction: center of the crossing cell (8,8)
+	"lane_junction": Vector2(8.5, 8.5),
+	# large tree: building_contact_cell((3,10),(2,2))
+	"tree_large": Vector2(4.0, 12.0),
+}
+
+
+# Where a SCREEN-space point lands in the VIEWPORT under a centered Camera2D at
+# the given zoom and camera center (no rotation, origin-centered anchor, the
+# CameraRig2D convention). Used by the export gate to assert each registered
+# landmark projects to an on-screen pixel at every zoom level. viewport pixel =
+# (world_screen - camera_center) * zoom + viewport_size / 2.
+static func viewport_point(world_screen: Vector2, zoom: float, camera_center: Vector2, viewport_size: Vector2) -> Vector2:
+	return (world_screen - camera_center) * zoom + viewport_size / 2.0
