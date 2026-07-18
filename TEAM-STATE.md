@@ -151,11 +151,22 @@ Round head advanced `4022fb8 -> 3000e93 -> 4e506dd` on origin. Sequence:
 - Codex flora finish (`codex/016-flora` f196cf8) claude-signed (8083068),
   FF+marker integrated -> `4e506dd`, suite + village export gate GREEN, pushed.
   Flora now clean in-scene (verified the 1x capture: no cutout edges, spike style).
-- CLAUDE RENDER SLICE **IN FLIGHT** (`claude/016-render` off 4e506dd, run
-  render-016-20260718-182928, detached, cap 2400s). D1 below-sprite contact/cast
-  layer (retire shadow_decal) + D2 footprint-field sampling in ground.gdshader +
-  D4 per-kit tonal, tuned vs spike at 0.5x/1x/2x. Before-render ref at
+- CLAUDE RENDER SLICE authored (`claude/016-render` @ `81e695f` off 4e506dd): D1
+  below-sprite contact/cast (retire shadow_decal) + D2 footprint-field sampling +
+  D4 object.gdshader per-kit tonal. Orchestrator DECODED its 1x capture: clear
+  improvement (objects grounded, worn aprons, unified key). Before-render ref
   `.pka/round007/composition/before-render-1x.png`.
+- **CODEX peer review BLOCKED the render slice (valid, real defect):**
+  `ground.gdshader` derives the worn apron from field G+B only and NEVER reads R,
+  but the bake contract says R = building-apron coverage. Gates passed only
+  because none assert R consumption. Block record
+  `.pka/round007/composition/codex-block-render-R-channel.md`. NOT integrated
+  (correctly held; no sign-off).
+- **CLAUDE RENDER FIX IN FLIGHT** (`claude/016-render`, run
+  render-fix-016-20260718-184547, detached cap 1800s): consume baked R apron
+  coverage per contract + add a render-side R-consumption regression test +
+  re-tune. On respawn VERIFY from end marker + tree, then codex RE-REVIEW the new
+  head (ephemeral worktree), FF integrate + push, then agy QA.
 
 **ON RESPAWN / NEXT ACTION (in order):**
 1. Check inbox `.pka/inbound/orchestrator/` (Scott steers mid-run).
