@@ -1,9 +1,11 @@
 # Ground swatch acceptance
 
-The two 512 by 512 swatches were made from unobstructed crops of
-`docs/art/iso-five-asset-spike.png` with deterministic offset-and-heal. The
-grass crop is source rectangle `(800, 36, 1152, 230)` and the dirt crop is
-`(278, 365, 354, 455)`. Each crop is resized to 512 by 512, rolled by exactly
+The two 512 by 512 swatches were made from the supervised paid source fields
+`.pka/round007/ground-source/source-grass.png` and
+`.pka/round007/ground-source/source-dirt.png` with deterministic
+offset-and-heal. The grass crop is source rectangle `(256, 192, 768, 704)`
+and the dirt crop is `(256, 256, 768, 768)`. Each crop is used at native
+resolution, rolled by exactly
 256 pixels on both axes, then healed only within the 96-pixel-wide central
 seam cross. Healing clones fixed translations from the same organic crop,
 using offsets `(137, 173)` for grass and `(151, 181)` for dirt, with a cubic
@@ -23,15 +25,14 @@ screen pixel.
 
 ## Judgment
 
-- Grass: FAIL. The healed seam is not the dominant defect, but the limited
-  clean meadow crop repeats its distinctive tonal composition on both axes at
-  every inspected zoom.
-- Dirt: FAIL. A genuinely unobstructed trail area in the spike is only about
-  76 by 90 source pixels. Enlarging it preserves painterly color but repeats
-  its small composition conspicuously at every inspected zoom.
+- Grass: FAIL. The source is high resolution and painterly, but the 8 by 8
+  panels reveal a recurring horizontal tonal band and repeated bright texture
+  groupings. The seam heal is not the dominant defect.
+- Dirt: FAIL. The source field contains recurring stamped marks arranged on a
+  fine grid. The grid is conspicuous at 0.5x and remains legible at 1x and 2x,
+  so offset-and-heal cannot remove it without modifying pixels globally.
 
-The offset-and-heal method preserves the organic source appearance and avoids
-the rejected Fourier weave, but the spike does not contain enough clean,
-high-resolution ground to produce a long-period swatch. A higher-resolution
-painterly grass and dirt source image is required before offset-and-heal can
-clear Decision 010's visual gate.
+The offset-and-heal method preserves the source appearance and introduces no
+new global structure, but it cannot remove regular structure already present
+throughout a source while obeying the seam-only constraint. These sources do
+not clear Decision 010's visual gate.

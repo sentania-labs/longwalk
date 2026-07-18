@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Bake deterministic offset-and-heal village ground swatches.
 
-The source rectangles come from docs/art/iso-five-asset-spike.png. The crop is
-half-offset so its original edges meet in a central seam cross. Fixed donor
-patches from the same crop are then feathered over only that cross. Pixels
-outside the two seam bands remain the untouched, half-offset source crop.
+The source rectangles come from the supervised Round 007 ground source
+fields. Each crop is half-offset so its original edges meet in a central seam
+cross. Fixed donor patches from the same crop are then feathered over only
+that cross. Pixels outside the two seam bands remain the untouched,
+half-offset source crop.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "docs/art/iso-five-asset-spike.png"
+SOURCE_DIR = ROOT / ".pka/round007/ground-source"
 ASSETS = ROOT / "assets/village"
 CONTACT = ROOT / "docs/art/village/ground-swatch-contactsheet.png"
 SIZE = 512
@@ -87,10 +88,11 @@ def _contact_sheet(tiles: list[tuple[str, Image.Image]]) -> None:
 
 
 def main() -> int:
-    source = Image.open(SOURCE).convert("RGB")
-    # Largest useful unobstructed rectangles: upper-right meadow and broad lane.
-    grass_crop = source.crop((800, 36, 1152, 230))
-    dirt_crop = source.crop((278, 365, 354, 455))
+    grass_source = Image.open(SOURCE_DIR / "source-grass.png").convert("RGB")
+    dirt_source = Image.open(SOURCE_DIR / "source-dirt.png").convert("RGB")
+    # Fixed 512 px interior crops avoid the faint source-edge vignette.
+    grass_crop = grass_source.crop((256, 192, 768, 704))
+    dirt_crop = dirt_source.crop((256, 256, 768, 768))
     grass = _offset_and_heal(grass_crop, (137, 173))
     dirt = _offset_and_heal(dirt_crop, (151, 181))
     ASSETS.mkdir(parents=True, exist_ok=True)
