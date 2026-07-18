@@ -659,43 +659,56 @@ archived under `refs/archive/005/*` (pushed to origin).
 
 ## Open escalations to Scott
 
-**None open.** The Meshy-adoption call (1515) becomes an escalation-class
-call-out IN decision 009 IF the team chooses a Meshy path; it is not an open
-dispute now. A 2-2 four-ballot split in round 006 invokes the critic; a
-constitution violation or critic-vs-orchestrator standoff escalates.
+**ONE OPEN (filed this run, 0256):** the round-006 acceptance-gate ruling +
+vision-bar call. Request `c3ffe894-ab59-482a-a85c-a41f3c0b1d76` filed to dalinar
+via cross-workspace (`/home/scott/.pka/vault/agents/riker/inbox/2026-07-18-0256-longwalk-to-dalinar-c3ffe894.md`);
+reply lands in `.pka/inbound/`. Substance: the Meshy pilot reached the acceptance
+gate and does NOT pass on aesthetics (both candidates miss the spike bar; A=NPR
+under-tuned/muddy, B=texture-space photoreal-clash); all six measurables pass;
+mechanism validated. I asked Scott for (1) the vision-bar read on candidate A's
+NPR direction (accept-and-tune vs iterate vs rethink Path 3), (2) whether to
+autonomously run the A-treatment tuning iteration now or hold, (3) confirmation
+that Meshy production adoption stays HELD. I PAUSED autonomous iteration pending
+his read, because the vision bar is his reserved call (directive 1500/1515) and
+this is the milestone he asked to see. Treat his reply as authoritative mid-run.
+
+The Meshy-adoption call (1515) stays HELD (pilot inconclusive on fidelity; not
+recommending adoption). A 2-2 four-ballot split in round 006 invokes the critic;
+a constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP (this run's handoff): verify the DETACHED STEP-5 acceptance
-harness (acceptance-harness, codex, cap 2400s, stamp 20260718-024836, worktree
-lw-006-accept, branch codex/006-acceptance @ 5eee7bf).** Check inbox FIRST.
-Confirm Meshy balance still 2970 (free meshy_check_balance; this slice does NO
-paid work, full rerender from committed local inputs only).
-- Poll `lw-006-accept/.team/markers/acceptance-harness-*-end.md`: read
-  branch_changed / uncommitted / cap_expired. Expect ONE commit on
-  codex/006-acceptance adding tools/art/ capture code + docs/art/acceptance/
-  (subject-1..4 static PNG + walk GIF, _key.json, VERDICT.md).
-- If clean commit: READ the four anonymized subject-N static PNGs + walk GIFs +
-  VERDICT.md yourself. RULE the gate against the six pass conditions (decision 009
-  lines 142-149): painterly fidelity, structural preservation (no landmark
-  mutation), motion stability (no boiling / real gait / 8 distinct facings / feet
-  within 2px contact-anchor tol), scale (ratios, no runtime tweak), grounding (no
-  ground seams / shared light vector), production economics (ledger). Form the
-  aesthetic judgment BEFORE opening _key.json. Four-ballot if the A-vs-B choice is
-  contested (blind subject-N). THEN peer-sign the harness (non-author = claude or
-  agy) and integrate --no-ff onto round.
-- If codex left it empty/skipped captures (headless dummy-display trap) or the
-  recurring no-commit way (branch_changed=no + uncommitted=yes): re-dispatch with
-  xvfb-run made mandatory / a COMMIT-ONLY rescue.
-- WHEN THE GATE PASSES: THAT is the surface-to-Scott moment (vision bar, directive
-  1500) + the Meshy production-adoption escalation (decision 009 / 1515), paired
-  with the git-lfs/artifact-store call. Do NOT open the round PR until the gate
-  passes.
---- SUPERSEDED (step 4, DONE this run) ---
+**IMMEDIATE NEXT STEP (this run's handoff): AWAIT SCOTT'S REPLY to escalation
+`c3ffe894` (his vision-bar call), then act on it.** Check `.pka/inbound/` FIRST
+(a reply file `.pka/inbound/c3ffe894*.md` or a new dalinar steer). The acceptance
+gate is RUN and RULED: does NOT pass on aesthetics (both candidates miss the spike
+bar); all measurables pass; I paused autonomous iteration and surfaced the
+vision-bar call to Scott. Do NOT open the round PR (gate not passed).
+- IF Scott says "iterate / accept-and-tune candidate A": dispatch a DETERMINISTIC
+  candidate-A NPR-treatment tuning slice (codex owns A; NO Meshy needed; brighten,
+  raise contrast, warm the palette toward docs/art/iso-five-asset-spike.png,
+  sharpen the timber read), re-render byte-stable, then RE-RUN the acceptance
+  harness (reuse tools/art/build_acceptance_artifacts.py from codex/006-acceptance
+  @ adaf9a0) and re-rule. Iterate until it clears his bar, then surface again.
+- IF Scott redirects the direction or path: follow his steer.
+- HARNESS INTEGRATION PENDING: codex/006-acceptance @ **adaf9a0** ("Add anonymized
+  acceptance capture gate", clean single commit, tools/art/build_acceptance_artifacts.py
+  + docs/art/acceptance/{subject-1..4,_key.json,VERDICT.md,measurements.json}) is
+  NOT yet peer-signed or integrated onto round (local-only branch, worktree
+  lw-006-accept). It is good reusable tooling + the gate evidence; get it
+  peer-signed (non-author = claude or agy) and integrated --no-ff onto round when
+  the round resumes, or fold it into the round PR at close. The next iteration
+  will likely extend it, so signing now is optional.
+- KEY (post-ruling): subject-1=B, subject-2=spike, subject-3=current, subject-4=A.
+  A = codex NPR (muddy/under-tuned, right direction); B = claude texture-space
+  Meshy restyle (glossy/photoreal-clash, weaker). Light-vector: A 0.1deg, B 8.7deg.
+--- SUPERSEDED (steps 4-5, DONE this run) ---
 - STEP 4 integration: verified clean (ae74a8a), peer-gate found+fixed a real
   cell-size-hardcode defect (changes-requested -> fix 2b7d94e -> signed-off), and
   integrated --no-ff onto round -> 5eee7bf, suite green, pushed.
-- THEN STEP 5 (codex owns the acceptance-capture harness): anonymized static +
+- STEP 5 acceptance harness: codex delivered adaf9a0 (clean), orchestrator ran +
+  ruled the gate (does not pass on fidelity), escalated to Scott (c3ffe894).
+- (historical step-5 dispatch scoping): anonymized static +
   walk-GIF captures for candidate A, candidate B, the SPIKE
   (docs/art/iso-five-asset-spike.png + docs/art/player-walk-iso-spike.gif), and
   the current build, at shipping zoom / fixed color management / matched
@@ -816,22 +829,25 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-18T~02:50Z (orchestrator run 0248). This run:
-(1) inbox clean (1620 newest, already processed; no new steer). (2) VERIFIED step
-4 integration ae74a8a from end marker + tree (clean, suite green, both proofs
-pass, no protected paths/em-dash). (3) Ran the PEER GATE with codex (non-author):
-changes-requested on a REAL cell-size-hardcode defect (commit overclaimed
-manifest-driven) -> routed fix to author claude -> fix 2b7d94e (genuinely
-manifest-driven) -> codex re-review signed-off (mutation probe 160->161 proved
-it). (4) INTEGRATED --no-ff onto round -> **5eee7bf**; round suite GREEN + both
-candidate proofs pass; pushed. Step 4 DONE. (5) DISPATCHED step 5 (codex
-acceptance-capture harness + gate verdict, detached, cap 2400s, NO Meshy) into
-lw-006-accept (godot fetched, xvfb available); proc tree confirmed alive.
-Balance 2970, zero paid work this run. NEXT: verify the harness from its end
-marker + tree, READ the anonymized subject-N captures + VERDICT.md, RULE the gate
-vs the six conditions, peer-sign + integrate; then surface to Scott (vision bar +
-Meshy adoption escalation) when the gate passes. Do NOT open the round PR until
-the acceptance gate passes.
+**Last updated:** 2026-07-18T~02:58Z (orchestrator run 0248). This run drove
+STEP 4 + STEP 5 to the acceptance-gate milestone end to end:
+(1) inbox clean (1620 newest; no new steer). (2) Step 4 integration ae74a8a
+VERIFIED clean; peer gate (codex) caught a REAL cell-size-hardcode defect
+(changes-requested) -> author fix 2b7d94e -> re-review signed-off (mutation probe
+160->161 proved manifest-driven); INTEGRATED --no-ff -> round **5eee7bf** (suite
+green + both proofs pass, pushed). (3) Step 5: codex delivered the acceptance
+harness adaf9a0 (clean single commit; 4 anonymized subjects + VERDICT + key +
+measurements + tools/art/build_acceptance_artifacts.py). (4) I VIEWED the four
+blind subject stills, formed the aesthetic judgment BEFORE opening the key, and
+RULED: gate does NOT pass. All six measurables pass; both candidates miss the
+spike bar (A=NPR muddy/under-tuned but right direction; B=texture-space
+photoreal-clash). Mechanism validated. (5) ESCALATED to Scott (req c3ffe894) for
+the vision-bar call + Meshy-adoption steer, and PAUSED autonomous iteration
+pending his read (the vision bar is his reserved call and this is the milestone he
+asked to see). Balance 2970, ZERO paid work this run; every dispatch verified from
+end marker + tree. NEXT: act on Scott's reply (likely: tune candidate A's NPR
+toward the spike, re-run the harness, re-rule). Round PR NOT opened (gate not
+passed). Harness adaf9a0 not yet integrated (local codex/006-acceptance).
 
 --- PRIOR RUN (`orchestrator-run-20260717-204425`, ~01:53Z) ---
 (1) inbox clean (1620 newest, already processed). (2) DIAGNOSED why the A re-review attempt 1 (stamp 014501) left no marker:
