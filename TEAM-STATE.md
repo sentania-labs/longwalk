@@ -62,10 +62,58 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 MESHY PILOT: steps 1-2 DONE (merged @ 611664c). STEP 3
-(render candidates A+B) BYTE-STABILITY CLOSE-OUT. Run
-orchestrator-run-20260718-013944. Meshy balance 2970 (verified via
-meshy_check_balance this run; NO paid work in flight). No PR yet.
+**Status:** `ROUND 006 MESHY PILOT: steps 1-3 DONE. BOTH candidates A+B are
+byte-stable, clean-signed, INTEGRATED on round/006-two-rivers, suite GREEN.
+STEP 4 (in-engine integration) DISPATCHED DETACHED this run. Run
+orchestrator-run-20260718-022000ish. Meshy balance 2970 (verified via
+meshy_check_balance THIS run; NO paid work). No PR yet.
+
+*** THIS RUN (0220): candidate A re-integrated at byte-stable head; step 4
+dispatched. Verified from tree, not narration: ***
+- CANDIDATE A byte-stability re-review LANDED CLEAN. codex/006-candidate-a head
+  acf822f = marker-only commit (45-line signoff, NO code) on top of code 8212464.
+  Marker .team/signoffs/codex-006-candidate-a-8212464520e9.md: reviewed_by
+  claude-worker / authored_by codex-worker / reviewed_sha 8212464 / result
+  signed-off. Non-author claude PROVED byte-stability (fresh reproduce.sh, 733s,
+  clean git status after = zero drift on all 50 deliverables), suite exit 0,
+  real PROVENANCE render times (841s/832s), no em-dash, balance 2970. End marker
+  candidate-a-review-fix2-20260718-015206-end.md: branch_changed=yes, exit0,
+  cap_expired=no (uncommitted_work=yes was just untracked marker/tools-blender
+  scratch; acf822f itself is clean marker-only).
+- A RE-INTEGRATED --no-ff onto round: 80435d1 (round+B, old provisional A from
+  1208ef0) + acf822f -> round head **84e54f8**. Merge brought the 4-line
+  determinism pins in tools/art/blender_pose_rig.py + regenerated 50 PNGs + the
+  signoff marker; no conflicts (B forked its own render_candidate_b.py so no
+  shared-driver clash). Round suite GREEN (SUITE_EXIT=0, all active-path suites;
+  the get_node absolute-path ERROR line is a benign tolerated Godot warning).
+  PUSHED origin/round/006-two-rivers @ 84e54f8.
+- BOTH CANDIDATES NOW DONE. B @ f08e2c7 (signed 60ceb9c) integrated 80435d1; A @
+  8212464 (signed acf822f) integrated 84e54f8. The FAIRNESS/BLAST-RADIUS flag is
+  RESOLVED: A's byte-stability was re-verified at codex's per-pixel rigor (clean
+  git status after fresh reproduce = zero drift), matching B. Both clean.
+- STEP 4 DISPATCHED (claude, its owned integration lane; DETACHED, cap 2400s,
+  --model opus, NO Meshy): label integrate, worktree lw-006-integrate, branch
+  claude/006-integrate cut off round @ 84e54f8. Prompt
+  .pka/round006/integrate-prompt.md. Scope: wire BOTH candidate atlases
+  (8-facing x 6-pose, cell 160, anchor [80,159]) + candidate cottages into
+  starter_town.gd/player_controller_2d.gd via a clean deterministic selector
+  (env LONGWALK_ART_CANDIDATE=current|a|b; current=unchanged default), full
+  8-facing player (retire the 4-facing proxy fold), cottage at contact anchor,
+  scale per decision 010, suite green, headless proof run FOREGROUND (no
+  backgrounding). ONE commit, no self-signoff, no PR. Start marker
+  integrate-20260718-022227-start.md; proc tree confirmed alive (adapter pid
+  3596315). POLL lw-006-integrate/.team/markers/integrate-*-end.md; VERIFY from
+  end marker + tree. Peer reviewer = codex or agy (non-author; author is claude).
+  After it signs clean: integrate --no-ff onto round, suite green, then STEP 5
+  (codex owns): anonymized acceptance-capture harness (static + walk-GIF for
+  A/B/spike/current) + gate verdict vs the six pass conditions. Do NOT open the
+  round PR until the acceptance gate passes.
+
+*** PRIOR RUN (013944): integrated B; dispatched A's byte-stability re-review
+(stale-signoff catch). Both now resolved (see THIS RUN above). ***
+Historical detail kept below for context.
+
+*** OLDER (013944 detail) *** Meshy balance 2970. No PR yet.
 
 *** THIS RUN (013944): integrated B, dispatched A's fix-review (stale-signoff
 catch). Verified from tree, not narration: ***
@@ -605,11 +653,56 @@ constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP (this run's handoff): verify the DETACHED A fix-review
-(candidate-a-review-fix, claude, cap 3600s, stamp 20260718-014501).** Check inbox
-FIRST. Confirm Meshy balance still 2970 (free meshy_check_balance; no paid work).
+**IMMEDIATE NEXT STEP (this run's handoff): verify the DETACHED STEP-4 integration
+slice (integrate, claude, cap 2400s, stamp 20260718-022227, worktree
+lw-006-integrate, branch claude/006-integrate @ 84e54f8).** Check inbox FIRST.
+Confirm Meshy balance still 2970 (free meshy_check_balance; this slice does NO
+paid work, pure engine wiring).
+- Poll `lw-006-integrate/.team/markers/integrate-*-end.md`: read branch_changed /
+  uncommitted / cap_expired. Expect ONE commit on claude/006-integrate wiring
+  both candidate atlases + cottages via LONGWALK_ART_CANDIDATE selector.
+- If clean commit: run its headless proof + suite in-worktree yourself to confirm,
+  then PEER-REVIEW with codex or agy (non-author; author is claude). On sign-off,
+  integrate --no-ff onto round @ 84e54f8, suite GREEN.
+- If branch_changed=no + uncommitted=yes (the recurring claude no-commit bug):
+  COMMIT-ONLY rescue dispatch (nothing to background).
+- THEN STEP 5 (codex owns the acceptance-capture harness): anonymized static +
+  walk-GIF captures for candidate A, candidate B, the SPIKE
+  (docs/art/iso-five-asset-spike.png + docs/art/player-walk-iso-spike.gif), and
+  the current build, at shipping zoom / fixed color management / matched
+  composition; then the gate verdict against the SIX independently-failable pass
+  conditions (decision 009 constraint 7): painterly fidelity, structural
+  preservation (no landmark mutation), motion stability (no boiling / real gait /
+  8 distinct facings / feet within 2px contact-anchor tol), scale (ratios, no
+  runtime tweak), grounding (no ground seams / shared light vector), production
+  economics (the cleanup ledger). Full rerender from committed local inputs, NO
+  second Meshy call. Anonymize candidate identity for the comparison; orchestrator
+  reads the captures and rules (four-ballot if the A-vs-B choice is contested).
+- When the pilot CLEARS the gate: THAT is the surface-to-Scott moment (vision bar,
+  directive 1500) + the Meshy production-adoption escalation (decision 009), paired
+  with the git-lfs/artifact-store decision for the binary footprint. Do NOT open
+  the round PR until both candidates are integrated in-engine + the gate passes.
+
+--- PRIOR IMMEDIATE STEP (DONE, superseded) ---
+Verified the A re-review attempt 2 (candidate-a-review-fix2, stamp 015206): it
+landed CLEAN (marker acf822f), A re-integrated @ round 84e54f8, suite green,
+pushed. Both candidates now byte-stable + clean-signed + integrated. Step 4
+dispatched (see Status).
+- ATTEMPT 1 (candidate-a-review-fix, stamp 014501) FAILED the recurring claude
+  no-commit way: it did all the STATIC checks correctly (pins present
+  seed=0/dither=0/threads=FIXED/1; only tools/art/blender_pose_rig.py + PROVENANCE
+  + 50 PNGs changed; real render times 841s/832s; no em-dash; balance 2970) but
+  then BACKGROUNDED the two-render proof job and ended its turn on a "monitor will
+  re-invoke me" intention (log in .pka/round006/candidate-a-review-fix-dispatch.log).
+  Nothing re-invokes a claude -p. No proof, no marker.
+- ATTEMPT 2 (this run) tightens the proof so backgrounding is not tempting: ONE
+  foreground fresh reproduce.sh, then `git status --porcelain` on
+  assets/art_src/pilot/candidate_a/ MUST be clean (byte-identical to committed =
+  zero drift; unfakeable), then suite green, then commit ONLY the marker. Prompt
+  .pka/round006/candidate-a-review-fix2-prompt.md. Dispatched DETACHED; start
+  marker candidate-a-review-fix2-20260718-015206-start.md written, proc tree alive.
 - B is DONE: integrated @ round **80435d1**, suite green. Nothing left on B.
-- Poll `lw-006-cand-a/.team/markers/candidate-a-review-fix-*-end.md`: read
+- Poll `lw-006-cand-a/.team/markers/candidate-a-review-fix2-*-end.md`: read
   branch_changed / uncommitted / cap_expired. Expect ONE marker commit on
   codex/006-candidate-a: `.team/signoffs/codex-006-candidate-a-8212464520e9.md`.
   If signed-off: RE-INTEGRATE A at 8212464 --no-ff onto round (currently 80435d1
@@ -617,7 +710,9 @@ FIRST. Confirm Meshy balance still 2970 (free meshy_check_balance; no paid work)
   byte-stable ones), then run the round suite GREEN. If branch_changed=no +
   uncommitted=yes: COMMIT-ONLY marker rescue (claude's recurring no-commit bug).
   If changes-requested (any drift / placeholder / em-dash): route fix to codex
-  (author), NO Meshy.
+  (author), NO Meshy. If attempt 2 ALSO backgrounds and dies: fall back to
+  orchestrator-runs-the-render-in-background (harness-tracked, re-invokes) to get
+  ground truth, then a COMMIT-ONLY marker dispatch to a non-author doer.
 - When A is byte-stable + clean-signed + integrated (B already is): run the round
   suite GREEN, THEN step 4 (in-engine integration, claude) + step 5 (anonymized
   acceptance gate A vs B vs the spike). Do NOT open the round PR until both
@@ -692,17 +787,34 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-18T~01:47Z (orchestrator run
-`orchestrator-run-20260717-013944`). This run: (1) verified from the tree that both
-prior detached byte-stability closers landed (A fix 8212464, B resign marker
-60ceb9c); balance 2970, no leak. (2) Confirmed B's codex sign-off is clean at
-f08e2c7 and INTEGRATED B --no-ff -> round 80435d1; round suite GREEN. (3) Caught
-that A's byte-stability fix 8212464 is UNSIGNED (agy's a56a370 sign-off predates it;
-8212464 regenerated all 50 PNGs), so dispatched a fresh non-author (claude) review
-of 8212464 DETACHED (cap 3600s, no Meshy, stamp 014501, proc tree alive); A stays
-un-reintegrated until it signs clean. Next run (or later this run): verify the A
-review from its end marker + tree, re-integrate A at 8212464, run suite, then steps
-4-5 (in-engine integration + anonymized acceptance gate A vs B vs spike).
+**Last updated:** 2026-07-18T~02:24Z (orchestrator run 0220). This run:
+(1) inbox clean (1620 newest, already processed; no new steer). (2) VERIFIED from
+tree that the A byte-stability re-review landed CLEAN (acf822f = marker-only,
+non-author claude signoff of codex's 8212464, byte-stability proven zero-drift).
+(3) RE-INTEGRATED A --no-ff onto round -> 84e54f8 (replaced provisional old-A);
+round suite GREEN; pushed. Both candidates A+B now byte-stable + clean-signed +
+integrated; the fairness/blast-radius flag is RESOLVED (A re-verified at per-pixel
+rigor). (4) DISPATCHED step 4 (in-engine integration, claude, detached, cap 2400s,
+opus, NO Meshy) into lw-006-integrate; proc tree confirmed alive; poll for its end
+marker. Balance 2970, zero paid work this run. NEXT: verify the integration slice,
+peer-sign, integrate onto round, then step 5 (codex acceptance-capture harness +
+anonymized gate vs the six pass conditions). Do NOT open the round PR until both
+candidates are wired in-engine + the acceptance gate passes.
+
+--- PRIOR RUN (`orchestrator-run-20260717-204425`, ~01:53Z) ---
+(1) inbox clean (1620 newest, already processed). (2) DIAGNOSED why the A re-review attempt 1 (stamp 014501) left no marker:
+end marker showed branch unchanged / exit0 / 99s, and its dispatch log shows the doer
+did all static checks then BACKGROUNDED the ~28-min two-render proof and ended its
+turn on a monitor-will-re-invoke intention (the recurring claude no-commit failure).
+(3) RE-DISPATCHED attempt 2 DETACHED (candidate-a-review-fix2, claude, cap 3600s, no
+Meshy, stamp 015206, proc tree confirmed alive) with a tightened prompt: ONE foreground
+fresh reproduce + a clean-`git status` zero-drift proof (unfakeable) instead of two
+14-min renders, to remove the temptation to background. Set a background poll on its
+end marker (re-invokes this run on completion). Balance 2970, no paid work. NEXT: on
+marker, verify from end marker + tree; if signed-off, re-integrate A @ 8212464 --no-ff
+onto round (currently 80435d1 = round + B), run suite GREEN, then steps 4-5 (in-engine
+integration + anonymized acceptance gate A vs B vs spike). Do NOT open round PR until
+both A + B byte-stable + clean-signed + acceptance gate passes.
 
 --- PRIOR RUN (`orchestrator-run-20260717-233648`) resolved the STEP-3 render candidates:
 (1) Verified from end markers (not narration) that both primary detached candidate
