@@ -27,6 +27,7 @@ GODOT="${REPO_ROOT}/tools/godot/godot"
 PRESET="Windows Desktop"
 
 CAPTURE_OUT="${REPO_ROOT}/docs/art/village"
+ASSETS_DIR="${REPO_ROOT}/assets/village"
 mkdir -p "${CAPTURE_OUT}"
 
 WORK="$(mktemp -d)"
@@ -40,11 +41,41 @@ if [ ! -x "${GODOT}" ]; then
 	"${REPO_ROOT}/tools/fetch_godot.sh"
 fi
 
-echo "=== village export gate: import + regenerate provisional assets ==="
-# Regenerate the provisional placeholder assets so the bundle is built from a
-# known set even on a clean checkout. (Codex's real assets, when integrated,
-# overwrite assets/village/ and this same gate re-runs against them.)
-python3 "${REPO_ROOT}/tools/art/village_placeholder_assets.py"
+echo "=== village export gate: audit COMMITTED assets (no regeneration) ==="
+# This gate packages and audits whatever is COMMITTED under assets/village/. It
+# must NEVER mutate that tree: doing so would let the gate "prove" a build of art
+# it just wrote itself, defeating the entire point of decision 009 item 2 and the
+# round-006 carry-forward finding. The real art is proven at integration, when the
+# orchestrator merges the real sliced assets over assets/village/ and re-runs this
+# same, honest gate.
+#
+# A fresh checkout with no assets yet can bootstrap the provisional placeholders
+# by hand: python3 tools/art/village_placeholder_assets.py. The gate does NOT run
+# that tool; it fails loudly if the manifest is missing.
+if [ ! -f "${ASSETS_DIR}/manifest.json" ]; then
+	echo "GATE FAILED: ${ASSETS_DIR}/manifest.json is missing." >&2
+	echo "The gate audits committed assets and never regenerates them. On a fresh" >&2
+	echo "checkout, bootstrap the provisional set by hand first:" >&2
+	echo "  python3 tools/art/village_placeholder_assets.py" >&2
+	exit 1
+fi
+
+# Non-mutation guard: capture a checksum of the committed asset tree BEFORE the
+# gate runs so we can prove the gate did not alter the art it audits. We hash the
+# COMMITTED art only (git-tracked files: the PNGs and manifest.json), not the
+# working tree, because --import legitimately writes generated .import sidecars
+# that are not committed and are not art. A change to any tracked file, its name,
+# or the set of tracked files is caught.
+assets_tree_checksum() {
+	( cd "${REPO_ROOT}" && git ls-files -z -- assets/village/ ) \
+		| LC_ALL=C sort -z \
+		| ( cd "${REPO_ROOT}" && xargs -0 sha256sum ) \
+		| sha256sum \
+		| awk '{print $1}'
+}
+ASSETS_BEFORE="$(assets_tree_checksum)"
+echo "assets/village/ checksum before gate: ${ASSETS_BEFORE}"
+
 "${GODOT}" --headless --path "${REPO_ROOT}" --import >/dev/null 2>&1
 
 echo "=== export packed bundle from stock preset (all_resources) ==="
@@ -85,5 +116,17 @@ echo "captures:"
 for f in "${CAPTURE_OUT}"/village-inn-green-*.png; do
 	echo "  ${f}"
 done
+
+# Non-mutation guard: prove the gate did not alter the committed art it audited.
+ASSETS_AFTER="$(assets_tree_checksum)"
+echo "assets/village/ checksum after gate:  ${ASSETS_AFTER}"
+if [ "${ASSETS_BEFORE}" != "${ASSETS_AFTER}" ]; then
+	echo "GATE FAILED: assets/village/ was mutated by the gate run." >&2
+	echo "  before: ${ASSETS_BEFORE}" >&2
+	echo "  after:  ${ASSETS_AFTER}" >&2
+	echo "The gate must audit committed art without altering it." >&2
+	exit 1
+fi
+echo "non-mutation guard: assets/village/ unchanged (${ASSETS_AFTER})"
 
 echo "VILLAGE EXPORT GATE PASSED"
