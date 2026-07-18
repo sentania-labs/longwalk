@@ -56,9 +56,87 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016 FULLY IMPLEMENTED + INTEGRATED; QA = NOT-CONFUSABLE (verified); SECOND ITERATION SCOPED ===
+=== WHERE WE ARE: DECISION 016. RENDER SEAM WORK (D1/D4) DONE + INTEGRATED + PUSHED. ROUND HEAD `5777b83`. QA #004 (RELIABLE) = NOT-CONFUSABLE; REMAINING GAP = FOUNDATION/FLORA-BASE VEGETATION (D2/D3). ITERATION 4 SCOPED, NOT YET DISPATCHED. NOTHING IN FLIGHT. ===
 
-**Round head `160139a` on origin/round/007-village.** Full protocol (phases 1-3)
+**Round head `5777b83` on origin/round/007-village** (pushed). Nothing dispatched
+at turn end. Lineage this run on the round branch (all verified from end markers +
+tree, gates self-run green, non-mutation held throughout):
+`f486a89` (flora D3) -> `9da0f94` render-tune first cut [BLOCKED, did not compile]
+-> `37ce6c6` MODULATE fix -> `34d146a` codex sign-off -> `a2f5f79` iter3 awning fix
+-> `634e6ce` codex sign-off -> `5777b83` agy QA#004 report.
+
+**RENDER-TUNE (D1/D2/D4) — done, the story worth remembering:**
+- First cut `9da0f94` used the `MODULATE` fragment built-in, which is INVALID in
+  a canvas_item fragment under pinned Godot **4.3-stable** ("Unknown identifier in
+  expression: 'MODULATE'" -> both shaders failed to compile -> D1/D4 never ran,
+  only GDScript self_modulate warming showed). codex (non-author) caught it;
+  orchestrator REPRODUCED it via the export gate. ALSO found + closed a GATE HOLE:
+  the export gate printed PASS despite shader-compile errors.
+- Fix `37ce6c6`: per-item modulate via UNIFORMS (`item_modulate` vec4 +
+  `layer_fade` float wired from village_render.gd), MODULATE built-in gone; gate
+  now FAILS on `SHADER ERROR`/`Shader compilation failed` (tee + PIPESTATUS).
+  codex signed (`34d146a`), even proving the gate-fail path by injection.
+  Orchestrator reproduced the clean compile + decoded real feathered brown
+  grounding shadows + roof/timber lift.
+- iter3 `a2f5f79`: closed the one remaining D1 tell from QA#003 (a blown pale
+  patch, lum ~193 vs scene 79, on the smithy props under the awning). claude
+  bisected it to the D4 per-kit tonal MULTIPLY over-brightening already-light
+  props (NOT the shadow-lift, NOT the ground). Fix = a per-kit graded-highlight
+  ceiling (saturating shoulder, hue-preserved, identity below ceiling so the roof
+  lift is untouched, disabled for flora). codex signed (`634e6ce`). Orchestrator
+  reproduced: awning region max_lum 192.7->151.3, px>180 559->0; roof mean 70.1
+  unchanged; clean compile; visually confirmed the patch is gone.
+
+**QA HISTORY this iteration (READ before trusting any QA):**
+- **QA #002 (`b1f55f2`, NOT on round) = COMPROMISED, DO NOT TRUST.** Its 4 tells
+  were near-verbatim the iter1 report; orchestrator FALSIFIED them against the
+  actual pixels. agy anchored on prior text. This is why every re-QA since uses an
+  ANTI-ANCHORING prompt (forbid reading prior reports, require pixel-cited TELLs).
+- **QA #003 (`a281ca9`) = reliable:** D2/D3/D4 PASS, one D1 tell (the awning
+  patch, now fixed by iter3).
+- **QA #004 (`5777b83`, ON round) = reliable, CURRENT verdict: NOT-CONFUSABLE.**
+  `docs/art/village/qa-agy-composition-004.md`. **D1 PASS** (awning fixed, objects
+  grounded), **D4 PASS** (lighting coherent, consistent direction). Two TELLs, both
+  about BASE-TO-GROUND vegetation:
+  - **D2 TELL:** building foundations meet the ground with a clean edge, LACKING
+    the spike's weeds/small-stones/dirt buildup hugging the foundations (far-right
+    house + inn front foundation named). "What Scott's eye catches first."
+  - **D3 TELL:** flora bases (center sunflowers, bottom-right flower patch)
+    terminate against the dirt without roots/soft-merge into the terrain.
+  - **Orchestrator corroboration (own decode + spike calibration):** D2 is REAL and
+    well-calibrated - the spike anchors EVERY building base with dense foundation
+    vegetation (yellow flowers, weeds, grass tufts, rocks creeping up the stone);
+    ours has a cleaner stone-meets-apron edge + contact shadow but no base planting.
+    D3 is PARTIALLY real (the flowers DO have soft contact shadows; the gap is
+    lack of root-merge, not a literal hard cutout - somewhat overstated by agy).
+  - NOT surfaced to Scott (correct: NOT-CONFUSABLE). This gap IS Scott's original
+    complaint ("buildings don't feel organic to the terrain, flora doesn't jive").
+
+**ITERATION 4 SCOPED (NOT dispatched; next run's first job):** close the D2/D3
+base-vegetation gap. NOTE THE SHIFT: iters 1-3 were shader SEAM-GRADING (now done);
+iter4 is COMPOSITION/PLACEMENT + a small render touch, a different kind of work.
+- **D2 (primary):** anchor building foundations the way the spike does - place
+  existing decorative props (bush_a/b, flower clusters, rocks, grass tufts) at
+  building foundation edges/corners in village_render.gd, so bases read as planted
+  into the terrain, not resting on it. This is scene composition (reuse assets),
+  touches `src/render/town/*` (placement) and possibly `assets/village/*` (if a
+  small grass-tuft/skirt asset is genuinely needed - non-protected, but prefer
+  reusing existing flora first). There is a real DESIGN CHOICE here (discrete prop
+  placement vs baking a per-building foundation-vegetation seam mask vs a shader
+  base-skirt); triage this as FULL PROTOCOL or at least a considered proposal, do
+  NOT snap-dispatch one approach. It matches the round's full-protocol mandate.
+- **D3 (secondary, smaller):** soften flora base contact / add a subtle base
+  feather-AO so flora reads as growing from the ground. Likely render-side, small.
+- After iter4 integrates: fresh anti-anchoring agy re-QA (#005). If that +
+  orchestrator decode agree CONFUSABLE (or only locked dirt-tone remains = PASS)
+  -> SURFACE A BUILD to Scott (`to: dalinar`) for his own playtest verdict. Else
+  iterate. Do NOT surface on the orchestrator's eye alone. Do NOT trust QA #002.
+- Base iter4 off round head `5777b83`. Reset `lw-016-render` to it before dispatch.
+
+=== PRIOR (superseded lineage, kept for reference): RENDER-TUNE FIRST CUT ===
+
+**Round head `f486a89` on origin/round/007-village** (was `160139a`; advanced by
+the signed flora D3 touch-up this run). Full protocol (phases 1-3)
 + all three impl slices are done, signed, integrated, pushed. Lineage on the
 round branch: `4022fb8` decision-016 record -> `d0c861c` codex bake (signed
 bd169cf) -> `f196cf8` codex flora finish (signed 8083068) -> `81e695f` claude
@@ -115,32 +193,67 @@ aprons, clean flora sprites, more-unified key) but does NOT yet clear the
   sunflower stems + a bush bottom-right clipped flat by its bbox. Flora rematte
   feather/flood between thin stems + bbox crop fix.
 
-**ON RESPAWN / NEXT ACTION (SECOND ITERATION, do NOT surface to Scott until
-CONFUSABLE):**
-1. Check inbox `.pka/inbound/orchestrator/`.
-2. Dispatch the render tuning slice on `claude/016-render` (worktree
-   lw-016-render, currently at 6bc43ce; rebranch/rebase onto round head 160139a
-   first): address D1 (soften+lighten+feather shadows, tame the inn-sign cast),
-   D2 (feather/dither the apron outer edge into grass), D4 (rebalance tonal to a
-   shared key). Capture-inspect loop vs spike at 0.5x/1x/2x.
-3. Dispatch the codex flora touch-up on a new branch off round head: D3 sunflower
-   inter-stem grey + bush bbox clip. (Can pipeline with the render slice into
-   different worktrees.)
-4. Cross non-author sign-offs, FF integrate each onto the round branch, gates,
-   push.
-5. Re-run AGY QA vs the binding rubric. If CONFUSABLE -> SURFACE A BUILD to Scott
-   (cross-workspace `to: dalinar`) for his OWN playtest verdict, do NOT
-   auto-expand the village. If still NOT-CONFUSABLE -> decode the named tell,
-   iterate off round head.
+**SECOND ITERATION IN FLIGHT (do NOT surface to Scott until CONFUSABLE).
+SEQUENCED: flora-d3 first, then render-tune off the flora-integrated head, so the
+render slice captures the composed scene WITH the flora fix in it.**
+
+STATUS AS OF THIS CHECKPOINT:
+- **FLORA D3 DONE: signed + integrated + pushed. Round head now `f486a89` on
+  origin/round/007-village.** codex authored `3410ba7` "art: repair flora matte
+  and crop edges" off `160139a` (end marker verified: 160139a->3410ba7,
+  branch_changed=yes, no uncommitted tracked work; the flagged mtime was a
+  `.godot/imported/` cache artifact). Fix = deterministic `remove_enclosed_neutral`
+  (full-image neutral key, lum floor >=96 + chroma guard, applied BEFORE
+  largest-component keep so subject cannot be orphaned) + `crop_padding: 2`
+  transparent margin. Orchestrator decode confirmed: interior grey pocket GONE
+  (flower_a 1 stray px, flower_b 0), edge_opaque_px=0 on all 4 (no bbox clip),
+  subject intact. NO paid Meshy. claude signed the NON-AUTHOR peer marker
+  `codex-016-flora-d3-3410ba70dbcb.md` (reviewed_sha 3410ba7, reviewed_by claude,
+  authored_by codex) as commit `f486a89`. FF-integrated 160139a->f486a89, suite +
+  export gate GREEN, non-mutation guard held, pushed to origin.
+- **claude render-tune DISPATCHED + IN FLIGHT** (detached setsid, dispatch.sh pid
+  375626 / adapter 375638, cap 2400s). Worktree `lw-016-render`, branch
+  `claude/016-render-tune` @ base `f486a89` (re-reset onto the flora head). run_id
+  `render-tune-016-20260718-192644`; start marker present. Prompt:
+  `.pka/round007/composition/iter2/claude-render-tune-prompt.md` (base-head refs
+  updated to f486a89). Log:
+  `.pka/round007/composition/iter2/claude-render-tune-dispatch.log` (EMPTY until
+  the buffered `claude -p` flushes at end; verify liveness via pgrep, not mtime).
+  Scope: D1 (soften/lighten/feather shadows render-side, tame inn-sign cast), D2
+  (dither apron outer edge reusing ground.gdshader edge_break), D4 (rebalance
+  object vs ground tonal to shared key; NO manifest.json data edits). src/render/
+  town/* ONLY. Author=claude, so its peer sign-off reviewer must be codex or agy.
+
+**ON RESPAWN (if respawned before render-tune lands): verify from the end marker +
+tree, do NOT re-dispatch.** Check `lw-016-render/.team/markers/` for
+`render-tune-016-20260718-192644-end.md`; check `git -C lw-016-render log
+--oneline -1` for a new render commit past f486a89. If committed + verified ->
+NON-AUTHOR sign-off (codex or agy, NOT claude) -> FF-integrate onto round branch
+-> suite + export gate -> push round -> re-run AGY composed-scene QA vs the
+binding rubric. If NOT committed and process (pgrep dispatch.sh/claude.sh for
+render-tune-016) dead -> inspect the log + `.team/blocked/` markers, re-dispatch
+or diagnose. If CONFUSABLE + orchestrator decode agrees -> surface a build to
+Scott (`to: dalinar`). If still NOT-CONFUSABLE -> decode the named tell, iterate.
+
+NEXT ACTIONS after both slices integrate:
+- Cross non-author sign-offs, FF integrate each onto the round branch, run
+  suite+export gate, push round branch.
+- Re-run AGY QA vs the binding rubric. If CONFUSABLE AND orchestrator decode
+  agrees -> SURFACE A BUILD to Scott (cross-workspace `to: dalinar`) for his OWN
+  playtest verdict, do NOT auto-expand the village. If still NOT-CONFUSABLE ->
+  decode the named tell, iterate off round head.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ **`160139a`** (== origin; integration).
-- `lw-016-render` on `claude/016-render` @ `6bc43ce` (render slice; REBASE onto
-  160139a before the D1/D2/D4 tuning iteration).
-- `lw-016-qa` on `agy/016-qa` @ `1fc1fbf` (QA report committed; report also
-  cherry-picked onto round branch). Reuse for re-QA off the new round head.
-- `lw-007-codex` on `codex/016-flora` @ `f196cf8` (flora finish, integrated).
-  Rebranch off 160139a for the D3 touch-up.
+- `lw-007-round` on `round/007-village` @ **`5777b83`** (== origin; integration).
+- `lw-016-render` on `claude/016-render-tune` @ `a2f5f79` (render slices done +
+  integrated; reset to round head `5777b83` before dispatching iter4).
+- `lw-016-signoff` on `codex/016-render-tune-signoff` @ `634e6ce` (EPHEMERAL codex
+  review worktree; reused for each render sign-off. Reset to the iter4 head when
+  needed; safe to `git worktree remove` at round close).
+- `lw-016-qa` on `agy/016-qa` @ `07d0528` (QA #002/#003/#004 committed here; #004
+  cherry-picked onto round `5777b83`). Reuse for re-QA #005 off the iter4 head.
+- `lw-007-codex` on `codex/016-flora-d3` @ `3410ba7` (flora D3, signed+integrated).
+- `lw-016-review` REMOVED (ephemeral flora-d3 sign-off worktree, cleaned up).
 - `lw-007-claude` on `claude/016-composition` @ `c615220` (proposal/critique;
   holds ONLY copy of `.pka/round007/ground-source/*` paid dirt sources, URLs
   expired, do NOT overwrite). UNTOUCHED.
@@ -207,8 +320,9 @@ copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
 
 001-008 on main. Round-007 decisions **009-015** on the round branch.
 **016 (composition/integration)** record `docs/decisions/016-composition-integration.md`
-is on the round branch @ 4022fb8 and fully implemented (bake + flora + render
-integrated); the round is in its SECOND QA iteration (QA1 = NOT-CONFUSABLE).
+is on the round branch @ 4022fb8 and fully implemented (bake + flora + render seam
+work integrated); QA #004 = NOT-CONFUSABLE with the remaining gap = foundation/
+flora-base vegetation (iteration 4 scoped above).
 
 ## Notes for the next run
 
@@ -220,13 +334,12 @@ integrated); the round is in its SECOND QA iteration (QA1 = NOT-CONFUSABLE).
 - No round PR is open (correct; opens only for the full-village milestone once
   Scott confirms the art bar and the district is expanded).
 - **Sweep:** round is OPEN (not closing; district must pass QA + Scott's eye
-  first). origin/round/007-village is at `160139a`. Doer branches
+  first). origin/round/007-village is at `5777b83`. Doer branches
   (claude/*, codex/*, agy/*) are LOCAL-only; verify none leaked to origin at the
   next close (the round is mid-iteration, so leaked-branch guard is deferred to
   round close, not now). No round PR open (correct).
-- Inbox processed through `2026-07-18-1730` (the composition verdict, actioned
-  this run). Older partials `6110faed` / `c3ffe894` were descriptive reads, now
-  superseded by Scott's direct playtest verdict.
+- Inbox processed through `2026-07-18-1730` (the composition verdict). No new
+  inbox items this run. Older partials `6110faed` / `c3ffe894` superseded.
 - **Two STALE cross-workspace responses surfaced in the codex worktree's untracked
   `.pka/inbound` this run** (`308f0465`, `a1c32de4`), addressed `to: lw-007-codex`,
   NOT to me, NOT in my main inbox. Both are responses to superseded requests from
@@ -239,17 +352,22 @@ integrated); the round is in its SECOND QA iteration (QA1 = NOT-CONFUSABLE).
   lands later disagreeing, escalate then (spend already made under direct
   supervisor authorization).
 
-**Last updated:** 2026-07-18 (DECISION 016 FULLY IMPLEMENTED + INTEGRATED +
-PUSHED, round head `160139a`. This run: bake signed+integrated (bd169cf ->
-3000e93); PAID FLORA REGEN [45 credits, balance 2937->2892, 5 clean neutral-grey
-sprites, provenance recorded]; codex flora finish signed+integrated (8083068 ->
-4e506dd); claude render slice authored [81e695f] -> codex BLOCKED it [apron
-ignored field R, valid contract catch] -> claude R-fix [6bc43ce] + regression
-test -> codex signed the fix [6e50d0d] -> integrated [f388bb8]; suite + export
-gate green throughout, assets/village non-mutation held. AGY composed-scene QA =
-**NOT-CONFUSABLE**, orchestrator-corroborated [4 tells: D1 hard/dark shadows, D2
-hard straight apron edges, D3 residual grey behind sunflower stems + bush bbox
-clip, D4 tonal disparity]. NOT surfaced to Scott [correct: NOT-CONFUSABLE].
-SECOND ITERATION scoped above: claude render tuning [D1/D2/D4] + codex flora
-touch-up [D3] -> re-QA -> surface to Scott if CONFUSABLE. Every phase durable +
-pushed; nothing in flight at turn end.)
+**Last updated:** 2026-07-18 (RENDER SEAM WORK DONE + INTEGRATED + PUSHED, round
+head `5777b83`. This run: render-tune first cut `9da0f94` BLOCKED by codex
+[MODULATE built-in invalid in Godot 4.3-stable -> shaders did not compile;
+orchestrator REPRODUCED it + found/closed a GATE HOLE where the export gate passed
+green on shader-compile errors]; claude fix `37ce6c6` [uniform-based modulate + gate
+now fails on SHADER ERROR], codex-signed `34d146a`, integrated. QA #002 was
+COMPROMISED [stale-anchored, orchestrator falsified its tells] -> instituted
+anti-anchoring QA prompts. QA #003 = one D1 tell [blown pale patch on smithy props
+under the awning]; claude iter3 `a2f5f79` bisected it to the D4 tonal MULTIPLY
+over-brightening light props + fixed with a per-kit highlight ceiling [awning
+max_lum 193->151, roofs unchanged, orchestrator-reproduced], codex-signed `634e6ce`,
+integrated. QA #004 [reliable, on round] = NOT-CONFUSABLE: D1 PASS + D4 PASS, two
+remaining TELLs = foundation/flora-base VEGETATION [D2 buildings lack the spike's
+base planting; D3 flora bases lack root-merge]; orchestrator corroborated D2 as
+real + spike-calibrated, D3 as partially real. This gap = Scott's original
+complaint. ITERATION 4 scoped above [foundation vegetation placement + flora base
+feather; a composition/authoring step with a real design choice - triage full
+protocol]. NOT surfaced to Scott [correct: NOT-CONFUSABLE]. Every phase this run
+durable + pushed; NOTHING in flight at turn end.)
