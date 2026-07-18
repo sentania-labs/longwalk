@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+"""Deterministic source-level de-clutter for the round-007 dirt ground plate
+(decision 014). Removes the discrete PAINTED debris (grey lozenge stones, the
+stray amber rocks, dry grass tufts) from the paid regen source and fills the
+vacated regions with the surrounding dusty-tan substrate, so the graded plate
+reads as the spike's smooth dry dusty-tan path instead of a stone-littered one.
+
+## Why source-level, not another luminance-band operator
+
+Decision 013's de-peak follow-on (docs/art/village/dirt-depeak-013.md) PROVED by
+rendered measurement that NO luminance-band winsorize/de-peak removes these
+stones at any strength (including strengths that breach both hard gates): a
+painted rock is coherent across every frequency band at once (body in mid, edge
+in lomid, outline+specular in fine), so it is not a statistical outlier in any
+single band and reassembles from the others when one band's tail is clamped. The
+stones are PAINTED CONTENT in the source plate, so they must be removed at the
+source (segment + fill), upstream of the multiband reshape in grade_dirt_plate.py.
+
+CRUCIALLY, the dusty-tan substrate BETWEEN the stones is already spike-correct
+(decision 014 dispatch, orchestrator-verified). So the method segments only the
+debris and reconstructs each vacated region from the surrounding substrate,
+preserving the accepted richness while killing the tell.
+
+## Method
+
+DETECTION (union of chroma detectors, then morphology):
+  - grey stones: the warm tan substrate sits at saturation ~0.44-0.48; the grey
+    stones are the desaturated tail (absolute sat < GREY_SAT_ABS) OR pixels that
+    are markedly greyer than their own local dirt (local-sat deficit >
+    GREY_SAT_DEFICIT). Saturation, NOT luminance, is the clean separator: the
+    brown brush-stroke streaks in the substrate are DARK but still saturated, so
+    a saturation gate keeps them (accepted richness) while catching true grey.
+  - amber rocks: distinctly redder than tan (R-G > AMBER_RG) AND darker than the
+    local field (a compact dark saturated blob), which the sat gate misses.
+  - grass tufts: green (greenness > GRASS_GREEN), taken only where a solid core
+    survives an erosion (isolated green substrate speckle is not a tuft), then
+    dilated generously so the thin blades are covered too.
+  The chroma seeds are closed (bridge a stone interior), opened (drop sub-blob
+  substrate speckle) and dilated (cover each stone's soft cast-shadow halo).
+
+FILL (smooth harmonic base + deterministic grain transplant), NOT cv2 inpaint:
+  - base: a weighted image-pyramid pull-push solves a smooth membrane across each
+    masked region whose values match the surrounding substrate EXACTLY at the
+    mask boundary (Dirichlet), so there is no patch seam. A few Jacobi smoothing
+    sweeps at full resolution erase any residual pyramid blockiness. Because the
+    substrate under a stone is just smooth tan (no sharp content), this diffusion
+    introduces no blur-smear tell: there is nothing sharp to smear.
+  - grain: the base alone would read as a flat smudge and would drop the plate's
+    protected-core richness. So the source's own fine speckle (the radius-GRAIN
+    high-pass) is transplanted back over the base by a FIXED integer roll of the
+    whole grain field. The roll lands each masked pixel on real dusty-dirt
+    speckle from elsewhere in the SAME source; only the fine residual moves (no
+    rock bodies, which live in the low band the membrane replaced), so there is
+    no visible clone-stamp of structure and the fine-grain statistics (hence the
+    core richness and the shimmer band) are preserved. Grain sampled from a
+    masked source location is zeroed, so a stone's own speckle is never re-injected.
+
+## Determinism (constitution)
+
+Pure function of the committed source bytes. Every primitive is an
+order-independent reduction: wrapped separable box blurs (kernel wrap only),
+box-count morphology thresholds, fixed-count pull-push / Jacobi sweeps, and fixed
+integer np.roll offsets. No randi/randf/RandomNumberGenerator, no time, no
+visit-order accumulator. Re-running on the same source yields byte-identical
+output.
+
+This is a DEV tool under tools/art/ (never packed into the game asset path). It
+never overwrites the .pka source; grade_dirt_plate.py imports `declutter` and
+applies it in-memory as the pre-reshape step. Run standalone to emit the cleaned
+source and a detection overlay for review:
+
+    python3 tools/art/declutter_dirt_source.py
+"""
+from __future__ import annotations
+
+import hashlib
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SOURCE = REPO_ROOT / ".pka/round007/ground-source/dirt-regen-nbpro-019f74b2.png"
+# Review artifacts (never consumed by the pipeline; committed as evidence).
+CLEAN_OUT = REPO_ROOT / "docs/art/village/dirt-source-declutter/cleaned-source.png"
+OVERLAY_OUT = REPO_ROOT / "docs/art/village/dirt-source-declutter/detection-overlay.png"
+
+# --- detection thresholds (measured against the source, see module docstring) ---
+GREY_SAT_ABS = 0.40       # absolute saturation below this reads as a grey stone
+GREY_SAT_DEFICIT = 0.06   # OR this much less saturated than the local dirt field
+LOCAL_RADIUS = 48         # local-field radius for the sat/luma background
+AMBER_RG = 44.0           # R-G above this (redder than tan) ...
+AMBER_DARK = -6.0         # ... and this much darker than local => amber rock
+GRASS_GREEN = 11.0        # greenness (G - (R+B)/2) above this reads as a tuft
+# morphology radii
+STONE_CLOSE = 3           # bridge a stone interior
+STONE_OPEN = 2            # drop sub-blob substrate speckle
+STONE_HALO = 2            # cover the soft cast-shadow ring
+GRASS_CORE_DILATE = 1
+GRASS_CORE_ERODE = 2      # require a ~3px-solid green core (no isolated speckle)
+GRASS_HALO = 4            # generous, so thin blades are covered
+
+# --- fill parameters ---
+PYRAMID_LEVELS = 8        # weighted pull-push depth (>= log2(hole span))
+JACOBI_SWEEPS = 60        # full-res smoothing sweeps that erase pyramid blockiness
+GRAIN_RADIUS = 16        # substrate-texture high-pass radius transplanted back
+                          # (0-16px dusty speckle; refills the vacated richness
+                          # without transplanting recognizable mid-scale structure)
+GRAIN_ROLL = (307, 461)   # fixed integer (dy, dx) grain transplant offset
+
+
+def _box_blur_wrapped(a: np.ndarray, radius: int) -> np.ndarray:
+    """Separable wrapped box blur via a summed-area table (matches
+    grade_dirt_plate.py::_box_blur_wrapped and bake_dirt_detail.gd to float
+    precision). Pure function of the input and integer coordinates."""
+    if radius <= 0:
+        return a.copy()
+    k = 2 * radius + 1
+    pad = np.pad(a, ((radius, radius), (radius, radius)), mode="wrap")
+    csum = np.cumsum(np.cumsum(pad, axis=0), axis=1)
+    csum = np.pad(csum, ((1, 0), (1, 0)), mode="constant")
+    h, w = a.shape
+    y0 = np.arange(h)[:, None]
+    x0 = np.arange(w)[None, :]
+    total = (csum[y0 + k, x0 + k] - csum[y0, x0 + k]
+             - csum[y0 + k, x0] + csum[y0, x0])
+    return total / (k * k)
+
+
+def _box_c(a: np.ndarray, radius: int) -> np.ndarray:
+    """Per-channel wrapped box blur for an HxWxC array."""
+    return np.stack([_box_blur_wrapped(a[..., c], radius) for c in range(a.shape[2])], axis=-1)
+
+
+def _dilate(mask: np.ndarray, radius: int) -> np.ndarray:
+    """Binary dilation: any 1 within the box. Order-independent (box-count)."""
+    return _box_blur_wrapped(mask.astype(np.float64), radius) > 1e-9
+
+
+def _erode(mask: np.ndarray, radius: int) -> np.ndarray:
+    """Binary erosion: fully 1 within the box. Order-independent (box-count)."""
+    return _box_blur_wrapped(mask.astype(np.float64), radius) > 1.0 - 1e-9
+
+
+def detect(source: np.ndarray) -> np.ndarray:
+    """Boolean debris mask: grey stones + amber rocks + grass tufts."""
+    r, g, b = source[..., 0], source[..., 1], source[..., 2]
+    lum = r * 0.2126 + g * 0.7152 + b * 0.0722
+    greenness = g - 0.5 * (r + b)
+    mx = source.max(axis=-1)
+    mn = source.min(axis=-1)
+    sat = np.where(mx > 0.0, (mx - mn) / mx, 0.0)
+
+    local_lum = _box_blur_wrapped(lum, LOCAL_RADIUS)
+    local_sat = _box_blur_wrapped(sat, LOCAL_RADIUS)
+    contrast = lum - local_lum
+
+    grey = (sat < GREY_SAT_ABS) | ((local_sat - sat) > GREY_SAT_DEFICIT)
+    amber = ((r - g) > AMBER_RG) & (contrast < AMBER_DARK)
+    grass = greenness > GRASS_GREEN
+
+    stone_seed = grey | amber
+    # close (bridge interior) -> open (drop speckle) -> dilate (shadow halo)
+    stone = _dilate(stone_seed, STONE_CLOSE)
+    stone = _erode(stone, STONE_CLOSE)
+    stone = _erode(stone, STONE_OPEN)
+    stone = _dilate(stone, STONE_OPEN)
+    stone = _dilate(stone, STONE_HALO)
+
+    grass_core = _erode(_dilate(grass, GRASS_CORE_DILATE), GRASS_CORE_ERODE)
+    grass_mask = _dilate(grass_core, GRASS_HALO)
+
+    return stone | grass_mask
+
+
+def _pull_push(img: np.ndarray, known: np.ndarray, levels: int = PYRAMID_LEVELS) -> np.ndarray:
+    """Weighted image-pyramid pull-push: a smooth membrane over the unknown
+    (masked) pixels that matches the known pixels at the boundary. `known` is the
+    confidence (1 keep, 0 fill). Deterministic: fixed-depth weighted 2x2 pooling
+    down, smooth (repeat + box1) prolongation up, confidence-blended."""
+    w0 = known.astype(np.float64)
+    pyr_c = [img * w0[..., None]]
+    pyr_w = [w0]
+    for _ in range(levels):
+        c = pyr_c[-1]
+        w = pyr_w[-1]
+        if c.shape[0] < 2 or c.shape[1] < 2:
+            break
+        c2 = c[0::2, 0::2] + c[1::2, 0::2] + c[0::2, 1::2] + c[1::2, 1::2]
+        w2 = w[0::2, 0::2] + w[1::2, 0::2] + w[0::2, 1::2] + w[1::2, 1::2]
+        pyr_c.append(c2)
+        pyr_w.append(w2)
+    up = pyr_c[-1] / np.maximum(pyr_w[-1], 1e-9)[..., None]
+    for lvl in range(len(pyr_c) - 2, -1, -1):
+        c = pyr_c[lvl]
+        w = pyr_w[lvl]
+        val = c / np.maximum(w, 1e-9)[..., None]
+        coarse = np.repeat(np.repeat(up, 2, axis=0), 2, axis=1)
+        coarse = _box_c(coarse, 1)[:c.shape[0], :c.shape[1]]
+        alpha = np.clip(w, 0.0, 1.0)[..., None]
+        up = alpha * val + (1.0 - alpha) * coarse
+    return up
+
+
+def fill(source: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Reconstruct masked regions: smooth harmonic base + transplanted fine grain."""
+    known = ~mask
+    base = _pull_push(source, known)
+    # Jacobi smoothing sweeps (Dirichlet boundary = source), erase pyramid blockiness.
+    m3 = mask[..., None]
+    for _ in range(JACOBI_SWEEPS):
+        base = np.where(m3, _box_c(base, 1), source)
+    # Transplant the source's own fine speckle back over the smooth base.
+    grain = source - _box_c(source, GRAIN_RADIUS)
+    grain = np.where(m3, 0.0, grain)  # never re-inject a stone's own speckle
+    grain = np.roll(np.roll(grain, GRAIN_ROLL[0], axis=0), GRAIN_ROLL[1], axis=1)
+    filled = base + grain
+    return np.where(m3, filled, source)
+
+
+def declutter(source: np.ndarray) -> np.ndarray:
+    """Full de-clutter: detect debris, fill from substrate. Returns a float64 RGB
+    array (unclipped) so the caller can grade before the final clip+round."""
+    mask = detect(source)
+    return fill(source, mask)
+
+
+def main() -> int:
+    source = np.asarray(Image.open(SOURCE).convert("RGB"), dtype=np.float64)
+    mask = detect(source)
+    cleaned = fill(source, mask)
+    cleaned_u8 = np.clip(np.rint(cleaned), 0.0, 255.0).astype(np.uint8)
+
+    CLEAN_OUT.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(cleaned_u8, "RGB").save(CLEAN_OUT)
+    overlay = source.copy()
+    overlay[mask] = [255.0, 0.0, 0.0]
+    Image.fromarray(overlay.astype(np.uint8), "RGB").save(OVERLAY_OUT)
+
+    def _core_std(a):
+        lum = a[..., 0] * 0.2126 + a[..., 1] * 0.7152 + a[..., 2] * 0.0722
+        return float(lum[384:640, 384:640].std())
+
+    print(f"debris mask coverage {100.0 * mask.mean():.2f}%")
+    print(f"source center-256 lum std {_core_std(source):.2f} -> cleaned {_core_std(cleaned):.2f}")
+    print(f"cleaned sha256 {hashlib.sha256(CLEAN_OUT.read_bytes()).hexdigest()}")
+    print(f"wrote {CLEAN_OUT.relative_to(REPO_ROOT)}")
+    print(f"wrote {OVERLAY_OUT.relative_to(REPO_ROOT)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

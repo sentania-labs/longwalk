@@ -52,6 +52,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+from declutter_dirt_source import declutter, detect
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SOURCE = REPO_ROOT / ".pka/round007/ground-source/dirt-regen-nbpro-019f74b2.png"
 OUTPUT = REPO_ROOT / "assets/village/ground_dirt_plate.png"
@@ -67,10 +69,24 @@ SPIKE_MEAN = np.array([98.6, 85.0, 43.5], dtype=np.float64)
 #   mid    = blur(L,12)- blur(L,64)    rock-cluster blobs (the "tiling" motifs)
 #   macro  = blur(L,64)                broad drift (the "wet mud" tell)
 # Gains: BOOST fine + lomid toward the spike's high-frequency energy, ATTENUATE
-# mid (rock-blob prominence) and macro (mud drift) hard. Chosen by the decision
-# 013 sweep against both hard gates (see the module docstring).
+# macro (mud drift) hard. Chosen by the decision 013 sweep against both hard gates
+# (see the module docstring).
+#
+# Decision 014: the mid gain was 0.55 in decision 013, attenuated HARD for one
+# reason only: the mid band (12-64 texels) carried the discrete grey stones'
+# rock-blob prominence, and 0.55 was the strongest suppression that still held the
+# flat-core floor. The decision-014 declutter pre-step now removes those painted
+# stones AT THE SOURCE, so the mid band carries only the substrate's dusty
+# brush-streak tonal variation (spike-consistent richness), not rock blobs.
+# Suppressing it is no longer needed and actively hurt: post-declutter the mid
+# 0.55 dropped the rendered protected-core std to 16.81 (below the 18.44 floor),
+# because the removed stones had been propping up that std. Restoring mid to 1.30
+# returns the dusty tonal richness to the protected core (rendered core std 19.22,
+# clear of the floor) without reintroducing any tell: the plate-rock <-> shoulder
+# xcorr stays ~0 (the detail bake's R shoulder reads the radius-3 fine band, not
+# mid) and the macro mud band is untouched.
 RESHAPE_RADII = (3, 12, 64)
-BAND_GAINS = (1.85, 1.55, 0.55, 0.14)  # (fine, lomid, mid, macro)
+BAND_GAINS = (1.85, 1.55, 1.30, 0.14)  # (fine, lomid, mid, macro)
 
 # Mid-band spatial DE-PEAKING (decision 013 depeak follow-on). The graded plate
 # closed the muddy-tone and grid-seam tells, but ONE dominant tell remained: the
@@ -177,9 +193,16 @@ def reshape_luminance(lum: np.ndarray, gains=BAND_GAINS, radii=RESHAPE_RADII) ->
 
 
 def grade(source: np.ndarray, gains=BAND_GAINS, radii=RESHAPE_RADII) -> np.ndarray:
-    """Full grade: multiband luminance reshape applied equally to R,G,B (no hue
-    shift), then a per-channel affine mean-match onto the spike target. Returns a
-    float64 RGB array (unclipped) for measurement; the caller clips + rounds."""
+    """Full grade: DECLUTTER the painted debris out of the source (decision 014),
+    then a multiband luminance reshape applied equally to R,G,B (no hue shift),
+    then a per-channel affine mean-match onto the spike target. Returns a float64
+    RGB array (unclipped) for measurement; the caller clips + rounds."""
+    # Decision 014 pre-step: strip the discrete painted stones / amber rocks /
+    # grass tufts and refill from the surrounding dusty-tan substrate BEFORE the
+    # reshape, since no luminance-band operator dissolves painted content (proved
+    # in decision 013, docs/art/village/dirt-depeak-013.md). See
+    # tools/art/declutter_dirt_source.py.
+    source = declutter(source)
     lum = source[..., 0] * 0.2126 + source[..., 1] * 0.7152 + source[..., 2] * 0.0722
     lum_new = reshape_luminance(lum, gains, radii)
     delta = (lum_new - lum)[..., None]
@@ -236,6 +259,35 @@ def main() -> int:
         kurt = float(np.mean(cc ** 4) / s ** 4) if s > 0 else 0.0
         tail3 = float(np.mean(np.abs(cc) > 3 * s)) * 100.0
         return s, kurt, tail3
+
+    # Decision 014 stone-removal proxy: the painted debris is what the declutter
+    # pre-step targets, so the direct proxy is the debris coverage plus the drop
+    # in the mid-band peaky tail from the RAW source to the DECLUTTERED source
+    # (stones are the non-Gaussian mid-band outliers; removing them pulls the
+    # kurtosis toward Gaussian and collapses the >3-sigma tail).
+    raw_source = np.asarray(Image.open(SOURCE).convert("RGB"), dtype=np.float64)
+    clean_source = declutter(raw_source)
+    mask = detect(raw_source)
+    raw_lum = raw_source[..., 0] * 0.2126 + raw_source[..., 1] * 0.7152 + raw_source[..., 2] * 0.0722
+    cln_lum = clean_source[..., 0] * 0.2126 + clean_source[..., 1] * 0.7152 + clean_source[..., 2] * 0.0722
+    raw_mid = _box_blur_wrapped(raw_lum, 12) - _box_blur_wrapped(raw_lum, 64)
+    cln_mid = _box_blur_wrapped(cln_lum, 12) - _box_blur_wrapped(cln_lum, 64)
+    rs0, rk0, rt0 = _prom(raw_mid)
+    cs0, ck0, ct0 = _prom(cln_mid)
+
+    def _grey_frac(a):
+        mx = a.max(axis=-1)
+        mn = a.min(axis=-1)
+        sat = np.where(mx > 0.0, (mx - mn) / mx, 0.0)
+        return float(np.mean(sat < 0.40)) * 100.0
+
+    print("decision-014 source de-clutter stone-removal proxy:")
+    print(f"  debris mask coverage {100.0 * mask.mean():.2f}%  (stones + amber rocks + grass tufts)")
+    # Headline proxy: grey (desaturated) pixels ARE the painted stones; the
+    # substrate is warm tan, so the grey fraction is a direct stone-count proxy.
+    print(f"  grey (sat<0.40) pixel fraction: RAW {_grey_frac(raw_source):.2f}% -> CLEAN {_grey_frac(clean_source):.2f}%  (stones removed)")
+    print(f"  RAW source   mid(12-64) rms={rs0:.2f} kurtosis={rk0:.3f} tail>3sig={rt0:.3f}%")
+    print(f"  CLEAN source mid(12-64) rms={cs0:.2f} kurtosis={ck0:.3f} tail>3sig={ct0:.3f}%")
 
     print(f"reshape radii {RESHAPE_RADII}  band gains (fine,lomid,mid,macro) {BAND_GAINS}")
     print(f"graded channel mean {out.reshape(-1, 3).mean(axis=0).round(2)}  (spike {SPIKE_MEAN})")
