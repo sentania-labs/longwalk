@@ -56,7 +56,42 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016. RENDER SEAM WORK (D1/D4) DONE + INTEGRATED + PUSHED. ROUND HEAD `5777b83`. QA #004 (RELIABLE) = NOT-CONFUSABLE; REMAINING GAP = FOUNDATION/FLORA-BASE VEGETATION (D2/D3). ITERATION 4 SCOPED, NOT YET DISPATCHED. NOTHING IN FLIGHT. ===
+=== WHERE WE ARE: DECISION 016. RENDER SEAM WORK (D1/D4) DONE + INTEGRATED + PUSHED. ROUND HEAD `5777b83`. QA #004 (RELIABLE) = NOT-CONFUSABLE; REMAINING GAP = FOUNDATION/FLORA-BASE VEGETATION (D2/D3). ITERATION 4 = FULL PROTOCOL; **PHASE 1 BLIND PROPOSALS DISPATCHED + IN FLIGHT** (all 3 doers). ===
+
+=== ITERATION 4 (D2/D3 base vegetation), PHASE 1 IN FLIGHT ===
+Scope + goal: `.pka/round007/composition/iter4/assignment.md`. Shared blind
+proposal prompt: `.pka/round007/composition/iter4/proposal-prompt.md`. Design
+fork (why full protocol): D2 foundation anchoring = discrete prop placement vs
+baked foundation-vegetation seam mask vs shader base-skirt. D3 flora base
+feather-AO / root-merge is the smaller secondary piece.
+
+**Three blind proposals DISPATCHED 2026-07-18 21:00:10 (detached setsid, cap
+1800s), all off round head `5777b83`:**
+- claude -> worktree `lw-016-render`, branch `claude/016-baseveg`, run_id
+  `baseveg-prop-claude-20260718-210010`. Log `.pka/round007/composition/iter4/logs/prop-claude.log`.
+- codex -> worktree `lw-007-codex`, branch `codex/016-baseveg`, run_id
+  `baseveg-prop-codex-20260718-210010`. Log `.../logs/prop-codex.log`.
+- agy -> worktree `lw-007-agy`, branch `agy/016-baseveg`, run_id
+  `baseveg-prop-agy-20260718-210010`. Log `.../logs/prop-agy.log`.
+Start markers confirmed present for all three; dispatch.sh pids 449148/449149/
+449150 alive at launch. Each doer commits its proposal
+(`docs/proposals/<prefix>-016-baseveg.md`) on its own branch and reports the SHA;
+doers do NOT push.
+
+**ON RESPAWN (if respawned mid-phase-1): DO NOT RE-DISPATCH.** Verify from end
+markers: `<worktree>/.team/markers/baseveg-prop-<doer>-20260718-210010-end.md`
+(branch_sha_before vs after, branch_changed, uncommitted_work). Then `git -C
+<worktree> log --oneline -1` should show the proposal commit past `5777b83`. If a
+doer's proc is dead (pgrep dispatch.sh/adapter for baseveg-prop) and no commit,
+inspect its log + `.team/blocked/`, re-dispatch that one only. Once all 3
+proposals committed + verified -> record SHAs -> PHASE 2 adversarial critique
+(each doer reads the other two, dispatch `roles/phases/2-critique.md`-shaped
+prompt into its worktree) -> PHASE 3 four-ballot synthesis + decision record 017
+(or a 016 addendum; likely a new decision record for the base-veg approach) ->
+implementation -> cross sign-off -> gates -> FF integrate -> QA #005
+(anti-anchoring) + orchestrator decode -> if CONFUSABLE + agree, surface build to
+Scott (`to: dalinar`). Four-ballot: orchestrator + claude + codex + agy; critic
+(cursor) ONLY on a 2-2 split.
 
 **Round head `5777b83` on origin/round/007-village** (pushed). Nothing dispatched
 at turn end. Lineage this run on the round branch (all verified from end markers +
