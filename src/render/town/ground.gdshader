@@ -104,7 +104,11 @@ uniform float shoulder_hi : hint_range(0.0, 1.0) = 0.60;
 // darkens the shoulder dirt tone. Both are bounded and apply OUTSIDE the core
 // only, so the protected core stays solid true-tone dirt.
 uniform float density_contrast : hint_range(0.0, 1.0) = 0.5;
-uniform float tone_contrast : hint_range(0.0, 0.6) = 0.16;
+// tone_contrast reduced 0.16 -> 0.10 (decision 013): the wear-driven broad
+// darkening is a low-frequency mechanism that does NOT inherit the plate
+// regrade, and at 0.16 it re-added the broad "wet mud" tone step the multiband
+// flatten removed from the plate. Reduced only as far as the captures required.
+uniform float tone_contrast : hint_range(0.0, 0.6) = 0.10;
 
 // Dirt-detail modulation (decision 012 #1, zero-mean value modulation
 // dirt.rgb *= mix(1-c, 1+c, detail)). detail_shoulder_amp is the full-amplitude
@@ -112,8 +116,20 @@ uniform float tone_contrast : hint_range(0.0, 0.6) = 0.16;
 // detail_core_amp is the BOUNDED LOW swing applied by the G channel on the
 // protected CORE (broad drift only, never R). Both are zero-mean, so the mean
 // dirt tone and the coverage/opacity (dirt_amount, core_solid) are untouched.
-uniform float detail_shoulder_amp : hint_range(0.0, 0.5) = 0.40;
-uniform float detail_core_amp : hint_range(0.0, 0.2) = 0.11;
+// detail_shoulder_amp reduced 0.40 -> 0.18 (decision 013 measured sweep): the
+// multiband-flattened plate now supplies dry speckle directly (its own native
+// gradient 10.20 already sits at the grass shimmer level 10.28), and the finer
+// (radius-3) R high-pass carries more high-frequency energy per unit variance,
+// so at 0.40 the rendered shoulder fine-gradient (11.98) breached the grass
+// shimmer ceiling. At 0.18 the rendered gradient lands ~10.30, at the native
+// grass level (the native decode reads higher than the shipped minified 0.5x
+// render, so this is the conservative same-basis test), while the plate keeps
+// the shoulder dry-structured. detail_core_amp trimmed 0.11 -> 0.09 (the core G
+// broad drift is a low-frequency term; the flattened plate already lifts the
+// protected-core std to ~19.9, so less G drift is needed and it keeps any
+// residual broad step off the core).
+uniform float detail_shoulder_amp : hint_range(0.0, 0.5) = 0.18;
+uniform float detail_core_amp : hint_range(0.0, 0.2) = 0.09;
 
 // Transition edge-break (decision 012 #2). The R field, sampled at a FIXED
 // ROTATED/OFFSET UV so it decorrelates from the tone sample above (codex's

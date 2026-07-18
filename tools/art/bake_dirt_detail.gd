@@ -6,6 +6,18 @@ extends SceneTree
 # DIRT plate luminance high-pass at BOX_BLUR_RADIUS source texels, so the
 # shoulder high-frequency carries dirt/pebble morphology instead of the grass
 # plate's tufted-leaf morphology (decision 012 item 5, agy QA pass 4 tell #2).
+#
+# Decision 013 (dirt re-tune): the high-pass radius moved from 12 to 3. At 12 the
+# R field caught the plate's 12-64 texel ROCK-CLUSTER motifs, and because it is
+# _standardize'd to unit variance the flattened plate did NOT quiet the shoulder:
+# R renormalized and re-emphasized whatever mid-band rock structure survived,
+# recurring across the once-sampled district as the "tiling" tell. At radius 3 the
+# high-pass catches only fine dry speckle (the spike's dry-dust signature), not
+# the rock blobs, so the plate-rock <-> rendered-shoulder cross-correlation drops.
+# Bright rock-edge outliers are WINSORIZED to +/-WINSOR_SIGMA before _standardize
+# so a handful of extreme edges cannot dominate the unit-variance normalization
+# and re-inject rock prominence.
+#
 # The high-pass is softened by SHOULDER_SOFTEN_RADIUS texels before packing so
 # the shoulder band sits at or under the shipping grass-plate gradient, the
 # already-encoded 0.5x shimmer ceiling (tell #3). G is a zero-mean broad
@@ -13,13 +25,14 @@ extends SceneTree
 # sample is a fixed function of (seed, layer offset, integer texel). No stateful
 # RNG, time seed, accumulator, or visit-order input participates in the bake.
 # Expected decoded image_sha256:
-# 1585d0bcb357696fc6cdbd19886397f5ffe531fb0af7c9b4a0d1338795da9435
+# b17eba378d5c0a089ea01130e49d35303fdf270c4ea969ca5366a2db41e84616
 const LAYOUT_SEED := 7007
 const SHOULDER_DETAIL_OFFSET := 12109
 const CORE_DRIFT_OFFSET := 14503
 const RESOLUTION := 1024
-const BOX_BLUR_RADIUS := 12
-const SHOULDER_SOFTEN_RADIUS := 2
+const BOX_BLUR_RADIUS := 3
+const SHOULDER_SOFTEN_RADIUS := 1
+const WINSOR_SIGMA := 2.5
 const CORE_BLUR_RADIUS := 64
 const DIRT_INPUT := "res://assets/village/ground_dirt_plate.png"
 const OUTPUT := "res://assets/village/ground_dirt_detail.png"
@@ -48,6 +61,10 @@ func _init() -> void:
 	# is already below the grass plate, and this prefilter keeps the packed R
 	# gradient under the grass shimmer ceiling with no committed mips.
 	high_pass = _box_blur_wrapped(high_pass, SHOULDER_SOFTEN_RADIUS)
+	# Winsorize bright rock-edge outliers before standardize (decision 013). A few
+	# extreme high-pass spikes at rock edges would otherwise inflate the variance
+	# used by _standardize and re-inject rock-blob prominence after normalization.
+	_winsorize(high_pass, WINSOR_SIGMA)
 	_standardize(high_pass)
 
 	var shoulder_noise := _noise(SHOULDER_DETAIL_OFFSET, 0.018, 4)
@@ -130,6 +147,24 @@ func _subtract(a: PackedFloat32Array, b: PackedFloat32Array) -> PackedFloat32Arr
 	for index in range(a.size()):
 		result[index] = a[index] - b[index]
 	return result
+
+
+# Clamp values to +/- sigma standard deviations about their mean. Deterministic:
+# depends only on the immutable input values, no order-sensitive accumulation
+# beyond the mean/variance reductions (which are order-independent sums).
+func _winsorize(values: PackedFloat32Array, sigma: float) -> void:
+	var mean := 0.0
+	for value in values:
+		mean += value
+	mean /= values.size()
+	var variance := 0.0
+	for value in values:
+		variance += (value - mean) * (value - mean)
+	var deviation := sqrt(variance / values.size())
+	var lo := mean - sigma * deviation
+	var hi := mean + sigma * deviation
+	for index in range(values.size()):
+		values[index] = clampf(values[index], lo, hi)
 
 
 func _standardize(values: PackedFloat32Array) -> void:

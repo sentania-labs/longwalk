@@ -56,9 +56,9 @@ const SHOULDER_LO := 0.03
 const SHOULDER_MID := 0.30
 const SHOULDER_HI := 0.60
 const DENSITY_CONTRAST := 0.5
-const TONE_CONTRAST := 0.16
-const DETAIL_SHOULDER_AMP := 0.40
-const DETAIL_CORE_AMP := 0.11
+const TONE_CONTRAST := 0.10
+const DETAIL_SHOULDER_AMP := 0.18
+const DETAIL_CORE_AMP := 0.09
 const EDGE_BREAK_AMP := 0.20
 const EDGE_BREAK_OFFSET := Vector2(0.041, 0.067)
 
@@ -78,6 +78,7 @@ func _init() -> void:
 	_cache_fields()
 	print("=== decision-012 dirt gate decode (grid %dx%d ~= 1x screen px) ===" % [GRID, GRID])
 	_report(DETAIL_SHOULDER_AMP, DETAIL_CORE_AMP, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI)
+	_diag_013(DETAIL_SHOULDER_AMP, DETAIL_CORE_AMP)
 
 	print("\n--- Gate 1 sweep: shoulder-dirt gradient vs detail_shoulder_amp ---")
 	for amp in [0.10, 0.14, 0.18, 0.22, 0.26, 0.30]:
@@ -356,6 +357,117 @@ func _isoline_reversals(edge_amp: float, s_lo: float, s_mid: float, s_hi: float)
 		if d0 != 0 and d1 != 0 and sign(d0) != sign(d1):
 			reversals += 1
 	return reversals
+
+
+# --- decision-013 diagnostics: band RMS, dark tail, rock<->shoulder xcorr ---
+# These quantify the three-tell fix numerically: the muddy tell is macro-band
+# luminance energy (should be crushed), the tiling tell is plate-rock structure
+# leaking into the rendered shoulder R (cross-correlation should be low), and the
+# dark tail shows the shadow values are no longer smeary-mud dark.
+func _diag_013(sh_amp: float, core_amp: float) -> void:
+	print("\n--- decision-013 diagnostics ---")
+	# Graded-plate luminance per-octave band RMS (matches grade_dirt_plate.py bands).
+	var plate_lum := PackedFloat32Array()
+	plate_lum.resize(GRID * GRID)
+	for i in range(GRID * GRID):
+		plate_lum[i] = _dirt_r[i] * 0.2126 * 255.0 + _dirt_g[i] * 0.7152 * 255.0 + _dirt_b[i] * 0.0722 * 255.0
+	var b3 := _box_blur(plate_lum, 3)
+	var b12 := _box_blur(plate_lum, 12)
+	var b64 := _box_blur(plate_lum, 64)
+	var fine := _rms_diff(plate_lum, b3)
+	var lomid := _rms_diff(b3, b12)
+	var mid := _rms_diff(b12, b64)
+	var macro := _rms_centered(b64)
+	print("plate band RMS: fine=%.2f lomid=%.2f mid=%.2f macro=%.2f (macro was 12.29 pre-reshape; spike macro ~0.2)" % [fine, lomid, mid, macro])
+	# Dark-tail percentiles of rendered clean-dirt luminance (mud reads as a heavy
+	# dark tail; dry dust has a tighter tail). Sampled over all clean dirt.
+	var lums := PackedFloat32Array()
+	for y in range(GRID):
+		for x in range(GRID):
+			var i := y * GRID + x
+			if _dirt_amount(i, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI) >= 0.9:
+				lums.append(_lum(i, sh_amp, core_amp, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI))
+	lums.sort()
+	var n := lums.size()
+	print("rendered clean-dirt lum pct 1/5/10/50/90: %.1f %.1f %.1f %.1f %.1f (n=%d)" % [
+		lums[int(0.01 * n)], lums[int(0.05 * n)], lums[int(0.10 * n)], lums[int(0.50 * n)], lums[int(0.90 * n)], n])
+	# Plate-rock <-> rendered-shoulder cross-correlation. Rock field = plate
+	# mid-band (blur12 - blur64). Shoulder R modulation = (detail_r - 0.5). A high
+	# |corr| means the shoulder tracks the rock motifs (the tiling tell); the
+	# radius-3 R high-pass + winsorize should drop it toward zero.
+	var rock := PackedFloat32Array()
+	rock.resize(GRID * GRID)
+	for i in range(GRID * GRID):
+		rock[i] = b12[i] - b64[i]
+	var shoulder_r := PackedFloat32Array()
+	shoulder_r.resize(GRID * GRID)
+	for i in range(GRID * GRID):
+		shoulder_r[i] = _detail_r[i] - 0.5
+	print("plate-rock <-> rendered-shoulder xcorr = %.3f (want |corr| low; tiling motif no longer tracked)" % _pearson(rock, shoulder_r))
+
+
+func _box_blur(src: PackedFloat32Array, radius: int) -> PackedFloat32Array:
+	var horizontal := PackedFloat32Array()
+	var result := PackedFloat32Array()
+	horizontal.resize(src.size())
+	result.resize(src.size())
+	var width := radius * 2 + 1
+	for y in range(GRID):
+		var total := 0.0
+		for offset in range(-radius, radius + 1):
+			total += src[y * GRID + posmod(offset, GRID)]
+		for x in range(GRID):
+			horizontal[y * GRID + x] = total / width
+			total -= src[y * GRID + posmod(x - radius, GRID)]
+			total += src[y * GRID + posmod(x + radius + 1, GRID)]
+	for x in range(GRID):
+		var total := 0.0
+		for offset in range(-radius, radius + 1):
+			total += horizontal[posmod(offset, GRID) * GRID + x]
+		for y in range(GRID):
+			result[y * GRID + x] = total / width
+			total -= horizontal[posmod(y - radius, GRID) * GRID + x]
+			total += horizontal[posmod(y + radius + 1, GRID) * GRID + x]
+	return result
+
+
+func _rms_diff(a: PackedFloat32Array, b: PackedFloat32Array) -> float:
+	var acc := 0.0
+	for i in range(a.size()):
+		var d := a[i] - b[i]
+		acc += d * d
+	return sqrt(acc / a.size())
+
+
+func _rms_centered(a: PackedFloat32Array) -> float:
+	var mean := 0.0
+	for v in a:
+		mean += v
+	mean /= a.size()
+	var acc := 0.0
+	for v in a:
+		acc += (v - mean) * (v - mean)
+	return sqrt(acc / a.size())
+
+
+func _pearson(a: PackedFloat32Array, b: PackedFloat32Array) -> float:
+	var ma := 0.0
+	var mb := 0.0
+	for i in range(a.size()):
+		ma += a[i]; mb += b[i]
+	ma /= a.size(); mb /= b.size()
+	var num := 0.0
+	var da := 0.0
+	var db := 0.0
+	for i in range(a.size()):
+		var xa := a[i] - ma
+		var xb := b[i] - mb
+		num += xa * xb
+		da += xa * xa
+		db += xb * xb
+	if da <= 0.0 or db <= 0.0:
+		return 0.0
+	return num / sqrt(da * db)
 
 
 func _bilinear2(img: Image, u: float, v: float) -> Vector2:
