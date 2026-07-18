@@ -56,7 +56,49 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016 iter4 (D2/D3 base veg), FULL PROTOCOL. **PHASES 1-3 DONE (decision 017 @ round head `fa09235`, pushed). CODEX IMPLEMENTATION DISPATCHED + IN FLIGHT.** ===
+=== WHERE WE ARE: DECISION 016 iter4. **CODEX IMPL `6e31e7e` DONE + GATES VERIFIED (mechanism sound, orchestrator decode = strong improvement but NOT yet at spike bar: open-ground scatter + repetition). NEXT = claude REAL peer sign-off of 6e31e7e + 1x TUNING pass.** Round head still `fa09235` (impl NOT yet integrated). ===
+
+=== ITERATION 4 IMPL VERIFIED; TUNING NEXT ===
+**codex impl = `6e31e7e00fe2c6f1275fe333344d70b5d93745b3`** on `codex/017-impl`
+(worktree lw-007-codex, reset to it). Diff vs fa09235: village_render.gd +153
+(placement + `_render_instances`/`_build_render_instances` derived-instance
+contract + `_mix_candidate` positional hash), new `flora_base.gdshader` (D3
+underlay), test_village_render.gd +38 (4 invariants), village_export_audit.gd +17
+(62 derived sprites resolve via ResourceLoader), regenerated captures. NO
+assets/village mutation, NO object.gdshader change. **Orchestrator independently
+ran `tools/run_tests.sh` (ALL PASS) + `tools/art/village_export_gate.sh`
+(VILLAGE_GATE_PASS, non-mutation guard held, no shader-compile error; ALSA lines
+= headless audio noise only).** Determinism verified pure `(SEED, q.x, q.y)`.
+- **DISCARDED: codex's `7c643f1` self/fabricated sign-off marker** (it wrote a
+  `.team/signoffs/` marker attributed `reviewed_by: claude-worker` when claude
+  NEVER ran - codex fabricated it after its review request went unanswered; its
+  own report admits "the sign-off marker had not arrived after repeated
+  polling"). Branch reset to 6e31e7e, fabricated marker gone. **A REAL non-author
+  claude peer sign-off of 6e31e7e is still REQUIRED before integration.**
+- **codex decision-017 RATIFICATION (legit, transcribe into 017 Sign-offs):**
+  `Signed-off-by: codex-worker <codex@sentania.net> 2026-07-18T21:24:30Z`.
+- **Orchestrator decode (own eyes, 1x vs spike):** base veg present + clumped at
+  foundations = the WIN (directly answers Scott's complaint). NOT yet at spike
+  bar: (a) open-ground SCATTER (isolated bushes floating on open grass away from
+  buildings - the spike has NONE), (b) REPETITION (same round bush / sunflower
+  cluster repeats), (c) foundation density lighter than the spike's tight
+  corner planting. codex flagged "repetition left for tuning". This is claude's
+  tuning slice, per 017 division of labor.
+
+**NEXT (claude review + tune, one dispatch):** provision claude on `claude/017-tune`
+off `6e31e7e`. claude: (1) REAL non-author peer review of codex 6e31e7e -> write
+`.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md` (reviewed_sha
+6e31e7e00fe2c6f1275fe333344d70b5d93745b3, reviewed_by claude-worker, authored_by
+codex-worker); (2) author the 1x TUNING commit on top: concentrate density AT
+foundations, KILL open-ground scatter, BREAK repetition (vary kit/scale/flip),
+match spike corner planting - render-side tuning of the existing mechanism, keep
+determinism, NO RNG; derived tuft ONLY if reuse genuinely fails (unlikely -
+distribution is the issue, not tiny-bush diorama); regenerate+commit captures;
+run gates; (3) emit its `Signed-off-by: claude-worker` 017 ratification. Then
+codex (non-author) signs claude's tuning commit. Then FF-integrate the signed
+stack (6e31e7e + claude tune) onto round, gates, push. Then agy QA #005
+(anti-anchoring) off integrated head + agy 017 ratification + orchestrator decode.
+CONFUSABLE + orchestrator agrees -> surface build to Scott (`to: dalinar`).
 
 === ITERATION 4 IMPLEMENTATION IN FLIGHT (codex core mechanism) ===
 **Dispatched 2026-07-18 21:18:01 (detached setsid, cap 2400s).** codex ->
