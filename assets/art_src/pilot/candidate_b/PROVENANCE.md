@@ -188,4 +188,35 @@ assets/art_src/pilot/candidate_b/reproduce.sh
 
 The script re-renders both cleaned GLBs with the committed restyled albedos,
 composites, assembles the atlas, and runs all three validators. No Meshy call, no
-network access. Production render time on this CPU: PLACEHOLDER_RENDER_TIME.
+network access. Production render time on this CPU (2 cores, single-threaded
+render, see byte-stability note below): about 10 minutes 46 seconds (646 s) for
+all 56 frames (48 player + 8 cottage).
+
+## Byte-stability of the render + composite + assemble chain (constraint 7)
+
+The first delivery's render was not byte-stable: a clean reproduction drifted N_1
+and S_3 by one color channel value at one pixel each, which propagated into two
+atlas pixels. Root cause was raytracer nondeterminism in the multi-threaded Cycles
+CPU render plus the OpenImageDenoise pass: float-summation order and denoiser
+tiling varied with thread scheduling between runs. The composite/assemble stage
+(`treat_candidate_b.py`, `build_player_walk.py`) is pure numpy/PIL and was never
+the cause.
+
+The fix pins every source of render nondeterminism in `render_candidate_b.py`
+(`setup_scene_and_camera`): Cycles `seed = 0`, `render.dither_intensity = 0.0`,
+and single-threaded rendering (`render.threads_mode = 'FIXED'`,
+`render.threads = 1`). Single-threaded rendering makes the sample-summation order
+and the denoiser fully deterministic by construction, independent of machine load
+or core count. Denoising stays ON (deterministic single-threaded), so the sprites
+keep the same visual character and stay parity-comparable with candidate A.
+
+**Scope of the fix: candidate-B-specific.** The three pinning lines live in
+`tools/art/render_candidate_b.py`, candidate B's own render driver, not in the
+shared `tools/art/blender_pose_rig.py`. Candidate A's render path is untouched.
+Candidate A must be re-verified for the same byte-stability (denoising / thread
+pinning) separately; that is the orchestrator's to route, not part of this slice.
+
+**Verification.** `reproduce.sh` was run to completion twice as independent
+Blender processes. The 48 finished player sprites, the cottage sprite, and the
+assembled atlas were byte-identical (md5) between the two runs. The previously
+drifting N_1 and S_3 are now stable.

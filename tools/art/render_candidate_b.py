@@ -53,6 +53,30 @@ def setup_scene_and_camera():
     cam_obj = blender_calibration.setup_camera(scene)
     scene.cycles.use_denoising = True
 
+    # Byte-stable render (decision 009 constraint 7). A clean reproduction must
+    # regenerate the deliverables byte-for-byte, so every source of raytracer
+    # nondeterminism is pinned here:
+    #   - seed = 0: fixes the Cycles sample sequence (default is already 0, but
+    #     make it explicit so it cannot drift with a future default change).
+    #   - dither_intensity = 0: the film dither adds ordered noise to the 8-bit
+    #     output; zero removes it entirely.
+    #   - threads = 1 (FIXED): the real culprit. Multi-threaded CPU rendering plus
+    #     the OpenImageDenoise pass let float-summation order and denoiser tiling
+    #     vary with thread scheduling, which drifted N_1 and S_3 by 1 ULP at one
+    #     pixel across separate reproductions. Single-threaded rendering makes the
+    #     summation order and the denoiser fully deterministic by construction,
+    #     independent of machine load or core count. Denoising stays ON (it is now
+    #     deterministic single-threaded) so the visual character matches the
+    #     committed sprites and stays parity-comparable with candidate A.
+    # These three lines live in this candidate-B render driver, not in the shared
+    # blender_pose_rig.py, so this fix is B-specific: it does not alter candidate
+    # A's render path. Candidate A must be re-verified for the same byte-stability
+    # separately (denoising / thread pinning), which the orchestrator owns.
+    scene.cycles.seed = 0
+    scene.render.dither_intensity = 0.0
+    scene.render.threads_mode = 'FIXED'
+    scene.render.threads = 1
+
     world = bpy.data.worlds.new("Two Rivers World")
     scene.world = world
     world.use_nodes = True
