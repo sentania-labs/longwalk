@@ -1,43 +1,53 @@
 extends SceneTree
 
 # Deterministic dirt-detail contract: named layout seed 7007, fixed new layer
-# offsets 12109 and 14503, and the committed 1024x1024 grass plate as input.
-# R is a zero-mean shoulder-detail field whose majority component is the grass
-# luminance high-pass at BOX_BLUR_RADIUS source texels. G is a zero-mean broad
+# offsets 12109 and 14503, and the committed 1024x1024 tone-graded dirt plate as
+# input. R is a zero-mean shoulder-detail field whose majority component is the
+# DIRT plate luminance high-pass at BOX_BLUR_RADIUS source texels, so the
+# shoulder high-frequency carries dirt/pebble morphology instead of the grass
+# plate's tufted-leaf morphology (decision 012 item 5, agy QA pass 4 tell #2).
+# The high-pass is softened by SHOULDER_SOFTEN_RADIUS texels before packing so
+# the shoulder band sits at or under the shipping grass-plate gradient, the
+# already-encoded 0.5x shimmer ceiling (tell #3). G is a zero-mean broad
 # core-drift field prefiltered at CORE_BLUR_RADIUS source texels. Every noise
 # sample is a fixed function of (seed, layer offset, integer texel). No stateful
 # RNG, time seed, accumulator, or visit-order input participates in the bake.
 # Expected decoded image_sha256:
-# 9a0d28cd2a50c7c9d754bae3b4acc33d9d8962f630ff197adf1f37ae88bf6f94
+# 1585d0bcb357696fc6cdbd19886397f5ffe531fb0af7c9b4a0d1338795da9435
 const LAYOUT_SEED := 7007
 const SHOULDER_DETAIL_OFFSET := 12109
 const CORE_DRIFT_OFFSET := 14503
 const RESOLUTION := 1024
 const BOX_BLUR_RADIUS := 12
+const SHOULDER_SOFTEN_RADIUS := 2
 const CORE_BLUR_RADIUS := 64
-const GRASS_INPUT := "res://assets/village/ground_grass_plate.png"
+const DIRT_INPUT := "res://assets/village/ground_dirt_plate.png"
 const OUTPUT := "res://assets/village/ground_dirt_detail.png"
 
 
 func _init() -> void:
-	var grass := Image.load_from_file(GRASS_INPUT)
-	if grass == null or grass.is_empty():
-		push_error("dirt detail could not load grass plate: %s" % GRASS_INPUT)
+	var dirt := Image.load_from_file(DIRT_INPUT)
+	if dirt == null or dirt.is_empty():
+		push_error("dirt detail could not load dirt plate: %s" % DIRT_INPUT)
 		quit(1)
 		return
-	if grass.get_width() != RESOLUTION or grass.get_height() != RESOLUTION:
-		push_error("dirt detail grass plate must be %dx%d" % [RESOLUTION, RESOLUTION])
+	if dirt.get_width() != RESOLUTION or dirt.get_height() != RESOLUTION:
+		push_error("dirt detail dirt plate must be %dx%d" % [RESOLUTION, RESOLUTION])
 		quit(1)
 		return
-	grass.convert(Image.FORMAT_RGB8)
+	dirt.convert(Image.FORMAT_RGB8)
 
 	var luminance := PackedFloat32Array()
 	luminance.resize(RESOLUTION * RESOLUTION)
 	for y in range(RESOLUTION):
 		for x in range(RESOLUTION):
-			var color := grass.get_pixel(x, y)
+			var color := dirt.get_pixel(x, y)
 			luminance[y * RESOLUTION + x] = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722
 	var high_pass := _subtract(luminance, _box_blur_wrapped(luminance, BOX_BLUR_RADIUS))
+	# Soften the very-high-frequency shoulder band. The dirt plate's own gradient
+	# is already below the grass plate, and this prefilter keeps the packed R
+	# gradient under the grass shimmer ceiling with no committed mips.
+	high_pass = _box_blur_wrapped(high_pass, SHOULDER_SOFTEN_RADIUS)
 	_standardize(high_pass)
 
 	var shoulder_noise := _noise(SHOULDER_DETAIL_OFFSET, 0.018, 4)

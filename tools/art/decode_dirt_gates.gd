@@ -167,6 +167,15 @@ func _report(sh_amp: float, core_amp: float, edge_amp: float, s_lo: float, s_mid
 	var g_core := _core_dirt_gradient(core_amp)
 	print("GATE1 clean shoulder-dirt gradient = %.2f bytes  (target >= 8.0)" % g_shoulder)
 	print("GATE1 protected-core gradient       = %.2f bytes  (expected LOW, broad-drift only)" % g_core)
+	# Flat-core tell (decision 012 item 5, QA pass 4 tell #1): the protected core
+	# samples the dirt plate directly, so its richness is TONAL (std of rendered
+	# luminance), not high-frequency. Report the core-inclusive gradient (all clean
+	# dirt) and the core luminance std so the plate-driven fix is quantified: a flat
+	# plate leaves both low, a structured plate lifts both.
+	var g_all := _all_dirt_gradient(sh_amp, core_amp)
+	var core_std := _core_luminance_std(core_amp)
+	print("GATE1 core-inclusive dirt gradient  = %.2f bytes  (all clean dirt, core+shoulder)" % g_all)
+	print("GATE1 protected-core luminance std  = %.2f bytes  (tonal richness, was flat pre-regen)" % core_std)
 	var cov := _coverage(edge_amp, s_lo, s_mid, s_hi)
 	print("GATE3 dirt fraction = %.4f  (target grass-dominant < 0.5)" % cov)
 	_gate2(edge_amp, s_lo, s_mid, s_hi)
@@ -188,6 +197,52 @@ func _shoulder_dirt_gradient(sh_amp: float) -> float:
 # The protected core (dirt_amount >= 0.9 and core_solid >= 0.5): should be LOW.
 func _core_dirt_gradient(core_amp: float) -> float:
 	return _masked_gradient(DETAIL_SHOULDER_AMP, core_amp, EDGE_BREAK_AMP, true)
+
+
+# Core-inclusive: mean |dLum| over EVERY clean solid dirt texel (core and
+# shoulder together, dirt_amount >= 0.9), the whole rendered dirt surface.
+func _all_dirt_gradient(sh_amp: float, core_amp: float) -> float:
+	var total := 0.0
+	var count := 0
+	for y in range(GRID):
+		for x in range(GRID):
+			var i := y * GRID + x
+			if _dirt_amount(i, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI) < 0.9:
+				continue
+			var li := _lum(i, sh_amp, core_amp, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI)
+			if x + 1 < GRID:
+				var j := i + 1
+				if _dirt_amount(j, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI) >= 0.9:
+					total += absf(li - _lum(j, sh_amp, core_amp, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI))
+					count += 1
+			if y + 1 < GRID:
+				var j2 := i + GRID
+				if _dirt_amount(j2, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI) >= 0.9:
+					total += absf(li - _lum(j2, sh_amp, core_amp, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI))
+					count += 1
+	return total / maxf(count, 1) if count > 0 else 0.0
+
+
+# Std of rendered luminance over the protected core clean dirt: the DIRECT
+# flat-core measure. A flat plate leaves this near zero; the structured plate
+# lifts it. This is the tonal richness the honesty ruling keeps on the core.
+func _core_luminance_std(core_amp: float) -> float:
+	var values := PackedFloat32Array()
+	for y in range(GRID):
+		for x in range(GRID):
+			var i := y * GRID + x
+			if _is_clean(i, EDGE_BREAK_AMP, true):
+				values.append(_lum(i, DETAIL_SHOULDER_AMP, core_amp, EDGE_BREAK_AMP, SHOULDER_LO, SHOULDER_MID, SHOULDER_HI))
+	if values.is_empty():
+		return 0.0
+	var mean := 0.0
+	for v in values:
+		mean += v
+	mean /= values.size()
+	var variance := 0.0
+	for v in values:
+		variance += (v - mean) * (v - mean)
+	return sqrt(variance / values.size())
 
 
 func _masked_gradient(sh_amp: float, core_amp: float, edge_amp: float, want_core: bool) -> float:
