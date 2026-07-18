@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Bake periodic village ground swatches and their visual acceptance sheet.
+"""Bake deterministic offset-and-heal village ground swatches.
 
-The source rectangles are sampled from docs/art/iso-five-asset-spike.png. Each
-crop is converted to a periodic texture by retaining its Fourier amplitudes and
-assigning deterministic, coordinate-hashed phases. This removes composition
-motifs and guarantees matching opposite boundaries without inventing a palette.
+The source rectangles come from docs/art/iso-five-asset-spike.png. The crop is
+half-offset so its original edges meet in a central seam cross. Fixed donor
+patches from the same crop are then feathered over only that cross. Pixels
+outside the two seam bands remain the untouched, half-offset source crop.
 """
 
 from __future__ import annotations
@@ -20,40 +20,39 @@ SOURCE = ROOT / "docs/art/iso-five-asset-spike.png"
 ASSETS = ROOT / "assets/village"
 CONTACT = ROOT / "docs/art/village/ground-swatch-contactsheet.png"
 SIZE = 512
+SEAM_HALF_WIDTH = 48
 
 
-def _hash_phase(y: np.ndarray, x: np.ndarray, salt: int) -> np.ndarray:
-    """Return a stateless phase determined only by frequency coordinates."""
-    value = (x.astype(np.uint64) * np.uint64(0x9E3779B185EBCA87))
-    value ^= y.astype(np.uint64) * np.uint64(0xC2B2AE3D27D4EB4F)
-    value ^= np.uint64(salt)
-    value ^= value >> np.uint64(30)
-    value *= np.uint64(0xBF58476D1CE4E5B9)
-    value ^= value >> np.uint64(27)
-    return (value.astype(np.float64) / float(2**64)) * (2.0 * np.pi)
+def _smoothstep(value: np.ndarray) -> np.ndarray:
+    value = np.clip(value, 0.0, 1.0)
+    return value * value * (3.0 - 2.0 * value)
 
 
-def _periodic_texture(crop: Image.Image, salt: int) -> Image.Image:
+def _seam_mask(axis: int) -> np.ndarray:
+    """Return a feathered mask confined to one central seam band."""
+    coordinate = np.arange(SIZE, dtype=np.float64)
+    distance = np.abs(coordinate - SIZE / 2 + 0.5)
+    mask = _smoothstep((SEAM_HALF_WIDTH - distance) / (SEAM_HALF_WIDTH * 0.45))
+    if axis == 0:
+        return np.broadcast_to(mask[:, None, None], (SIZE, SIZE, 1))
+    return np.broadcast_to(mask[None, :, None], (SIZE, SIZE, 1))
+
+
+def _offset_and_heal(crop: Image.Image, donor_offset: tuple[int, int]) -> Image.Image:
+    """Half-offset a crop, then clone fixed organic donors over the seam cross."""
     sample = np.asarray(crop.resize((SIZE, SIZE), Image.Resampling.LANCZOS), dtype=np.float64)
-    luminance = sample.mean(axis=2)
-    spectrum = np.fft.rfft2(luminance - luminance.mean())
-    fy, fx = np.indices(spectrum.shape)
-    phase = _hash_phase(fy, fx, salt)
-    phase[0, 0] = 0.0
-    synthesized = np.fft.irfft2(np.abs(spectrum) * np.exp(1j * phase), s=(SIZE, SIZE))
-    synthesized = (synthesized - synthesized.mean()) / max(synthesized.std(), 1e-6)
+    offset = np.roll(sample, (SIZE // 2, SIZE // 2), axis=(0, 1))
 
-    # Reapply the crop's painterly color relationship as a smooth polynomial
-    # mapping from luminance. This preserves the source palette and tonal range.
-    source_luma = luminance.reshape(-1)
-    output = np.empty((SIZE, SIZE, 3), dtype=np.float64)
-    for channel in range(3):
-        coeff = np.polyfit(source_luma, sample[:, :, channel].reshape(-1), 2)
-        tonal = np.clip(128.0 + synthesized * source_luma.std(), 0.0, 255.0)
-        output[:, :, channel] = np.polyval(coeff, tonal)
-    lo = np.percentile(sample, 1, axis=(0, 1))
-    hi = np.percentile(sample, 99, axis=(0, 1))
-    return Image.fromarray(np.uint8(np.clip(output, lo, hi)), "RGB")
+    # Each donor is another deterministic translation of the same organic crop.
+    # Applying one axis at a time also heals the central cross intersection.
+    healed = offset
+    vertical_donor = np.roll(offset, donor_offset[1], axis=1)
+    mask = _seam_mask(1)
+    healed = healed * (1.0 - mask) + vertical_donor * mask
+    horizontal_donor = np.roll(healed, donor_offset[0], axis=0)
+    mask = _seam_mask(0)
+    healed = healed * (1.0 - mask) + horizontal_donor * mask
+    return Image.fromarray(np.uint8(np.clip(np.rint(healed), 0, 255)), "RGB")
 
 
 def _tile_panel(tile: Image.Image, zoom: float) -> Image.Image:
@@ -87,27 +86,16 @@ def _contact_sheet(tiles: list[tuple[str, Image.Image]]) -> None:
     sheet.save(CONTACT, optimize=True)
 
 
-def _shadow() -> None:
-    width, height = 256, 128
-    y, x = np.indices((height, width), dtype=np.float64)
-    radius = ((x - width / 2) / (width * 0.46)) ** 2 + ((y - height / 2) / (height * 0.38)) ** 2
-    alpha = np.uint8(np.clip((1.0 - radius) ** 2 * 105.0, 0.0, 105.0))
-    rgba = np.zeros((height, width, 4), dtype=np.uint8)
-    rgba[:, :, 3] = alpha
-    Image.fromarray(rgba, "RGBA").save(ASSETS / "shadow_decal.png", optimize=True)
-
-
 def main() -> int:
     source = Image.open(SOURCE).convert("RGB")
-    # Broad unobstructed spike areas: upper-right grass and central worn lane.
-    grass_crop = source.crop((790, 36, 1138, 330))
-    dirt_crop = source.crop((350, 330, 720, 590))
-    grass = _periodic_texture(grass_crop, 0x4752415353)
-    dirt = _periodic_texture(dirt_crop, 0x44495254)
+    # Largest useful unobstructed rectangles: upper-right meadow and broad lane.
+    grass_crop = source.crop((800, 36, 1152, 230))
+    dirt_crop = source.crop((278, 365, 354, 455))
+    grass = _offset_and_heal(grass_crop, (137, 173))
+    dirt = _offset_and_heal(dirt_crop, (151, 181))
     ASSETS.mkdir(parents=True, exist_ok=True)
     grass.save(ASSETS / "ground_grass_tile.png", optimize=True)
     dirt.save(ASSETS / "ground_dirt_tile.png", optimize=True)
-    _shadow()
     _contact_sheet([("grass", grass), ("dirt", dirt)])
     return 0
 
