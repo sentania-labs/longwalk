@@ -113,4 +113,18 @@ echo "=== test_village_render.gd ==="
 echo "=== test_lane_mask_consumption.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_lane_mask_consumption.gd
 
+echo "=== deterministic dirt-detail repeat bake ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://tools/art/bake_dirt_detail.gd
+DIRT_DETAIL_FIRST_SHA="$(sha256sum "${REPO_ROOT}/assets/village/ground_dirt_detail.png" | cut -d' ' -f1)"
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://tools/art/bake_dirt_detail.gd
+DIRT_DETAIL_SECOND_SHA="$(sha256sum "${REPO_ROOT}/assets/village/ground_dirt_detail.png" | cut -d' ' -f1)"
+if [[ "${DIRT_DETAIL_FIRST_SHA}" != "${DIRT_DETAIL_SECOND_SHA}" ]]; then
+	echo "[FAIL] repeated dirt-detail bakes are not byte-identical"
+	exit 1
+fi
+echo "[PASS] repeated dirt-detail bakes are byte-identical (${DIRT_DETAIL_FIRST_SHA})"
+
+echo "=== test_dirt_detail_bake.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_dirt_detail_bake.gd
+
 echo "All active-path test suites passed."
