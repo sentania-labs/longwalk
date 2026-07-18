@@ -56,153 +56,96 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-**Dispatched:** phase 1 `20260718-171534`, phase 2 `20260718-172217`. Phases
-1-3 DONE. Implementation IN FLIGHT (codex bake).
+=== WHERE WE ARE: DECISION 016 FULLY IMPLEMENTED + INTEGRATED; QA = NOT-CONFUSABLE (verified); SECOND ITERATION SCOPED ===
 
-=== WHERE WE ARE: PHASES 1-3 DONE; IMPL SLICE 1 (codex bake) IN FLIGHT ===
-**Round head `4022fb8`** on origin (== decision 016 record, pushed
-3c4c905..4022fb8). Full protocol ran cleanly this run, all verified from
-end markers + tree:
-- **Phase 1 blind proposals** (all committed, real, verified branch_changed):
-  claude `dcbd23ec1065ad89cdf1e9ef3773bfcedb40b266`, codex
-  `4e0ee74ba63ead63a0ce28ee5acf278706ac71e2`, agy
-  `b906ac6afe719a8fba4c8d0608efd833d8b89aaf`.
-- **Phase 2 critiques** (all committed, genuine adversarial + mutual concessions,
-  NOT a "looks good" round): claude `c615220a4a7554544b48260d4166baf5d60e00f8`,
-  codex `d6b4bc7392dbc6778a6fce87f1f1caef4ff2ac16`, agy
-  `c707ff1fa135155627d4d43da929e640f1fe7b60`.
-- **Phase 3 synthesis:** `docs/decisions/016-composition-integration.md` @
-  `4022fb8`. Converged: OFFLINE-baked footprint field in ground.gdshader (D2),
-  offline basal contact + short cast extending the ALREADY-EXISTING
-  `process_assets.py::derive_shadows` (D1), offline flora rematte + RGB
-  decontamination + feather (D3), one measured light vector + per-kit tonal
-  transforms with the ground CanvasModulate held FIXED (D4). Runtime-vs-offline
-  field ruled **3-1 for OFFLINE** (codex+agy+orch vs claude), decided WITHOUT
-  critic (3-1, not 2-2). claude's runtime dissent recorded VERBATIM in the
-  record. Two tree-verified findings drove it: claude's cast-height ordering is
-  broken on the manifest (inn native_y-anchor=1 vs tree=10), and the offline
-  shadow pipeline already exists in `tools/art/process_assets.py:157`.
-- **Division of labor:** codex = offline bake (footprint field + shadow masks +
-  flora rematte + manifest schema + byte-stability test); claude = render
-  integration + capture-tuning; agy = composed-scene QA seat (new rubric).
+**Round head `160139a` on origin/round/007-village.** Full protocol (phases 1-3)
++ all three impl slices are done, signed, integrated, pushed. Lineage on the
+round branch: `4022fb8` decision-016 record -> `d0c861c` codex bake (signed
+bd169cf) -> `f196cf8` codex flora finish (signed 8083068) -> `81e695f` claude
+render + `6bc43ce` R-apron fix (signed 6e50d0d) -> `160139a` agy QA report.
 
-**IMPL SLICE 1 (codex bake) DONE + VERIFIED; D3 FLORA BLOCKED ON A SCOPED PAID
-REGEN (orchestrator-authorized, deferred off this run tail).**
-Codex bake on `codex/016-bake` @ **`d0c861c9550baf2478eb4fc2c9920ed5c492e19a`**
-(off 4022fb8), verified from END marker (branch_changed yes, exit 0, not
-cap-expired, tree clean) + tree. Two commits: `a667c77` (D2 footprint field) +
-`d0c861c` (D1 per-kit contact/cast seam masks + manifest seam_policy + tests).
-Delivered: `assets/village/footprint_interaction_field.png` (256x224 RGBA8, 16
-texels/cell; R=apron coverage, G=SDF to footprint, B=door-wear, independent of
-lane_density), per-kit `assets/village/seams/*_{contact,cast}.png` for all
-objects (extends `process_assets.py::derive_shadows`), `manifest.json seam_policy`
-render contract (documented in `docs/art/village-seam-bake.md`), baker
-`tools/art/bake_footprint_field.gd`, byte-stability + layout-drift test
-`test/active_path/test_footprint_field_bake.gd` wired into `tools/run_tests.sh`.
-**ORCHESTRATOR SELF-RAN `tools/run_tests.sh` on the bake tree: ALL GREEN**
-(incl. the new footprint-field byte-stability/drift test).
+**Phase 1-3 (prior run, unchanged):** blind proposals claude `dcbd23e` / codex
+`4e0ee74` / agy `b906ac6`; critiques claude `c615220` / codex `d6b4bc7` / agy
+`c707ff1`; synthesis `docs/decisions/016-composition-integration.md`. Runtime-vs-
+offline field ruled 3-1 OFFLINE (claude dissent verbatim). Division: codex=bake,
+claude=render, agy=QA.
 
-**UPDATE (this run): BAKE SLICE SIGNED + INTEGRATED + PUSHED.** claude
-NON-AUTHOR sign-off `bd169cf` (`.team/signoffs/codex-016-bake-d0c861c9550b.md`,
-reviewed_by=claude-worker, authored_by=codex-worker, reviewed_sha=d0c861c;
-claude RE-BAKED byte-identically to verify determinism, not narration). Round
-branch FF'd to signed d0c861c + marker cherry-picked on top. **Round head now
-`3000e93` on origin** (pushed 4022fb8..3000e93). Orchestrator self-ran
-`tools/run_tests.sh` on the integrated tree: ALL GREEN. Review worktree
-lw-016-review removed (ephemeral). D3 flora rematte still pending the paid regen
-below.
+**IMPL (this run, all verified from end markers + tree, gates self-run green):**
+- **Bake** (codex `d0c861c`, off 4022fb8): footprint_interaction_field.png
+  (256x224, R=apron coverage / G=SDF / B=door-wear, lane-independent) + per-kit
+  `seams/*_{contact,cast}.png` extending `process_assets.py::derive_shadows` +
+  `manifest.json seam_policy` + baker + byte-stability test. claude signed
+  (bd169cf, re-baked byte-identically to verify). Integrated -> 3000e93.
+- **PAID FLORA REGEN** (orchestrator-run, supervised): 5 flora regenerated on
+  NEUTRAL GREY bg via per-object spike style-crop -> nano-banana-pro
+  image-to-image. 45 credits, balance 2937 -> **2892** (API consumed_credits
+  matched, guard clean). Sanctioned D3 HARD-STOP fallback (grey bg = mattable,
+  not the rejected same-seam regen). Provenance + task ids at
+  `.pka/round007/composition/flora-regen/PROVENANCE.md`.
+- **Flora finish** (codex `f196cf8`): rematted the regens via the clean
+  `remove_border_background` recipe (generated_src) + re-baked flora seam masks +
+  manifest provenance slice->generated + tonal-targets-as-data. claude signed
+  (8083068). Integrated -> 4e506dd. Flora now clean in-scene (no cutout edges).
+- **Render** (claude `81e695f` + fix `6bc43ce`): D2 ground.gdshader samples the
+  field at a named worn-apron insertion (now consuming fp.r as authored coverage
+  after codex blocked the first cut for ignoring R) + D1 below-sprite contact/cast
+  layer (retired shadow_decal) + D4 object.gdshader per-kit tonal (CanvasModulate
+  kept). New R-consumption regression test test_footprint_apron_r.gd. codex
+  blocked 81e695f (apron ignored field R), claude fixed, codex signed the fix
+  (6e50d0d). Integrated -> f388bb8. Suite + export gate green, assets/village
+  non-mutation held.
 
-**D3 FLORA REGEN DONE (this run, PAID, supervised) + CODEX FINISH IN FLIGHT.**
-Supervised scoped Meshy regen of the 5 flora COMPLETE and orchestrator-verified
-visually. Balance 2937 -> **2892** (45 credits, 5 x nano-banana-pro
-image-to-image @ 9; API consumed_credits matched exactly; no double-spend, guard
-clean: no PENDING tasks pre-spend). Recipe: per-object STYLE CROP from the spike
--> image-to-image on NEUTRAL MID-GREY bg (clean-mattable, the sanctioned D3
-HARD-STOP fallback, NOT the rejected same-seam regen). All 5 verified clean
-isolated objects on uniform grey, spike style, crisp edges. Raw sprites +
-`PROVENANCE.md` (task ids) at `.pka/round007/composition/flora-regen/`. Task ids:
-tree 019f7663-59d6; bush_a 019f7664-558a; bush_b 019f7664-7716; flower_a
-019f7664-9844; flower_b 019f7664-b820.
-**CODEX FINISH dispatched** (`codex/016-flora` off integrated round head 3000e93,
-run flora-finish-016-20260718-180745, detached, cap 2400s): rematte via existing
-`remove_border_background` recipe + re-bake flora seam masks + manifest + tonal
-targets-as-data. VERIFY from its end marker + tree on respawn; then non-author
-sign-off (agy or claude, != codex) + FF integrate + gates. The D3 block is
-resolved by this regen.
+**AGY COMPOSED-SCENE QA: verdict NOT-CONFUSABLE** (report
+`docs/art/village/qa-agy-composition-001.md`, on round branch at 160139a;
+orchestrator INDEPENDENTLY corroborated the D1+D2 tells by decoding the 2x
+crops). Real improvement over Scott's playtest state (objects grounded, worn
+aprons, clean flora sprites, more-unified key) but does NOT yet clear the
+"one painted world" bar. Four verified tells drive the SECOND ITERATION:
+- **D1 shadows (render):** contact/cast read as HARD, too-dark painted polygons
+  (inn-sign cast = hard grey polygon; tree shadow = pitch-black hard blob;
+  sunflower basal shadow = sharp rectangle). Need softer/lighter/feathered casts,
+  and the inn-sign should not throw a hard shape.
+- **D2 apron (render):** apron outer edge is a HARD STRAIGHT diamond-tile boundary
+  against grass, does not grade in. Need the outer isoline feathered/noise-broken
+  (reuse the shader's existing lane edge-break dither) so it dissolves into grass.
+- **D4 tonal (render):** buildings too dark/contrasty vs a brighter flat
+  yellow-green ground; keys still disparate -> pasted-on read. Rebalance the
+  object grade / bring ground+objects toward a shared key.
+- **D3 flora (codex, smaller):** residual grey rectangular block behind the
+  sunflower stems + a bush bottom-right clipped flat by its bbox. Flora rematte
+  feather/flood between thin stems + bbox crop fix.
 
-**D3 FLORA HARD-STOP (original block, now RESOLVED by the regen above):** the 5 polygon-sliced flora
-(`bush_a`, `bush_b`, `flower_cluster_a`, `flower_cluster_b`, `tree_large`) carry
-chromatic painted-grass boundaries (edge chroma 25-81), no recoverable matte, so
-they were intentionally NOT rematted (eroding deletes petals). `crown_foliage`
-IS recoverable and was handled. Marker on `codex/016-bake` +
-copied to main `.team/blocked/016-flora-regen-codex-20260718T173735Z.md` with my
-ruling: RECLASSIFIED codex's `blocked_on: scott` -> orchestrator-decidable. A
-scoped Meshy flora regen is NOT a Scott-escalation category, Meshy was
-pre-authorized for exactly this in the reframe, precedent exists (dirt regen
-019f74b2). **AUTHORIZED under deliberate-spend; deferred to the TOP of a fresh
-turn (never a paid spend at a run tail).**
-
-**=== PROGRESS THIS RUN (2026-07-18, all durable + pushed) ===**
-Round head advanced `4022fb8 -> 3000e93 -> 4e506dd` on origin. Sequence:
-- Bake slice (d0c861c) claude-signed (bd169cf), FF+marker integrated -> `3000e93`,
-  suite green, pushed.
-- PAID FLORA REGEN done + verified (45 credits, balance **2892**; 5 clean
-  neutral-grey sprites; provenance `.pka/round007/composition/flora-regen/`).
-- Codex flora finish (`codex/016-flora` f196cf8) claude-signed (8083068),
-  FF+marker integrated -> `4e506dd`, suite + village export gate GREEN, pushed.
-  Flora now clean in-scene (verified the 1x capture: no cutout edges, spike style).
-- CLAUDE RENDER SLICE authored (`claude/016-render` @ `81e695f` off 4e506dd): D1
-  below-sprite contact/cast (retire shadow_decal) + D2 footprint-field sampling +
-  D4 object.gdshader per-kit tonal. Orchestrator DECODED its 1x capture: clear
-  improvement (objects grounded, worn aprons, unified key). Before-render ref
-  `.pka/round007/composition/before-render-1x.png`.
-- **CODEX peer review BLOCKED the render slice (valid, real defect):**
-  `ground.gdshader` derives the worn apron from field G+B only and NEVER reads R,
-  but the bake contract says R = building-apron coverage. Gates passed only
-  because none assert R consumption. Block record
-  `.pka/round007/composition/codex-block-render-R-channel.md`. NOT integrated
-  (correctly held; no sign-off).
-- **CLAUDE RENDER FIX IN FLIGHT** (`claude/016-render`, run
-  render-fix-016-20260718-184547, detached cap 1800s): consume baked R apron
-  coverage per contract + add a render-side R-consumption regression test +
-  re-tune. On respawn VERIFY from end marker + tree, then codex RE-REVIEW the new
-  head (ephemeral worktree), FF integrate + push, then agy QA.
-
-**ON RESPAWN / NEXT ACTION (in order):**
-1. Check inbox `.pka/inbound/orchestrator/` (Scott steers mid-run).
-2. **VERIFY RENDER SLICE from its end marker + tree**
-   (`/home/scott/claude/lw-016-render/.team/markers/render-016-*-end.md`):
-   branch_changed, exit, cap, uncommitted. If in flight still, `pgrep -af 'claude -p'`
-   + poll. DECODE its best 1x capture vs spike + before-render-1x.png yourself.
-3. Dispatch CODEX NON-AUTHOR sign-off on `claude/016-render` (codex != author).
-   Ephemeral detached review worktree at the render head. FF integrate + marker
-   cherry-pick onto round branch, re-run suite + export gate, push round branch.
-4. Dispatch AGY QA vs the BINDING rubric
-   `.pka/round007/composition/qa-rubric-composed-scene.md` (composed scene at 1x
-   vs spike, D1-D4). agy worktree: rebranch off integrated round head.
-   If CONFUSABLE -> SURFACE A BUILD to Scott (cross-workspace `to: dalinar`) for
-   his OWN playtest verdict (automated seat alone was insufficient last time); do
-   NOT auto-expand the village. If NOT-CONFUSABLE -> diagnose the named tell
-   rigorously (inspect artifacts, not narration) and iterate off round head.
+**ON RESPAWN / NEXT ACTION (SECOND ITERATION, do NOT surface to Scott until
+CONFUSABLE):**
+1. Check inbox `.pka/inbound/orchestrator/`.
+2. Dispatch the render tuning slice on `claude/016-render` (worktree
+   lw-016-render, currently at 6bc43ce; rebranch/rebase onto round head 160139a
+   first): address D1 (soften+lighten+feather shadows, tame the inn-sign cast),
+   D2 (feather/dither the apron outer edge into grass), D4 (rebalance tonal to a
+   shared key). Capture-inspect loop vs spike at 0.5x/1x/2x.
+3. Dispatch the codex flora touch-up on a new branch off round head: D3 sunflower
+   inter-stem grey + bush bbox clip. (Can pipeline with the render slice into
+   different worktrees.)
+4. Cross non-author sign-offs, FF integrate each onto the round branch, gates,
+   push.
+5. Re-run AGY QA vs the binding rubric. If CONFUSABLE -> SURFACE A BUILD to Scott
+   (cross-workspace `to: dalinar`) for his OWN playtest verdict, do NOT
+   auto-expand the village. If still NOT-CONFUSABLE -> decode the named tell,
+   iterate off round head.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ **`4e506dd`** (== origin; integration
-  tree; bake + flora integrated).
-- `lw-016-render` on `claude/016-render` off 4e506dd (RENDER SLICE IN FLIGHT).
-- `lw-007-codex` on `codex/016-flora` @ `f196cf8` (flora finish, signed +
-  integrated). Prior `codex/016-bake` @ d0c861c also in history. Proposal
-  `codex/016-composition` @ `4e0ee74`, critique `d6b4bc7`.
-- `lw-007-claude` on `claude/016-composition` @ `dcbd23e`/`c615220` (proposal +
-  critique; holds the ONLY copy of `.pka/round007/ground-source/*` [paid dirt
-  sources, URLs expired, do NOT overwrite]). UNTOUCHED (render slice uses a fresh
-  worktree lw-016-render, not this one).
-- `lw-007-agy` on `agy/016-composition` @ `b906ac6`/`c707ff1` (proposal +
-  critique). Rebranch to `agy/016-qa` off the integrated round head for QA.
-- Review worktrees lw-016-review / lw-016-review2 were ephemeral, REMOVED.
-- Prior 007 slices (010-015) in round history. Old doer branches
-  (`claude/015-*`, `codex/015-fill`, `agy/015-qa8`, the `016-composition`
-  proposal/critique branches, etc.) still exist LOCAL; archive to
-  `refs/archive/007/*` at round close.
+- `lw-007-round` on `round/007-village` @ **`160139a`** (== origin; integration).
+- `lw-016-render` on `claude/016-render` @ `6bc43ce` (render slice; REBASE onto
+  160139a before the D1/D2/D4 tuning iteration).
+- `lw-016-qa` on `agy/016-qa` @ `1fc1fbf` (QA report committed; report also
+  cherry-picked onto round branch). Reuse for re-QA off the new round head.
+- `lw-007-codex` on `codex/016-flora` @ `f196cf8` (flora finish, integrated).
+  Rebranch off 160139a for the D3 touch-up.
+- `lw-007-claude` on `claude/016-composition` @ `c615220` (proposal/critique;
+  holds ONLY copy of `.pka/round007/ground-source/*` paid dirt sources, URLs
+  expired, do NOT overwrite). UNTOUCHED.
+- `lw-007-agy` on `agy/016-composition` @ `c707ff1` (proposal/critique).
+- Ephemeral review worktrees (lw-016-review{,2,3,4}) all REMOVED this run.
 
 ## Prior round-007 state (decisions 010-015, DONE, kept for lineage)
 
@@ -251,7 +194,8 @@ refs/archive/006/<name>:<path>`.
 ## Meshy
 
 Key live at `~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in
-`.mcp.json`. Balance **2937** (verified this run, no PENDING/IN_PROGRESS tasks).
+`.mcp.json`. Balance **2892** (after the D3 flora regen this run: 45 credits, 5 x
+nano-banana-pro image-to-image @ 9; guard was clean, no PENDING/IN_PROGRESS).
 The DIRT paid path is CLOSED (9 credits, task `019f74b2`, do NOT regen dirt).
 Meshy IS available for decision-016 IF in-context flora regeneration wins and
 genuinely needs it (no mandate). Any paid spend needs its own guard
@@ -261,9 +205,10 @@ copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
 
 ## Active decision records
 
-001-008 on main. Round-007 decisions **009-015** on the round branch @ `3c4c905`.
-**016 (composition/integration)** is IN PROGRESS this round (phase 1); its record
-`docs/decisions/016-composition-integration.md` is written at synthesis.
+001-008 on main. Round-007 decisions **009-015** on the round branch.
+**016 (composition/integration)** record `docs/decisions/016-composition-integration.md`
+is on the round branch @ 4022fb8 and fully implemented (bake + flora + render
+integrated); the round is in its SECOND QA iteration (QA1 = NOT-CONFUSABLE).
 
 ## Notes for the next run
 
@@ -274,10 +219,11 @@ copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
   repos/sentania-labs/longwalk/pulls/N ...`.
 - No round PR is open (correct; opens only for the full-village milestone once
   Scott confirms the art bar and the district is expanded).
-- **Sweep (last close) clean:** origin carries only `main`, `round/007-village`
-  @ `3c4c905`, unrelated `issue-4-world-eras`; leak guard PASS (no doer/rev
-  branches on origin). Verified again this run at launch: no doer leaks on
-  origin.
+- **Sweep:** round is OPEN (not closing; district must pass QA + Scott's eye
+  first). origin/round/007-village is at `160139a`. Doer branches
+  (claude/*, codex/*, agy/*) are LOCAL-only; verify none leaked to origin at the
+  next close (the round is mid-iteration, so leaked-branch guard is deferred to
+  round close, not now). No round PR open (correct).
 - Inbox processed through `2026-07-18-1730` (the composition verdict, actioned
   this run). Older partials `6110faed` / `c3ffe894` were descriptive reads, now
   superseded by Scott's direct playtest verdict.
@@ -293,12 +239,17 @@ copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
   lands later disagreeing, escalate then (spend already made under direct
   supervisor authorization).
 
-**Last updated:** 2026-07-18 (BAKE + FLORA both signed + integrated + pushed;
-round head 3000e93 then 4e506dd. PAID FLORA REGEN done [45 credits, balance 2892,
-5 clean neutral-grey sprites, verified clean in-scene]. Codex flora finish f196cf8
-signed 8083068. RENDER SLICE claude/016-render IN FLIGHT off 4e506dd
-[run render-016-20260718-182928, detached cap 2400s]: D1 below-sprite contact/cast
-+ D2 footprint-field sampling + D4 per-kit tonal, tuned vs spike. NEXT: verify
-render from end marker + tree, decode its 1x vs spike/before, codex non-author
-sign-off, integrate + gates + push, then AGY QA vs binding rubric; if CONFUSABLE
-surface a build to Scott [to: dalinar] for his own playtest verdict.)
+**Last updated:** 2026-07-18 (DECISION 016 FULLY IMPLEMENTED + INTEGRATED +
+PUSHED, round head `160139a`. This run: bake signed+integrated (bd169cf ->
+3000e93); PAID FLORA REGEN [45 credits, balance 2937->2892, 5 clean neutral-grey
+sprites, provenance recorded]; codex flora finish signed+integrated (8083068 ->
+4e506dd); claude render slice authored [81e695f] -> codex BLOCKED it [apron
+ignored field R, valid contract catch] -> claude R-fix [6bc43ce] + regression
+test -> codex signed the fix [6e50d0d] -> integrated [f388bb8]; suite + export
+gate green throughout, assets/village non-mutation held. AGY composed-scene QA =
+**NOT-CONFUSABLE**, orchestrator-corroborated [4 tells: D1 hard/dark shadows, D2
+hard straight apron edges, D3 residual grey behind sunflower stems + bush bbox
+clip, D4 tonal disparity]. NOT surfaced to Scott [correct: NOT-CONFUSABLE].
+SECOND ITERATION scoped above: claude render tuning [D1/D2/D4] + codex flora
+touch-up [D3] -> re-QA -> surface to Scott if CONFUSABLE. Every phase durable +
+pushed; nothing in flight at turn end.)
