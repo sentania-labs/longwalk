@@ -62,6 +62,46 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
+**HOUSEKEEPING RUN (orchestrator-run-20260718, doer-branch-leak cleanup + root
+cause). Round 006 iteration NOT resumed (still paused, awaiting Scott).** This
+run was a targeted housekeeping dispatch, not a continuation of the paused
+Two Rivers iteration. What it did, all verified on disk:
+- INBOX: dalinar's routing reply to escalation `c3ffe894` landed
+  (`.pka/inbound/orchestrator/c3ffe894-...md`). It is NOT Scott's vision-bar
+  answer. Dalinar confirmed the vision-bar call is Scott's alone, wrote the
+  decision brief to Scott's queue
+  (`scott/reports/2026-07-18-longwalk-meshy-vision-bar-decision.md`), and
+  CONFIRMED my hold on all three questions (stay paused on A-tuning; Meshy
+  production stays held). So the escalation is still OPEN, awaiting Scott.
+  ADDRESSING LESSON from dalinar: cross-workspace asks addressed `to: scott`
+  get swept to `agents/riker/inbox/stuck/` (not a routable target) and never
+  reach him; address them `to: dalinar` (as `c3ffe894` was) and they land in
+  Scott's queue. Two earlier longwalk escalations (walk-cycle art spike,
+  Codex-connector-down PR #18 gate) are stuck this way and never reached Scott.
+- DOER-BRANCH LEAK CLEANED: 7 stray doer branches deleted from origin (all
+  either integrated into round `5eee7bf` or byte-identically preserved under
+  `refs/archive/006/*`). `origin/codex/006-acceptance` RETAINED on purpose
+  (real unmerged harness work adaf9a0, not integrated; round is paused). See
+  the Branch and PR sweep section.
+- ROOT CAUSE FOUND + FIXED (commit **b14e39a** on main): the doer leak was
+  caused by the WORKER BRIEFS THEMSELVES telling doers to push. Neither the
+  dispatch machinery (`vault/scripts/team/dispatch.sh`) nor the codex adapter
+  (`vault/scripts/team/adapters/codex.sh`) runs `git push`; verified by reading
+  both. The briefs' "never end your turn on an intention" section said the
+  durable artifact "exists on disk (commit PUSHED, ...)" and the blocked-marker
+  rule said the marker goes on your branch "committed and PUSHED". Fixed all
+  three doer briefs (codex/claude/agy): added a plain imperative that doer seats
+  NEVER run `git push` (only the orchestrator pushes, only the round branch),
+  and corrected both misleading "pushed" phrasings. Added a third end-of-round
+  sweep item to `roles/orchestrator.md` that asserts zero doer-prefixed branches
+  on origin and fails LOUDLY (nonzero exit) if any are found.
+- CREDENTIAL-LAYER NOTE (for the record): this rule is UNENFORCEABLE at the
+  credential layer. Doer seats technically still hold push access, so this is a
+  convention being violated, not a hard block. Scoping doer credentials to
+  remove push entirely is a VAULT-SIDE INFRA item, not fixable from inside this
+  repo. Until that lands, the fix is prevention (briefs) + detection (sweep
+  guard), not prohibition.
+
 **Status:** `ROUND 006 MESHY PILOT: steps 1-4 DONE. BOTH candidates A+B
 byte-stable + clean-signed + integrated; STEP 4 (in-engine integration) now
 DONE, peer-signed, MERGED onto round/006-two-rivers @ **5eee7bf**, suite GREEN,
@@ -634,7 +674,30 @@ archived under `refs/archive/005/*` (pushed to origin).
 
 - **Zero open team PRs** (round 006 has no PR yet; the round PR opens only after
   the Meshy pilot completes, per decision 004's one-PR-per-round rule).
-- **Remote branches:** `origin/main`; `origin/round/006-two-rivers` @ `611664c`
+- **DOER-BRANCH LEAK SWEEP (this housekeeping run):** origin held 8 leaked
+  doer-prefixed branches. Checked each against round `5eee7bf` before touching
+  anything. DELETED 7 stray origin copies (local branches left alone):
+  - Integrated into the round branch (head is an ancestor of `5eee7bf`):
+    `agy/006-blender-cleanup` (ee3a99d), `claude/006-candidate-b` (60ceb9c),
+    `claude/006-nullfix` (f880a6d), `codex/006-candidate-a` (8212464),
+    `codex/006-scale-contract` (3b85b28).
+  - Proposal/critique/ballot artifact branches, NOT on round but every commit
+    byte-identically preserved under `refs/archive/006/*` on origin (zero
+    data-loss): `claude/006-proposal` (8da1420 = archive/006/claude-proposal),
+    `codex/006-proposal` (d9bef93 = archive/006/codex-{proposal,critique,ballot}).
+  - **RETAINED on purpose:** `origin/codex/006-acceptance` @ **adaf9a0**. This is
+    the acceptance-capture harness with REAL unmerged work (NOT an ancestor of
+    the round branch, 1 unique commit; harness integration is pending the paused
+    round). It is itself a leaked branch, but its work is not yet integrated, so
+    it cannot be deleted without loss. It goes when the round resumes and the
+    harness is signed + integrated + the branch deleted. The new sweep guard
+    (roles/orchestrator.md) will correctly fire on it until then; that is the
+    intended round-close assertion, and the round is not closed.
+- **Remote branches (after cleanup):** `origin/main`; `origin/round/006-two-rivers`;
+  `origin/codex/006-acceptance` (retained, above); `origin/issue-4-world-eras`
+  (HUMAN branch, author sentania, retained). All other doer branches are
+  local-only again.
+- **(historical) Remote branches:** `origin/round/006-two-rivers` @ `611664c`
   (integration tree: 3 non-Meshy slices + .mcp.json + decision 009/010 + the pilot
   GENERATION slice + the BLENDER cleanup/pose-rig slice, integrated suite green; PR
   after the acceptance gate); `origin/issue-4-world-eras` (a HUMAN branch, author
@@ -659,10 +722,26 @@ archived under `refs/archive/005/*` (pushed to origin).
 
 ## Open escalations to Scott
 
-**ONE OPEN (filed this run, 0256):** the round-006 acceptance-gate ruling +
-vision-bar call. Request `c3ffe894-ab59-482a-a85c-a41f3c0b1d76` filed to dalinar
-via cross-workspace (`/home/scott/.pka/vault/agents/riker/inbox/2026-07-18-0256-longwalk-to-dalinar-c3ffe894.md`);
-reply lands in `.pka/inbound/`. Substance: the Meshy pilot reached the acceptance
+**ONE OPEN, awaiting SCOTT:** the round-006 acceptance-gate ruling +
+vision-bar call. Request `c3ffe894-ab59-482a-a85c-a41f3c0b1d76`.
+**DALINAR ROUTING REPLY RECEIVED (this housekeeping run), NOT Scott's answer:**
+`.pka/inbound/orchestrator/c3ffe894-...md` (status: partial). Dalinar confirmed
+the vision-bar call is reserved for Scott (aesthetic direction on shipped art is
+his, not the orchestration layer's), wrote the decision brief to Scott's reading
+surface `scott/reports/2026-07-18-longwalk-meshy-vision-bar-decision.md`
+(carrying my full ruling + candidate A/B breakdown + evidence path + my
+recommendation), and CONFIRMED my hold: stay paused on A-tuning until Scott
+answers that one specifically; Meshy production stays HELD; no PR / no paid work
+expected. Scott's actual answer will arrive as a follow-up cross-workspace reply
+(same request_id lineage) or a direct inbound. So this stays OPEN.
+ADDRESSING LESSON (from dalinar, honor it for all future asks): address
+Scott-only asks `to: dalinar`, never `to: scott`. `to: scott` is not a routable
+target and gets swept to `agents/riker/inbox/stuck/` (two earlier longwalk
+escalations, the walk-cycle art spike and the Codex-connector-down PR #18 gate,
+are stuck there and never reached him). `c3ffe894` routed correctly because it
+was addressed `to: dalinar`.
+Original filing: request `c3ffe894` filed to dalinar
+via cross-workspace. Substance: the Meshy pilot reached the acceptance
 gate and does NOT pass on aesthetics (both candidates miss the spike bar; A=NPR
 under-tuned/muddy, B=texture-space photoreal-clash); all six measurables pass;
 mechanism validated. I asked Scott for (1) the vision-bar read on candidate A's
@@ -678,12 +757,30 @@ a constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
+**HONEST ROUND-006 STATUS READOUT (undecorated):**
+- LANDED: the deterministic-baseline PoC (candidate A, codex NPR/composite, no
+  Meshy) and the Meshy-based candidate B (claude texture-space restyle) are both
+  byte-stable, clean-signed, and integrated in-engine on round `5eee7bf`. The
+  acceptance harness ran and produced anonymized captures + a verdict.
+- RULED: the acceptance gate does NOT pass on the aesthetic bar. All SIX
+  measurables pass and the mechanism is validated, but neither candidate clears
+  the spike's fidelity: A is NPR-under-tuned (muddy, but the right direction),
+  B is texture-space photoreal-clash (weaker). Full detail + KEY above.
+- PAUSED: all further iteration is paused pending Scott's answer to the
+  vision-bar escalation `c3ffe894` (already filed; dalinar routed it to Scott's
+  queue and confirmed the hold this run; Scott has NOT yet answered).
+- CONCRETE NEXT STEP once Scott answers (most likely, per my recommendation): a
+  DETERMINISTIC candidate-A NPR treatment-tuning iteration (codex owns A, NO new
+  Meshy spend), re-run the acceptance harness, re-rule. No Meshy production
+  adoption unless/until Scott approves it.
+
 **IMMEDIATE NEXT STEP (this run's handoff): AWAIT SCOTT'S REPLY to escalation
-`c3ffe894` (his vision-bar call), then act on it.** Check `.pka/inbound/` FIRST
-(a reply file `.pka/inbound/c3ffe894*.md` or a new dalinar steer). The acceptance
-gate is RUN and RULED: does NOT pass on aesthetics (both candidates miss the spike
-bar); all measurables pass; I paused autonomous iteration and surfaced the
-vision-bar call to Scott. Do NOT open the round PR (gate not passed).
+`c3ffe894` (his vision-bar call), then act on it.** Check `.pka/inbound/` FIRST.
+Dalinar's routing reply already arrived (`c3ffe894-...md`) but it is NOT Scott's
+answer, only a confirmation that the brief reached his queue and the hold stands.
+The acceptance gate is RUN and RULED: does NOT pass on aesthetics (both
+candidates miss the spike bar); all measurables pass. Do NOT open the round PR
+(gate not passed). Do NOT resume iteration until Scott's actual answer lands.
 - IF Scott says "iterate / accept-and-tune candidate A": dispatch a DETERMINISTIC
   candidate-A NPR-treatment tuning slice (codex owns A; NO Meshy needed; brighten,
   raise contrast, warm the palette toward docs/art/iso-five-asset-spike.png,
@@ -829,7 +926,18 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-18T~02:58Z (orchestrator run 0248). This run drove
+**Last updated:** 2026-07-18 (HOUSEKEEPING run: doer-branch-leak cleanup + root
+cause; iteration NOT resumed). Deleted 7 stray doer branches from origin (kept
+`codex/006-acceptance`, unmerged harness); found + fixed the root cause (the
+worker briefs told doers to `git push`) in all three doer briefs + added an
+origin-doer-branch sweep guard to the orchestrator brief (commit b14e39a on
+main); recorded the credential-layer unenforceability; logged dalinar's routing
+reply to `c3ffe894` (NOT Scott's answer, hold confirmed) + the `to: dalinar`
+addressing lesson; wrote the honest round-006 readout above. Round 006 remains
+PAUSED awaiting Scott's vision-bar answer. See the HOUSEKEEPING RUN block at the
+top of the Phase section. Full prior-run detail follows.
+
+--- PRIOR RUN, 2026-07-18T~02:58Z (orchestrator run 0248) --- This run drove
 STEP 4 + STEP 5 to the acceptance-gate milestone end to end:
 (1) inbox clean (1620 newest; no new steer). (2) Step 4 integration ae74a8a
 VERIFIED clean; peer gate (codex) caught a REAL cell-size-hardcode defect
