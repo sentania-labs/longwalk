@@ -84,6 +84,7 @@ func _run() -> void:
 	# loop (2) additionally asserts their native_px equality. ---
 	var ground_statics := [
 		"res://src/render/town/ground.gdshader",
+		"res://src/render/town/flora_base.gdshader",
 		"res://assets/village/ground_grass_plate.png",
 		"res://assets/village/ground_dirt_plate.png",
 		"res://assets/village/ground_warp.png",
@@ -123,6 +124,22 @@ func _run() -> void:
 	current_scene = village
 	await process_frame
 	await process_frame
+	var derived_count := 0
+	for child in village.get_node("World").get_children():
+		if child is Sprite2D and child.get_meta("derived_base_vegetation", false):
+			derived_count += 1
+			var kit_id: String = child.get_meta("kit_id", "")
+			if not manifest.has(kit_id):
+				_fail("derived vegetation has unknown kit: %s" % kit_id)
+				return
+			var derived_path := "res://assets/village/" + str(manifest[kit_id]["png"])
+			if not ResourceLoader.exists(derived_path) or ResourceLoader.load(derived_path) == null:
+				_fail("derived vegetation texture did not resolve: %s" % derived_path)
+				return
+	if derived_count == 0:
+		_fail("no derived base-vegetation sprites were built")
+		return
+	print("derived base vegetation resolved through ResourceLoader: %d sprites" % derived_count)
 
 	var rig = village.camera_rig()
 	if rig == null:

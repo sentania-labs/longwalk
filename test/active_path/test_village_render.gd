@@ -25,6 +25,7 @@ func _initialize() -> void:
 	var failures := 0
 	failures += _check_district_data()
 	failures += _check_manifest_join()
+	failures += _check_base_vegetation()
 	failures += _check_scene_boot()
 
 	if failures == 0:
@@ -185,6 +186,39 @@ func _check_manifest_join() -> int:
 	return failures
 
 
+func _check_base_vegetation() -> int:
+	var failures := 0
+	var layout: TownLayoutScript = TownLayoutScript.build_inn_green_district()
+	var seams := VillageScript.load_seam_policy()
+	var first := VillageScript.derive_base_vegetation(layout.placements, seams)
+	var second := VillageScript.derive_base_vegetation(layout.placements, seams)
+	failures += _check(var_to_bytes(first) == var_to_bytes(second), "base vegetation repeat is byte-for-byte equal")
+	var reversed := layout.placements.duplicate()
+	reversed.reverse()
+	var reverse_result := VillageScript.derive_base_vegetation(reversed, seams)
+	failures += _check(var_to_bytes(first) == var_to_bytes(reverse_result), "reversed building input yields identical sorted derived records")
+
+	var anchors: Dictionary = {}
+	var door_clear := true
+	var doors: Dictionary = seams.get("doors", {})
+	for record in first:
+		if record.mandatory:
+			anchors[record.building] = int(anchors.get(record.building, 0)) + 1
+		if doors.has(record.building):
+			var building = null
+			for p in layout.placements:
+				if p.id == record.building:
+					building = p
+					break
+			if building != null and VillageScript._inside_door_exclusion(building, record.contact, doors):
+				door_clear = false
+	for p in layout.placements:
+		if p.kind in ["building_anchor", "building", "cottage"]:
+			failures += _check(int(anchors.get(p.id, 0)) >= 2, "%s gets at least two mandatory foundation anchors" % p.id)
+	failures += _check(door_clear, "no derived anchor lands in a door exclusion")
+	return failures
+
+
 func _check_scene_boot() -> int:
 	var failures := 0
 	var village = VillageScene.instantiate()
@@ -205,14 +239,18 @@ func _check_scene_boot() -> int:
 	var sprite_count := 0
 	var max_z := 0
 	var crown_z := -1
+	var derived_count := 0
 	for child in world.get_children():
 		if child is Sprite2D:
 			sprite_count += 1
 			max_z = maxi(max_z, child.z_index)
 			if child.get_meta("kit_id", "") == "crown_foliage":
 				crown_z = child.z_index
+			if child.get_meta("derived_base_vegetation", false):
+				derived_count += 1
 	failures += _check(sprite_count >= 12, "built manifest-driven sprites for the district (%d)" % sprite_count)
 	failures += _check(crown_z == max_z and crown_z > 0, "foreground crown sorts above every world object (crown z=%d, max z=%d)" % [crown_z, max_z])
+	failures += _check(derived_count > 0, "built derived base-vegetation sprites (%d)" % derived_count)
 
 	village.free()
 	return failures

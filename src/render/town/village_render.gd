@@ -28,6 +28,7 @@ const CameraRigScript := preload("res://src/render/town/camera_rig_2d.gd")
 const GroundShader := preload("res://src/render/town/ground.gdshader")
 const ObjectShader := preload("res://src/render/town/object.gdshader")
 const ShadowShader := preload("res://src/render/town/shadow.gdshader")
+const FloraBaseShader := preload("res://src/render/town/flora_base.gdshader")
 
 const ASSET_DIR := "res://assets/village/"
 const MANIFEST_PATH := "res://assets/village/manifest.json"
@@ -105,6 +106,10 @@ const SHADOW_COLOR := Color(0.09, 0.07, 0.05)
 # softened contact, per the rubric ("a small, soft contact is fine; the hard
 # directional polygon is the defect").
 const SIGN_CAST_STRENGTH := 0.0
+const BASE_VEGETATION_SEED := 17017
+const BASE_VEGETATION_KITS := ["bush_a", "bush_a", "bush_b", "flower_cluster_b", "flower_cluster_b", "rock_a", "rock_b", "flower_cluster_a"]
+const BASE_VEGETATION_SCALES := [0.48, 0.56, 0.64]
+const FLORA_BASE_COLOR := Color(0.24, 0.22, 0.09)
 
 # Per-kit tonal grade (decision 016 D4). TONAL_STRENGTH damps the move from each
 # sprite's measured midtone toward its manifest target midtone (0 = no grade,
@@ -179,12 +184,14 @@ var _manifest: Dictionary = {}
 # The manifest seam_policy block (decision 016 render contract): light_vector_px,
 # per-kit shadow mask paths, and per-kit tonal targets. Empty if absent.
 var _seam_policy: Dictionary = {}
+var _render_instances: Array = []
 
 
 func _ready() -> void:
 	_layout = TownLayoutScript.build_inn_green_district()
 	_manifest = load_manifest()
 	_seam_policy = load_seam_policy()
+	_render_instances = _build_render_instances()
 	_build_ground()
 	_build_shadows()
 	_build_objects()
@@ -341,26 +348,29 @@ func _build_shadows() -> void:
 	if shadows.is_empty():
 		push_warning("village seam_policy.shadows missing; grounding shadows skipped")
 		return
-	for placement in _layout.placements:
-		if placement.kind == "crown":
+	for instance in _render_instances:
+		if instance.kind == "crown":
 			continue
-		var record: Variant = _manifest.get(placement.id)
-		if record == null or not shadows.has(placement.id):
+		var record: Variant = _manifest.get(instance.kit_id)
+		if record == null or not shadows.has(instance.kit_id):
 			# No manifest anchor or no baked seam for this kit: skip its shadow.
 			# crown_foliage legitimately has no seam record (decision 016).
 			continue
-		var seam: Dictionary = shadows[placement.id]
-		var contact_cell := Iso.building_contact_cell(placement.cell, placement.footprint)
+		var seam: Dictionary = shadows[instance.kit_id]
+		var contact_cell: Vector2 = instance.contact
 		var contact_screen := Iso.cell_to_screen(contact_cell)
 		var anchor: Array = record["anchor_px"]
+		var scale: float = instance.scale
 		var offset := Vector2(-float(anchor[0]), -float(anchor[1]))
 		# The standalone sign throws a hard directional cast polygon (agy QA D1); we
 		# suppress its cast and keep only the softened contact. Every other object
 		# gets both, cast first (the wider, lighter grounding pool), then contact on
 		# top (the tight dark core), so the anchor deepens, not the far cast edge.
-		var cast_strength := SIGN_CAST_STRENGTH if placement.kind == "sign" else CAST_STRENGTH
-		_add_seam_sprite(seam.get("cast", ""), contact_screen, offset, cast_strength, CAST_FEATHER_PX)
-		_add_seam_sprite(seam.get("contact", ""), contact_screen, offset, CONTACT_STRENGTH, CONTACT_FEATHER_PX)
+		var cast_strength := SIGN_CAST_STRENGTH if instance.kind == "sign" else CAST_STRENGTH
+		if instance.kind in ["tree", "bush", "flower"]:
+			_add_flora_base(seam.get("contact", ""), contact_screen, offset, scale, instance.kind)
+		_add_seam_sprite(seam.get("cast", ""), contact_screen, offset, scale, cast_strength, CAST_FEATHER_PX)
+		_add_seam_sprite(seam.get("contact", ""), contact_screen, offset, scale, CONTACT_STRENGTH, CONTACT_FEATHER_PX)
 
 
 # Draw one baked seam mask (contact or cast) as a FEATHERED, earth-brown,
@@ -371,7 +381,7 @@ func _build_shadows() -> void:
 # object without the hard black polygon the first cut showed. strength <= 0 skips
 # the sprite entirely (the suppressed sign cast). A path that does not resolve is
 # skipped (the export gate asserts the declared seam masks ship).
-func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, strength: float, feather_px: float) -> void:
+func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, scale: float, strength: float, feather_px: float) -> void:
 	if png_rel == "" or strength <= 0.0:
 		return
 	var tex := _load_res(ASSET_DIR + png_rel) as Texture2D
@@ -383,6 +393,7 @@ func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, stren
 	sprite.centered = false
 	sprite.position = position
 	sprite.offset = offset
+	sprite.scale = Vector2(scale, scale)
 	var mat := ShaderMaterial.new()
 	mat.shader = ShadowShader
 	mat.set_shader_parameter("shadow_color", Vector3(SHADOW_COLOR.r, SHADOW_COLOR.g, SHADOW_COLOR.b))
@@ -396,6 +407,25 @@ func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, stren
 	_shadow_layer.add_child(sprite)
 
 
+func _add_flora_base(png_rel: String, position: Vector2, offset: Vector2, scale: float, kind: String) -> void:
+	var tex := _load_res(ASSET_DIR + png_rel) as Texture2D
+	if tex == null:
+		return
+	var sprite := Sprite2D.new()
+	sprite.texture = tex
+	sprite.centered = false
+	sprite.position = position
+	sprite.offset = offset
+	sprite.scale = Vector2(scale, scale)
+	var mat := ShaderMaterial.new()
+	mat.shader = FloraBaseShader
+	mat.set_shader_parameter("base_color", FLORA_BASE_COLOR)
+	mat.set_shader_parameter("radius_px", 1.4 if kind == "flower" else 2.4)
+	mat.set_shader_parameter("strength", 0.18 if kind == "flower" else 0.24)
+	sprite.material = mat
+	_shadow_layer.add_child(sprite)
+
+
 # Build one sprite per district placement, joined to the manifest by id. The
 # sprite's manifest anchor_px is placed on the projected ground-contact point
 # (the same anchor contract _build_buildings uses in starter_town.gd, expressed
@@ -405,14 +435,13 @@ func _build_objects() -> void:
 	var world_sorts: Array = []
 	var crown_sprites: Array = []
 
-	for i in range(_layout.placements.size()):
-		var placement = _layout.placements[i]
-		var record: Variant = _manifest.get(placement.id)
+	for instance in _render_instances:
+		var record: Variant = _manifest.get(instance.kit_id)
 		if record == null:
 			# No manifest entry for this kit-id: skip drawing it, the export gate
 			# reports the missing asset. Rendering continues so a partial manifest
 			# still produces a scene to inspect.
-			push_warning("no manifest record for placement id '%s'" % placement.id)
+			push_warning("no manifest record for placement id '%s'" % instance.kit_id)
 			continue
 
 		var texture := _load_texture(record["png"])
@@ -420,7 +449,7 @@ func _build_objects() -> void:
 			push_warning("village texture did not resolve: %s" % record["png"])
 			continue
 
-		var contact_cell := Iso.building_contact_cell(placement.cell, placement.footprint)
+		var contact_cell: Vector2 = instance.contact
 		var contact_screen := Iso.cell_to_screen(contact_cell)
 
 		var sprite := Sprite2D.new()
@@ -432,24 +461,25 @@ func _build_objects() -> void:
 		var anchor: Array = record["anchor_px"]
 		sprite.position = contact_screen
 		sprite.offset = Vector2(-float(anchor[0]), -float(anchor[1]))
-		sprite.set_meta("kit_id", placement.id)
+		sprite.scale = Vector2(instance.scale, instance.scale)
+		sprite.set_meta("kit_id", instance.kit_id)
+		sprite.set_meta("derived_base_vegetation", instance.derived)
 		# Per-kit tonal coherence grade (decision 016 D4). A bounded, guarded
 		# nudge toward the manifest scene-key target; the CanvasModulate stays the
 		# fixed final grade. No target -> no material (ungraded), which keeps the
 		# scene rendering if the contract is partial.
-		var tonal := _build_tonal_material(texture, placement.id, placement.kind)
+		var tonal := _build_tonal_material(texture, instance.kit_id, instance.kind)
 		if tonal != null:
 			sprite.material = tonal
 		_world.add_child(sprite)
 
-		if placement.kind == "crown":
+		if instance.kind == "crown":
 			crown_sprites.append(sprite)
 		else:
 			# Per-instance depth id: a repeated kit-id (fence_section) still gets a
 			# unique, deterministic tie key from the placement index.
-			var sort_id := "%s#%d" % [placement.id, i]
 			world_sorts.append({
-				"key": Iso.depth_key(contact_cell, sort_id),
+				"key": Iso.depth_key(contact_cell, instance.sort_id),
 				"node": sprite,
 			})
 
@@ -461,6 +491,89 @@ func _build_objects() -> void:
 	# 9). Ordered among themselves by contact for stable layering.
 	for i in range(crown_sprites.size()):
 		crown_sprites[i].z_index = CROWN_Z_BASE + i
+
+
+func _build_render_instances() -> Array:
+	var out: Array = []
+	for i in range(_layout.placements.size()):
+		var p = _layout.placements[i]
+		out.append({"kit_id": p.id, "kind": p.kind, "contact": Iso.building_contact_cell(p.cell, p.footprint),
+			"scale": 1.0, "sort_id": "%s#%d" % [p.id, i], "derived": false})
+	for derived in derive_base_vegetation(_layout.placements, _seam_policy):
+		out.append({"kit_id": derived.kit_id, "kind": derived.kind, "contact": derived.contact,
+			"scale": derived.scale, "sort_id": derived.sort_id, "derived": true})
+	return out
+
+
+# Pure render-side placement. Candidate coordinates are canonical quarter-cell
+# integers, so selection never depends on building or candidate visit order.
+static func derive_base_vegetation(placements: Array, seam_policy: Dictionary) -> Array:
+	var out: Array = []
+	var doors: Dictionary = seam_policy.get("doors", {})
+	for p in placements:
+		if p.kind not in ["building_anchor", "building", "cottage", "tree"]:
+			continue
+		var candidates := _perimeter_candidates(p.cell, p.footprint)
+		for candidate in candidates:
+			var q: Vector2i = candidate.q
+			var contact := Vector2(q) / 4.0
+			if _inside_door_exclusion(p, contact, doors):
+				continue
+			if _overlaps_hard_object(contact, placements):
+				continue
+			var mixed := _mix_candidate(BASE_VEGETATION_SEED, q)
+			var facing: bool = candidate.edge in ["south", "east"]
+			var keep_limit := 62 if facing else 28
+			if not candidate.mandatory and mixed % 100 >= keep_limit:
+				continue
+			var kit: String = BASE_VEGETATION_KITS[(mixed >> 8) % BASE_VEGETATION_KITS.size()]
+			var kind := "flower" if kit.begins_with("flower") else ("bush" if kit.begins_with("bush") else "rock")
+			out.append({"building": p.id, "kit_id": kit, "kind": kind, "contact": contact,
+				"candidate_q": q, "mandatory": candidate.mandatory,
+				"scale": BASE_VEGETATION_SCALES[(mixed >> 16) % BASE_VEGETATION_SCALES.size()],
+				"sort_id": "derived:%d:%d:%s" % [q.x, q.y, kit]})
+	out.sort_custom(func(a, b): return a.sort_id < b.sort_id)
+	return out
+
+
+static func _perimeter_candidates(cell: Vector2i, footprint: Vector2i) -> Array:
+	var x0 := cell.x * 4 - 1
+	var y0 := cell.y * 4 - 1
+	var x1 := (cell.x + footprint.x) * 4 + 1
+	var y1 := (cell.y + footprint.y) * 4 + 1
+	var out: Array = []
+	for x in range(x0, x1 + 1, 2):
+		out.append({"q": Vector2i(x, y0), "edge": "north", "mandatory": x == x0 or x == x1})
+		out.append({"q": Vector2i(x, y1), "edge": "south", "mandatory": x == x0 or x == x1})
+	for y in range(y0 + 2, y1, 2):
+		out.append({"q": Vector2i(x0, y), "edge": "west", "mandatory": false})
+		out.append({"q": Vector2i(x1, y), "edge": "east", "mandatory": false})
+	return out
+
+
+static func _inside_door_exclusion(p, contact: Vector2, doors: Dictionary) -> bool:
+	if not doors.has(p.id):
+		return false
+	var uv: Array = doors[p.id].get("footprint_uv", [0.5, 1.0])
+	var door := Vector2(p.cell) + Vector2(float(uv[0]) * p.footprint.x, float(uv[1]) * p.footprint.y)
+	return contact.distance_to(door) < 0.65
+
+
+static func _overlaps_hard_object(contact: Vector2, placements: Array) -> bool:
+	for p in placements:
+		if p.kind not in ["fence", "sign"]:
+			continue
+		var hard_contact := Iso.building_contact_cell(p.cell, p.footprint)
+		if contact.distance_to(hard_contact) < 0.55:
+			return true
+	return false
+
+
+static func _mix_candidate(seed: int, q: Vector2i) -> int:
+	var value := seed ^ (q.x * 0x45d9f3b) ^ (q.y * 0x119de1f3)
+	value = (value ^ (value >> 16)) * 0x45d9f3b
+	value = (value ^ (value >> 16)) * 0x45d9f3b
+	return absi(value ^ (value >> 16))
 
 
 # Resolve the per-kit tonal target (decision 016 D4) for a placement from
