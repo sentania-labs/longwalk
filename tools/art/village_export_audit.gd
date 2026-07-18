@@ -76,16 +76,19 @@ func _run() -> void:
 	# --- (2b) continuous-ground statics resolve from the bundle (decision 010
 	# step 9, PLATE fallback). These are the resources the ground shader binds by
 	# fixed path, NOT manifest placements: the ground shader, its two painterly
-	# PLATES (sampled once across the district), the CPU-baked warp field, and the
+	# PLATES (sampled once across the district), the CPU-baked warp field, the two
+	# BAKED lane data textures (mask + density, decision 011), and the
 	# contact-shadow decal. A stock export that silently dropped any of them would
-	# ship a blank ground or unshadowed floating objects; assert each is packed
-	# and loads. The plates ALSO carry manifest entries, so loop (2) additionally
-	# asserts their native_px equality. ---
+	# ship a blank ground, straight/absent lanes, or unshadowed floating objects;
+	# assert each is packed and loads. The plates ALSO carry manifest entries, so
+	# loop (2) additionally asserts their native_px equality. ---
 	var ground_statics := [
 		"res://src/render/town/ground.gdshader",
 		"res://assets/village/ground_grass_plate.png",
 		"res://assets/village/ground_dirt_plate.png",
 		"res://assets/village/ground_warp.png",
+		"res://assets/village/lane_mask.png",
+		"res://assets/village/lane_density.png",
 		"res://assets/village/shadow_decal.png",
 	]
 	for path in ground_statics:

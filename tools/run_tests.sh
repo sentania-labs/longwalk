@@ -110,4 +110,7 @@ echo "=== test_ground_uv_spike.gd ==="
 echo "=== test_village_render.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_village_render.gd
 
+echo "=== test_lane_mask_consumption.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_lane_mask_consumption.gd
+
 echo "All active-path test suites passed."

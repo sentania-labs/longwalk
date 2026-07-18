@@ -30,30 +30,30 @@ const GroundShader := preload("res://src/render/town/ground.gdshader")
 const ASSET_DIR := "res://assets/village/"
 const MANIFEST_PATH := "res://assets/village/manifest.json"
 
-# Continuous-ground assets (decision 010, PLATE fallback). The two painterly
-# PLATES (sampled ONCE across the district, not tiled per cell) and the CPU-baked
-# warp field are sampled by ground.gdshader in cell space; the shadow decal
-# grounds each object. These are static res:// resources loaded through
-# ResourceLoader (export-safe, proven by the export gate's added assertions).
-# codex owns the real pixels; integration swaps them over the provisional plates.
+# Continuous-ground assets (decision 010 PLATE fallback + decision 011 baked
+# lanes). The two painterly PLATES (sampled ONCE across the district, not tiled
+# per cell) and the two BAKED lane textures (mask + density) are sampled by
+# ground.gdshader in cell space; the shadow decal grounds each object. These are
+# static res:// resources loaded through ResourceLoader (export-safe, proven by
+# the export gate's assertions). codex owns the baked lane pixels; this slice
+# consumes them.
 const GRASS_PLATE_PATH := "res://assets/village/ground_grass_plate.png"
 const DIRT_PLATE_PATH := "res://assets/village/ground_dirt_plate.png"
-const WARP_PATH := "res://assets/village/ground_warp.png"
 const SHADOW_DECAL_PATH := "res://assets/village/shadow_decal.png"
 
-# Lane mask resolution: K texels per cell (K > 1) so a 16x14 source does not
-# read as a fuzzy wide band under bilinear filtering (decision 010 step 3). The
-# per-cell PATH/GRASS value is duplicated across its K texels, so the grass/dirt
-# ramp lands in the last texel (1/K cell) instead of spreading a full cell.
-const MASK_TEXELS_PER_CELL := 4
+# Baked lane data textures (decision 011). The offline bake
+# (tools/art/bake_lane_mask.gd) turns the authored sim polylines into these two
+# committed assets: lane_mask (RG8: R unwarped protected core, G cosmetic
+# shoulder coverage with the domain warp + junction smooth-minimum baked in) and
+# lane_density (R8 low-frequency wear). The shader consumes them directly; the
+# render no longer rasterizes a runtime binary mask from the PATH grid.
+const LANE_MASK_PATH := "res://assets/village/lane_mask.png"
+const LANE_DENSITY_PATH := "res://assets/village/lane_density.png"
 
 # Ground shader tuning. plate_repeat is how many times the painterly plate spans
 # the district: 1.0 samples it exactly once (no tiling, no repeat structure, the
-# point of the plate fallback). warp_amp is capped at 0.2 cell and core_frac is
-# the unwarped solid-dirt fraction of every PATH cell (decision 010 step 5).
+# point of the plate fallback).
 const GROUND_PLATE_REPEAT := 1.0
-const GROUND_WARP_AMP := 0.18
-const GROUND_CORE_FRAC := 0.5
 
 # Contact-shadow layer (decision 010 step 7, agy defect #3). Soft darkening
 # ellipses tight to each object's ground anchor, above the ground and below the
@@ -136,7 +136,8 @@ static func _load_res(path: String) -> Resource:
 # mesh's UV array is set to the CELL corners of its vertices, so the fragment
 # shader receives fractional CELL space by affine interpolation, with no
 # per-frame screen->iso inversion. ground.gdshader paints the grass/dirt PLATES
-# sampled once across the district and blends them by the render-derived lane mask.
+# sampled once across the district and blends them by the BAKED lane mask +
+# density textures (decision 011).
 func _build_ground() -> void:
 	var geo := ground_quad_geometry(_layout.width, _layout.height)
 	var arrays := []
@@ -182,42 +183,22 @@ static func ground_quad_geometry(width: int, height: int) -> Dictionary:
 	return {"verts": verts, "uvs": uvs, "indices": indices}
 
 
-# Build the ground ShaderMaterial: wire the two plates, the CPU-baked warp field,
-# the runtime-derived lane mask, and the tuning uniforms. A plate that fails to
-# resolve leaves that sampler unset (the shader still runs); the export gate is
-# the load-bearing proof the real assets ship.
+# Build the ground ShaderMaterial: wire the two painterly plates, the two BAKED
+# lane data textures (decision 011: the offline-baked mask + density, loaded via
+# ResourceLoader, NOT a runtime-rasterized ImageTexture), and the tuning
+# uniforms. A resource that fails to resolve leaves that sampler unset (the
+# shader still runs); the export gate is the load-bearing proof the real assets
+# ship and load off the packed bundle.
 func _build_ground_material() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = GroundShader
 	mat.set_shader_parameter("grass_tex", _load_res(GRASS_PLATE_PATH))
 	mat.set_shader_parameter("dirt_tex", _load_res(DIRT_PLATE_PATH))
-	mat.set_shader_parameter("warp_tex", _load_res(WARP_PATH))
-	mat.set_shader_parameter("lane_mask", _build_lane_mask())
+	mat.set_shader_parameter("lane_mask", _load_res(LANE_MASK_PATH))
+	mat.set_shader_parameter("lane_density", _load_res(LANE_DENSITY_PATH))
 	mat.set_shader_parameter("grid_size", Vector2(_layout.width, _layout.height))
 	mat.set_shader_parameter("plate_repeat", GROUND_PLATE_REPEAT)
-	mat.set_shader_parameter("warp_amp", GROUND_WARP_AMP)
-	mat.set_shader_parameter("core_frac", GROUND_CORE_FRAC)
 	return mat
-
-
-# Derive the R8 lane mask from the sim `ground` grid (read-only; town_layout.gd
-# stays texture-ignorant and viewport-free, decision 010). PATH -> 1, GRASS -> 0,
-# rasterized at MASK_TEXELS_PER_CELL (K > 1) texels/cell BEFORE the shader warp.
-# This is the same render-reads-sim category as the old color lookup, just into a
-# texture instead of a per-diamond Color; no screen coordinate or wander offset
-# ever crosses back into the sim. The mask is a derived in-memory resource and
-# needs no static manifest entry.
-func _build_lane_mask() -> ImageTexture:
-	var kw := _layout.width * MASK_TEXELS_PER_CELL
-	var kh := _layout.height * MASK_TEXELS_PER_CELL
-	var img := Image.create(kw, kh, false, Image.FORMAT_R8)
-	for ty in range(kh):
-		var cy: int = ty / MASK_TEXELS_PER_CELL
-		for tx in range(kw):
-			var cx: int = tx / MASK_TEXELS_PER_CELL
-			var is_path: bool = _layout.ground[cy][cx] == TownLayoutScript.GroundTile.PATH
-			img.set_pixel(tx, ty, Color(1.0, 0.0, 0.0) if is_path else Color(0.0, 0.0, 0.0))
-	return ImageTexture.create_from_image(img)
 
 
 # Contact-shadow layer (decision 010 step 7, agy defect #3): a soft darkening
