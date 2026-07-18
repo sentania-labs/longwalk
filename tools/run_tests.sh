@@ -47,6 +47,24 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # Art-pipeline tests run first: they are plain Python (PIL and numpy, the same
 # deps process_assets.py already needs), they need no Godot binary, and they
 # are fast, so a break here surfaces before the engine fetch.
+# Static ban (decision 009 item 7): shipping game code under src/ must load
+# textures through the resource system (preload / load / ResourceLoader), NEVER
+# via raw Image.load / Image.load_from_file / FileAccess.get_file_as_image off
+# res://. Those raw paths read the SOURCE tree and are silently EXCLUDED by a
+# stock Godot export, so a packaged build ships default art instead (the
+# round-006 carry-forward finding). This is a fast lexical backstop; the real
+# proof is the isolated-packaged export gate (tools/art/village_export_gate.sh).
+# Scoped to src/ (shipping runtime): tools/art/ capture scripts are dev-only and
+# never ship inside the game's asset path.
+echo "=== static game-asset image-load ban (src/) ==="
+if grep -rnE 'Image\.load\(|Image\.load_from_file\(|FileAccess\.get_file_as_image\(' \
+		"${REPO_ROOT}/src" --include='*.gd'; then
+	echo "[FAIL] raw image loading of a game asset found in src/ (see decision 009 item 7)."
+	echo "       Load textures through res:// (preload/load/ResourceLoader) instead."
+	exit 1
+fi
+echo "[PASS] no raw game-asset image loading in src/"
+
 echo "=== test_build_player_walk.py ==="
 python3 "${REPO_ROOT}/test/art/test_build_player_walk.py"
 
@@ -85,5 +103,8 @@ echo "=== test_player_zoom.gd ==="
 
 echo "=== test_smoke_grade.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_smoke_grade.gd
+
+echo "=== test_village_render.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_village_render.gd
 
 echo "All active-path test suites passed."

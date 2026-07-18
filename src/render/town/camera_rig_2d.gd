@@ -33,9 +33,36 @@ func setup(player: CharacterBody2D, layout) -> void:
 		_projected_bounds = IsoProjection.projected_bounds(grid_size, headroom)
 	
 	_recompute_zoom_levels()
-	
+
 	if _player != null:
 		position = IsoProjection.world_to_screen(_player.position)
+
+# No-PC free-cam entry (decision 009 item 5). Starts the rig in State.FREE with
+# NO follow target, centered on the projected bounds of the layout. Everything
+# the FOLLOW path (setup) sets up is preserved; this is a sibling entry, not a
+# replacement. With _player left null, _process never enters the FOLLOW branch,
+# and RMB drag-pan + cursor-preserving wheel zoom work exactly as in FREE/DRAG.
+func setup_free(layout) -> void:
+	_player = null
+	_layout = layout
+	if _layout != null:
+		var grid_size = Vector2i(_layout.width, _layout.height)
+		var headroom = Vector2(300, 400)
+		_projected_bounds = IsoProjection.projected_bounds(grid_size, headroom)
+
+	_recompute_zoom_levels()
+
+	_state = State.FREE
+	position = _projected_bounds.get_center()
+	position = _clamp_to_limits(position)
+
+# Capture-only: force an exact zoom immediately, bypassing the interactive
+# min-zoom clamp and the _process lerp, so the export gate can screenshot the
+# district at precise 0.5x / 1x / 2x (decision 009 item 9). Not used in play.
+func set_zoom_for_capture(z: float) -> void:
+	zoom = Vector2(z, z)
+	_target_zoom = z
+	_zoom_center_screen = Vector2.ZERO
 
 func _recompute_zoom_levels() -> void:
 	if _layout == null:
