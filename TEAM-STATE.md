@@ -95,30 +95,60 @@ rig ships sliced art through an isolated packaged export do we spend, supervised
 on the generated objects, then run the real confusable-with-spike gate. This is
 decision 009's judge-then-spend inversion.
 
-**Dispatched (parallel, separate worktrees, off `round/007-village`):**
-- codex -> `codex/007-village-assets` (worktree `lw-007-codex`): asset production.
-  Slice unoccluded spike objects into anchored RGBA PNGs under
-  `res://assets/village/` + `manifest.json`; emit generated-pending placeholders
-  for `inn/cottage_rear/smithy_cluster/crown_foliage`; sign 009. Prompt:
-  `.pka/round007/exec-codex-assets-prompt.md`.
-- claude -> `claude/007-village-render` (worktree `lw-007-claude`): render
-  integration. `build_inn_green_district()` in town_layout (texture-ignorant),
-  village scene + `setup_free()` no-PC free-cam, manifest-driven export-safe
-  loading from `res://assets/village/`, projection 4-landmark reg at 0.5/1/2x, the
-  isolated-packaged export+capture gate (RUN TO COMPLETION this turn), Image.load
-  ban in run_tests. Sign 009. Prompt: `.pka/round007/exec-claude-render-prompt.md`.
-- agy: NOT dispatched yet (QA runs after a build+capture exists).
+**BOTH EXECUTION SLICES COMPLETE + VERIFIED from end markers + tree (not
+narration). Cross peer sign-offs IN FLIGHT.**
 
-Shared kit-id contract (join key) + runtime manifest schema are specified
-identically in both prompts. Env verified: Godot 4.3 binary `tools/godot/godot`,
-4.3.stable export templates installed, `export_presets.cfg` uses `all_resources`
-(no glob edit needed). A `.pck` isolated capture proves export-inclusion headless.
+- codex asset slice: `codex/007-village-assets` @ **`019bbd9d6f89c2ea2db6bc03b17527713d5f446c`**
+  (worktree `lw-007-codex`). exit0, branch_changed=yes, uncommitted=no, cap ok.
+  17 PNGs + `assets/village/manifest.json` + `process_assets.py` extension +
+  codex's real 009 signature (2026-07-18T05:03:08Z). Principled bucketing (applied
+  its own phase-2 occlusion critique): SLICED 10 (ground_grass, ground_lane,
+  tree_large, bush_a/b, sign_post, rock_a/b, flower_cluster_a/b); deferred 6 to
+  `generated-pending` placeholders (cottage_front, fence_section, inn,
+  cottage_rear, smithy_cluster, crown_foliage). VERIFIED all 16 PNG pixel dims ==
+  manifest native_px (0 mismatches), so codex assets will pass claude's gate.
+- claude render slice: `claude/007-village-render` @ **`17611ace779a2a9fce1e99744d5b89e7c4d72390`**
+  (worktree `lw-007-claude`). exit0, branch_changed=yes, uncommitted=no, cap ok.
+  `build_inn_green_district()` (texture-ignorant DistrictPlacement) + `scenes/
+  village.tscn` + `village_render.gd` (manifest-join, anchor_px, depth_key, crown
+  band) + `setup_free()` no-PC free-cam (FOLLOW path untouched) + projection
+  4-landmark reg + `tools/art/village_export_gate.sh`/`village_export_audit.gd` +
+  Image.load ban + claude's real 009 signature. **EXPORT GATE RAN TO COMPLETION +
+  PASSED: 16/16 assets resolved from an isolated packaged .pck (non-repo cwd),
+  landmarks project at 0.5/1/2x, captures non-blank** in `docs/art/village/
+  village-inn-green-{0.5x,1x,2x}.png`. tools/run_tests.sh PASSES. Gate runs capture
+  under `xvfb-run` (dummy --headless never fires frame_post_draw); isolation is the
+  packed bundle + non-repo cwd, not the flag. NOTE: claude committed PROVISIONAL
+  placeholder assets (`village_placeholder_assets.py`) since codex's manifest was
+  not on its branch; INTEGRATION overwrites `assets/village/` with codex's REAL
+  assets + manifest and RE-RUNS the gate.
 
-**When both end markers land: verify from markers + tree (branch_changed,
-uncommitted_work, cap_expired), NOT narration. Then dispatch a cross peer sign-off
-(non-author reviews each branch), integrate both slices onto `round/007-village`
-locally (resolve any adjacent-line 009 signature merge trivially at integration),
-re-run the gate on the integrated tree. THEN the supervised paid generation pass.**
+Shared kit-id contract + runtime manifest schema were specified identically in
+both prompts and lined up. Env: Godot 4.3 `tools/godot/godot`, 4.3.stable templates
+installed, `export_presets.cfg` uses `all_resources` (no glob edit).
+
+**Sign-offs dispatched (parallel, detached, cap 1200s, stamp 20260718-053416):**
+codex reviews claude's `17611ac` (marker on `codex/007-village-assets`); claude
+reviews codex's `019bbd9` (marker on `claude/007-village-render`). Markers ride
+each reviewer's branch into integration. Prompts:
+`.pka/round007/signoff-{codex-reviews-claude,claude-reviews-codex}-prompt.md`.
+
+**INTEGRATION PLAN (after both markers land, both `result: signed-off`):**
+1. On `lw-007-round` (`round/007-village` @ bc80b4d), merge codex `019bbd9` and
+   claude `17611ac` (--no-ff, preserve authorship/trailer). Overlap = `assets/
+   village/*` + `manifest.json` (take codex's REAL assets, drop claude's provisional
+   placeholder PNGs; `village_placeholder_assets.py` may stay as a tool) + 009 sig
+   lines (adjacent, non-conflicting, resolve to keep both real timestamps).
+2. RE-RUN `tools/art/village_export_gate.sh` on the integrated tree with codex's
+   REAL assets. Green = zero-credit proof stands.
+3. Push `round/007-village`. Update state.
+4. THEN the SUPERVISED first PAID pass: codex image-to-image generates the 6
+   `generated-pending` objects conditioned on an accepted spike style crop (balance
+   2970, watch it; verify no in-flight task before any relaunch; never pass save_to
+   to meshy_download_model). Re-run gate + agy multimodal QA vs spike at 0.5/1/2x.
+   Only after that passes the confusable-with-spike bar do we expand to the full
+   village + open the ONE round PR.
+- agy: still not dispatched (QA runs on the first real-asset capture).
 
 <!-- prior phase history retained below for the record -->
 
