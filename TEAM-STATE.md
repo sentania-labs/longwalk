@@ -23,8 +23,105 @@ Keep the heading structure stable (orchestrator + Dashboard parse by heading).
 
 **ROUND 007: Two Rivers village at spike fidelity, free-cam, no PC/no NPC.
 FULL PROTOCOL, four-ballot resolved 4-0 (Option H, decision 009).
-EXECUTION: first inn-green district ZERO-CREDIT rig PROVEN + INTEGRATED on
-`round/007-village` @ `5a42736` (pushed). NEXT = supervised FIRST PAID pass.**
+EXECUTION: first district built + QA'd NOT-CONFUSABLE (ground/lane tile-grid is
+the tell). NESTED FULL-PROTOCOL SUB-ROUND on the GROUND/LANE method:
+DECISION 010 RESOLVED 4-0 + SIGNED + GATE-VALIDATED. NOW: IMPLEMENTATION.**
+
+=== GROUND/LANE SUB-ROUND (this run) ==================================
+Scope: `.pka/round007/ground-treatment/assignment.md`. Full protocol (agy ruled
+ground a METHOD failure per decision 009 item 9; touches protected `src/sim/
+town_layout.gd`; genuine 3-way method fork). Decision record = **010**.
+
+**SYNTHESIS DONE THIS RUN. Decision 010 WRITTEN + SIGNED 4-0 + PUSHED + GATE-PASS.**
+- Phase-2 critiques verified from end markers + tree (stamp `20260718-063941`, NOT
+  the `070000` an earlier run planned): claude `39dbe3e`, codex `58a45dd`, agy
+  `bd9182c` (all branch_changed=yes, exit0, no cap, no uncommitted; genuinely
+  adversarial). Collected onto round branch (cherry-picks `838a577`/`f2d455f`/
+  `1d09d08`).
+- THE CRITIQUE ROUND CONVERGED, it did not split. codex (the phase-1 dissenter)
+  CONCEDED its plate to fallback-only in its OWN critique doc; agy called claude's
+  method "structurally superior to my own". So this was NOT a 2-2 contest.
+- Decision 010 (`docs/decisions/010-ground-and-lane-treatment.md`) synthesized +
+  committed `5b7b862`. Four-ballot on the contested method (shader-quad vs plate):
+  orchestrator=shader-quad; doer ballots collected via ballot+sign dispatch (stamp
+  `20260718-064830`, verified from markers+tree): claude `c9e0737` accept, codex
+  `8b5c1c0` accept (residual plate preference recorded, non-constitutional), agy
+  `ac559fe` accept. **TALLY 4-0. Critic NOT invoked (not 2-2). No constitution
+  claim.** Signatures integrated `053906a` (real ts 06:48:34/46/54Z), PUSHED.
+  `check_consensus.py` PASSES 010 (all 3 sigs, covers src/sim/).
+- **THE DECISION (010):** primary = ONE continuous cell-space SHADER-QUAD ground
+  plane. UV=cell-corners (affine, no screen->iso inversion); rectangular
+  PROVEN-PERIODIC grass+dirt swatches (HARD prerequisite, >=8x8 contact-sheet
+  gate at 0.5/1/2x); render-derived R8 lane mask from sim `ground` grid at K>1
+  texels/cell; CPU-baked fixed-seed FastNoiseLite warp texture (NOT in-shader
+  hash -- determinism); protected semantic lane core (central 0.5-cell unwarped,
+  edge warp <=0.2 cell); textureGrad/textureLod for mip; separate contact-shadow
+  layer (soft ellipses, agy defect #3). Grafts: codex semantic fingerprint as a
+  test guard, codex offline guide may bake the warp texture. PLATE = explicit
+  bounded fallback only if swatches fail the zoom gate. town_layout.gd stays
+  texture-ignorant + viewport-free (read-only mask).
+- **DoL (decision 010):** codex=asset production (swatches + CPU warp/mask baker
+  + shadow_decal); claude=render integration (shader-quad in village_render.gd +
+  .gdshader + runtime mask + lane core + contact-shadow layer + export-gate
+  assertions + coordinate spike); agy=multimodal QA vs spike at 0.5/1/2x.
+
+**SHARED INTERFACE CONTRACT (specified identically in both impl prompts):**
+- codex assets under res://assets/village/: `ground_grass_tile.png`,
+  `ground_dirt_tile.png` (rectangular, seamlessly tileable, POT e.g. 512x512),
+  `ground_warp.png` (R8/RG8, e.g. 256x256, CPU-baked deterministic), `shadow_
+  decal.png` (RGBA soft ellipse). Manifest entries: kind `ground_tile`/`ground_
+  warp`/`shadow`, native_px==real dims, provenance slice|generated.
+- claude .gdshader uniforms: `grass_tex`,`dirt_tex`,`warp_tex` (codex assets) +
+  runtime `lane_mask` (claude-built ImageTexture from sim grid) + floats
+  `tiles_per_cell`,`warp_amp`(<=0.2),`core_frac`(0.5). Both build blind in
+  parallel against this contract; integration swaps codex real assets into
+  claude's tree + re-runs gate (established pattern).
+
+**IMPLEMENTATION DISPATCH state recorded under "Phase" below. Balance 2952
+(zero-credit swatch synthesis attempted first; paid Meshy only if codex surfaces
+a swatch-gate failure, orchestrator-supervised, NOT doer-spent).**
+
+Root defect: `village_render.gd::_build_ground()` draws flat-color Polygon2D
+diamonds per cell (GROUND_COLORS grass/tan + 3% jitter) = the checkerboard.
+Contact shadows (agy defect #3) folded in; halo re-cut (agy defect #2) is a
+SEPARATE fast-lane to codex, sequenced after.
+
+**PHASE 1 (blind proposal) COMPLETE + VERIFIED from end markers + tree** (all off
+5f1c5cc, branch_changed=yes, exit0, no cap, no uncommitted). Decision 010 cites
+these SHAs:
+- claude `9c841b57a69202277f38c0066467a89085ed7351` (`claude/007-ground-proposal`)
+  -- ONE continuous shader-painted quad, UV=CELL coords (tiling grass/dirt swatches
+  in ground space), render-derived R8 lane mask from sim grid, domain-warp + noisy
+  threshold so lane edge wanders, separate contact-shadow layer. Sim untouched.
+  Needs codex rectangular tileable swatches.
+- codex `fec8b92fe51fdc00dfca25e0a9889d0310be2d88` (`codex/007-ground-proposal`)
+  -- ONE frozen authored ~2048x1152 painterly PLATE. Offline lane-guide generator
+  (projects PATH cells, hash wander), generated+hand-composited paint, SEMANTIC
+  FINGERPRINT rejects stale paint. One Sprite2D. Render-side shadows.
+- agy `4e51ff67033cbaf09272c5f7f34a67cb5b7dbb5c` (`agy/007-ground-proposal`)
+  -- splat-mapped single ground plane, CanvasItem shader, per-cell blend-mask
+  ImageTexture from sim grid, domain-warp wander, tile uniforms, shadow_decal
+  layer. Flags screen->iso in-shader UV over the diamond PNGs as the brittle part.
+
+THE SPREAD: claude + agy CONVERGED INDEPENDENTLY on the same method family
+(continuous shader-quad + render-derived warped blend mask from the sim grid +
+separate contact-shadow layer). codex DISSENTS with the frozen authored plate --
+which carries the SAME 2x-zoom-blur + per-district-reauthor + 9MiB-scaling weakness
+that sank its own Option G in decision 009. claude's UV=cell-corners trick also
+directly answers agy's own flagged brittleness (screen->iso in-shader tiling). The
+contested synthesis question: shader-quad (claude/agy) vs authored plate (codex),
+and within the shader camp claude's UV=cell vs agy's screen->iso sampling.
+
+**PHASE 2 (adversarial critique) SETUP DONE + DISPATCHED.** Proposals collected
+onto round branch @ `b7acadf` (integration commit, PUSHED to origin). Each doer
+worktree switched to `<prefix>/007-ground-critique` off b7acadf (all 3 proposals
+present). Prompt: `.pka/round007/ground-treatment/critique-prompt.md` (each
+critiques the OTHER TWO; "looks good" = failed round, send back). Dispatch detail
++ end markers recorded under "Phase" below. VERIFY from markers + tree, not
+narration. NEXT after all 3 critiques land: collect onto round branch, four-ballot
+synthesis, write decision 010, then implementation. Balance **2952** (no paid work
+in a deliberation round).
+======================================================================
 
 Scott redefined the milestone (2026-07-18T03:30Z, via dalinar relaying req
 c3ffe894; inbox `2026-07-18-0330-dalinar-vision-bar-answer-and-village-
@@ -79,12 +176,49 @@ settle). Check `.pka/inbound/orchestrator/` at EVERY phase boundary.
 
 ## Phase
 
-**EXECUTION: FIRST REAL-ART DISTRICT COMPLETE + QA'd. VERDICT = NOT-CONFUSABLE
-(honest QA gate did its job). Milestone NOT reached -> NOT surfaced to Scott.
-Round branch `5f1c5cc` pushed with all 3 decision-009 sigs. NEXT = method
-iteration on the GROUND/LANE treatment (the dominant confusability breaker),
-a genuine design fork -> FULL PROTOCOL blind proposals, best started on a fresh
-turn.**
+**GROUND/LANE SUB-ROUND: SYNTHESIS DONE (decision 010 signed 4-0, gate-pass).
+NOW IMPLEMENTATION -- BOTH SLICES DISPATCHED + IN FLIGHT (detached).**
+
+Phase 1 + phase 2 complete + verified (SHAs in the sub-round box above). Decision
+010 written, four-ballot 4-0, signed, integrated `053906a`, pushed,
+check_consensus PASS. Full synthesis detail in the "GROUND/LANE SUB-ROUND" box.
+
+**IMPLEMENTATION DISPATCH (stamp `20260718-065409`, DETACHED via setsid, cap
+2400s). Both off signed round head `053906a`:**
+- codex -> `lw-007-codex`, branch `codex/007-ground-impl` (ASSET seat: tileable
+  swatches + CPU-baked FastNoiseLite warp + shadow_decal + contact-sheet gate).
+  Prompt: `.pka/round007/ground-treatment/impl-codex-prompt.md`. End marker:
+  `lw-007-codex/.team/markers/codex-ground-impl-20260718-065409-end.md`.
+- claude -> `lw-007-claude`, branch `claude/007-ground-impl`, model opus (RENDER
+  seat: shader-quad in village_render.gd + .gdshader + runtime lane mask + lane
+  core + contact-shadow layer + export-gate assertions + coordinate spike; builds
+  against PLACEHOLDER swatches, integration swaps codex real).
+  Prompt: `.pka/round007/ground-treatment/impl-claude-prompt.md`. End marker:
+  `lw-007-claude/.team/markers/claude-ground-impl-20260718-065409-end.md`.
+Logs: `.pka/round007/ground-treatment/<p>-impl-dispatch.log`. Start markers
+confirmed present; adapter procs confirmed alive at dispatch+8s. Shared interface
+contract in the sub-round box (swatch/warp/decal paths + shader uniform names).
+
+VERIFY from end markers (branch_changed/uncommitted/cap) + tree, NOT narration.
+These are substantial coding jobs; may run 10-30min silent (claude -p buffers).
+"No marker yet" != dead -- check `ps -o etimes` + child procs before ANY
+relaunch; a second launch into the same worktree corrupts + (for codex) risks a
+double-billable if it reaches paid Meshy. If a swatch-gate FAILURE surfaces, codex
+commits a `.team/blocked/` marker (NO doer spend); orchestrator runs supervised
+paid Meshy (balance 2952, verify billing first).
+
+**NEXT after both land + verified:** cross peer sign-off (non-author) of each impl
+commit; integrate onto round branch (--no-ff, reviewed SHA preserved); swap codex
+real swatches over claude placeholders; RE-RUN honest export gate (now asserting
+shader + shadow_decal + swatches + warp from isolated PCK) + full suite; then agy
+multimodal QA at 0.5/1/2x vs spike. If agy rules NOT-CONFUSABLE again, iterate the
+method per decision 010 step 10 fallback; if CONFUSABLE, THEN expand toward the
+full ~12-16-structure village and open the ONE round PR. Do NOT surface to Scott
+until the team believes a screenshot passes the confusable bar.
+
+Prior execution state (below) is still true: first real-art district COMPLETE +
+QA'd NOT-CONFUSABLE, round branch history preserved. The ground/lane tile-grid is
+the confirmed dominant tell; this sub-round picks the method to fix it (010).**
 
 The whole processing->integration->gate->QA loop closed this run, all verified
 from end markers + tree + real gate runs. The buildings ARE spike-fidelity; the
