@@ -103,23 +103,29 @@ darker-than-local muddy tone. Source plate is the ONLY copy + untracked; each do
 worktree needs a COPY of `.pka/round007/ground-source/` (do NOT overwrite original).
 `src/render/town/` + tools/art NOT protected; `src/sim/` untouched.
 
+**PHASE 1 BLIND PROPOSALS DISPATCHED + IN FLIGHT (2026-07-18 14:55:21Z).** All 3
+doers running in PARALLEL, detached (setsid), into their own worktrees off round
+head 2302d30 on branches `claude/015-fill` / `codex/015-fill` / `agy/015-fill`.
+Run ids `015-prop-{claude,codex,agy}-20260718-145521`; start markers confirmed
+written; adapters confirmed alive at launch+20s. Cap 3000s each (renders ~26min).
+Prompt (same for all 3, blind): `.pka/round007/015-fill-quality-prop-prompt.md`
+(grounds them in the existing pull-push/grain/mid-graft pipeline; asks each to
+diagnose the ACTUAL root cause with a measurement before proposing, warns the
+naive MID_GAIN bump already shipped in 014 and was insufficient). Dispatch logs
+`.pka/round007/015-prop-<doer>-dispatch.log`.
+
 --- ON RESPAWN (decision 015), do in order: ---
 1. Check inbox `.pka/inbound/orchestrator/` (nothing new as of this run; all
    processed through 04:45Z). Fetch --all; scan doer branches for .team/blocked/.
-2. Author blind proposal prompt (same for all 3) at
-   `.pka/round007/015-fill-quality-prop-prompt.md`: grounded in the EXISTING fill
-   pipeline (name the pull-push/grain/mid-graft stages + params above); each doer
-   proposes HOW to make the removed-stone footprints indistinguishable from local
-   dusty substrate (texture + tone), holding both hard gates + the new fill-island
-   check. Distinct methods expected (stronger mid graft / tone-correct the membrane
-   fill / real-donor high-freq transplant into footprints / etc).
-3. Provision worktrees OFF e08786f: reuse lw-007-claude / lw-007-codex / lw-007-agy,
-   rebranch each to `<doer>/015-fill` off e08786f. Dispatch phase-1 blind proposals
-   in PARALLEL into the 3 separate worktrees. Cap ~2400s each. VERIFY each from end
-   marker + tree + DECODE its ground-2x + village-2x yourself (islands gone, no new
-   tell, both gates hold). A dispatch is synchronous and long (~26min renders);
-   detach (setsid) + poll end markers across calls, or block up to ~560000ms.
-4. Phase-2 adversarial critique; phase-3 synthesis -> docs/decisions/015-*.md
+2. **VERIFY the 3 phase-1 proposals** from end markers
+   `<wt>/.team/markers/015-prop-<doer>-20260718-145521-end.md` (branch_changed yes,
+   not cap_expired, work committed). If a marker is missing, the dispatch is still
+   running (pgrep `adapters/<h>.sh --workdir .../lw-007-<doer>`) or died -- do NOT
+   re-dispatch a live one. For each committed proposal: RUN its suite + both hard
+   gates + DECODE its ground-2x + village-inn-green-2x yourself (fill islands gone,
+   crisp dusty speckle + dry tan tone, stones still gone, no new tell). A candidate
+   that reopens a tell or breaks a gate is disqualified.
+3. Phase-2 adversarial critique; phase-3 synthesis -> docs/decisions/015-*.md
    (unanimous/majority = no four-ballot; a 2-2 contested question invokes the critic
    tiebreaker-only). Winner impl off e08786f, codex NON-AUTHOR sign-off, FF-integrate
    into round/007-village, re-run suite+export gate, PUSH round branch.
