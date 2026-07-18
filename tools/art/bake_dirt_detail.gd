@@ -25,11 +25,11 @@ extends SceneTree
 # sample is a fixed function of (seed, layer offset, integer texel). No stateful
 # RNG, time seed, accumulator, or visit-order input participates in the bake.
 # Decision 014 (source de-clutter): the dirt plate input changed (painted stones
-# removed at the source, mid-band gain restored 0.55 -> 1.30 now that the stones
+# removed at the source, mid-band gain restored 0.55 -> 1.25 now that the stones
 # no longer prop the flat-core std), so the bake re-derives and its fingerprint
 # moved. The bake logic itself is unchanged.
 # Expected decoded image_sha256:
-# d137cbbe6187b48e82faa0b6e583be74674e5ca9229e71ab258f6993ee6a659a
+# d4b49328a2c8bd0d20842b640556d0e4db32453abe018e01446b075131a6d0a7
 const LAYOUT_SEED := 7007
 const SHOULDER_DETAIL_OFFSET := 12109
 const CORE_DRIFT_OFFSET := 14503

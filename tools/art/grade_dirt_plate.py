@@ -80,13 +80,24 @@ SPIKE_MEAN = np.array([98.6, 85.0, 43.5], dtype=np.float64)
 # brush-streak tonal variation (spike-consistent richness), not rock blobs.
 # Suppressing it is no longer needed and actively hurt: post-declutter the mid
 # 0.55 dropped the rendered protected-core std to 16.81 (below the 18.44 floor),
-# because the removed stones had been propping up that std. Restoring mid to 1.30
-# returns the dusty tonal richness to the protected core (rendered core std 19.22,
-# clear of the floor) without reintroducing any tell: the plate-rock <-> shoulder
-# xcorr stays ~0 (the detail bake's R shoulder reads the radius-3 fine band, not
-# mid) and the macro mud band is untouched.
+# because the removed stones had been propping up that std. Restoring mid returns
+# the dusty tonal richness to the protected core without reintroducing any tell:
+# the plate-rock <-> shoulder xcorr stays ~0 (the detail bake's R shoulder reads
+# the radius-3 fine band, not mid) and the macro mud band is untouched.
+#
+# The final mid is 1.25, NOT higher: the decision-014 declutter now also grafts a
+# stone-free 16-64px substrate mid band into each vacated region (declutter
+# MID_GAIN), so the graft carries the mid-scale richness the extended stone
+# removal took out and the global mid gain does not need to be pushed up to
+# compensate. Pushing mid past 1.25 revives the diffuse muddy mid-band tone the
+# multiband reshape exists to suppress; 1.25 is the largest mid that avoids that
+# revival. The fine gain is lifted 1.85 -> 1.95 to carry the last of the
+# protected-core std back over the 18.44 floor (mid alone lands it at 18.38 with
+# fine 1.85; fine 1.95 + mid 1.25 lands rendered core std 18.80, clear of the
+# floor) while the rendered 0.5x clean-dirt fine-gradient stays well under the
+# ~10.75 grass shimmer ceiling.
 RESHAPE_RADII = (3, 12, 64)
-BAND_GAINS = (1.85, 1.55, 1.30, 0.14)  # (fine, lomid, mid, macro)
+BAND_GAINS = (1.95, 1.55, 1.25, 0.14)  # (fine, lomid, mid, macro)
 
 # Mid-band spatial DE-PEAKING (decision 013 depeak follow-on). The graded plate
 # closed the muddy-tone and grid-seam tells, but ONE dominant tell remained: the
