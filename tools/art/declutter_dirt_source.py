@@ -160,7 +160,25 @@ JACOBI_SWEEPS = 60        # full-res smoothing sweeps that erase pyramid blockin
 GRAIN_RADIUS = 16        # substrate-texture high-pass radius transplanted back
                           # (0-16px dusty speckle; refills the vacated richness
                           # without transplanting recognizable mid-scale structure)
-GRAIN_ROLL = (307, 461)   # fixed integer (dy, dx) grain transplant offset
+# Fine-grain transplant offsets, a FIXED priority list. For each masked pixel the
+# fill picks the first roll whose rolled SOURCE location is outside the debris mask
+# (an explicit rolled validity mask, decision 015 / agy + codex). The primary roll
+# supplies the speckle for almost every footprint pixel; a pixel only falls to the
+# next roll where the primary roll's donor lands ON a removed stone (so a stone's
+# own speckle is never re-injected). Selecting by donor VALIDITY, not by grain
+# magnitude, is what removes the jigsaw discontinuity the decision-014 hole-fill
+# carried: the old magnitude test misclassified genuinely flat-but-valid donors as
+# holes and scattered a decorrelated second field through the footprint. Here a
+# contiguous footprint draws from ONE roll except in the small sub-region whose
+# primary donor is masked, so the two decorrelated fields meet along the pre-image
+# of the debris mask (few, structure-aligned boundaries), not a speckle-magnitude
+# jigsaw. Residual all-rolls-masked fraction is ~mask^len(rolls), negligible.
+GRAIN_ROLLS = ((307, 461), (613, 137), (419, 157))  # fixed (dy, dx) priority list
+FILL_STATS_RADIUS = 32    # local KNOWN-substrate window for the fill tone anchor
+                          # (codex, decision 015): re-centers each footprint's
+                          # interior DC on the surrounding real substrate mean, so
+                          # the muddy local DC the membrane leaves is killed at the
+                          # boundary rather than by a global tone shift.
 
 # --- multiscale mid-band graft (decision 014 synthesis: kill the 16-64px
 # membrane-smooth islands). The pull-push base supplies the low (>64) band and an
@@ -179,9 +197,28 @@ MID_ROLL = (211, 373)   # fixed integer (dy, dx) mid-band transplant offset
 MID_FEATHER = 3         # feather radius: graft weight 0 at boundary -> 1 interior.
                         # Kept small so the many 10-30px rock fills (eroded away by
                         # a larger feather, hence left flat) still receive the graft.
-MID_GAIN = 3.80         # graft amplitude: restores the local core variance the
-                        # extended removal takes out, so the global mid gain need
-                        # not be raised to compensate (avoids the muddy revival).
+MID_GAIN = 1.20         # graft amplitude, ENERGY-MATCHED to the local substrate on
+                        # the GRADED plate (decision 015). The decision-014 value 3.80
+                        # over-injected the 16-64px band to ~1.85x the surrounding
+                        # substrate's own mid energy (graded-plate mid std inside
+                        # footprints 17.1 vs local-ring 9.3), and a rolled donor at
+                        # that gain carries a nonzero LOCAL DC into the footprint:
+                        # together those are exactly agy QA7's "membrane-smooth
+                        # out-of-focus island + muddy-brown tone" tell (the graft meant
+                        # to KILL flat islands became the island). The phase-1 proposal
+                        # matched the graft at the SOURCE level (1.40, source mid 7.60
+                        # vs ring 7.61), but the grade's lomid lift amplifies the
+                        # graft's residual, so on the GRADED plate 1.40 left a +8%
+                        # positive mid deficit (a mild over-graft the decision-015
+                        # fill-island check forbids). Matching on the plate instead,
+                        # 1.20 lands the graded footprint mid std at 1.03x the local
+                        # ring (deficit +0.30, within measurement noise) with a +0.02
+                        # tone delta, so a footprint is statistically indistinguishable
+                        # from the dirt around it and there is no over-graft. The
+                        # flat-core std the old over-graft propped up is carried instead
+                        # by the GLOBAL grade lomid gain (grade_dirt_plate BAND_GAINS),
+                        # which lifts every pixel uniformly and so introduces no
+                        # localized island. See docs/proposals/claude-015-fill.md.
 
 
 def _box_blur_wrapped(a: np.ndarray, radius: int) -> np.ndarray:
@@ -298,14 +335,32 @@ def _pull_push(img: np.ndarray, known: np.ndarray, levels: int = PYRAMID_LEVELS)
 
 
 def fill(source: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """Reconstruct masked regions: smooth harmonic base + a grafted stone-free
-    16-64px mid band (kills the membrane islands) + transplanted fine grain."""
+    """Reconstruct masked regions: smooth harmonic base, local-tone anchored to the
+    surrounding known substrate, + a grafted stone-free 16-64px mid band (kills the
+    membrane islands) + validity-masked transplanted fine grain."""
     known = ~mask
     base = _pull_push(source, known)
     # Jacobi smoothing sweeps (Dirichlet boundary = source), erase pyramid blockiness.
     m3 = mask[..., None]
     for _ in range(JACOBI_SWEEPS):
         base = np.where(m3, _box_c(base, 1), source)
+
+    # Local-tone anchoring (codex, decision 015). The pull-push membrane matches the
+    # boundary but its footprint interior can drift to a muddy DC (agy QA7's
+    # "localized muddy-brown tone"). Re-center each masked interior on the mean of
+    # the surrounding KNOWN substrate over a FILL_STATS_RADIUS window
+    # (base + local_tone - box(base)) so the muddy DC is killed LOCALLY at the
+    # boundary rather than by a global tone shift. local_tone is the box mean of the
+    # source over known pixels only (masked pixels excluded from the average), so no
+    # removed-stone tone leaks into the anchor. Pure box blurs => deterministic.
+    known_f = known.astype(np.float64)
+    known_weight = _box_blur_wrapped(known_f, FILL_STATS_RADIUS)
+    local_tone = np.stack([
+        _box_blur_wrapped(source[..., c] * known_f, FILL_STATS_RADIUS)
+        / np.maximum(known_weight, 1e-9)
+        for c in range(source.shape[2])
+    ], axis=-1)
+    base = base + local_tone - _box_c(base, FILL_STATS_RADIUS)
 
     # Multiscale graft: real 16-64px substrate structure from stone-free regions.
     # Build a donor mid band whose masked pixels are pull-push-diffused away (so no
@@ -317,10 +372,25 @@ def fill(source: np.ndarray, mask: np.ndarray) -> np.ndarray:
     feather = _box_blur_wrapped(_erode(mask, MID_FEATHER).astype(np.float64), MID_FEATHER)
     graft = (MID_GAIN * feather)[..., None] * donor_mid
 
-    # Transplant the source's own fine speckle back over the smooth base.
-    grain = source - _box_c(source, GRAIN_RADIUS)
-    grain = np.where(m3, 0.0, grain)  # never re-inject a stone's own speckle
-    grain = np.roll(np.roll(grain, GRAIN_ROLL[0], axis=0), GRAIN_ROLL[1], axis=1)
+    # Transplant the source's own fine speckle back over the smooth base via an
+    # explicit rolled VALIDITY mask (decision 015). For each masked pixel, pick the
+    # first roll in GRAIN_ROLLS whose donor SOURCE location is outside the debris
+    # mask, so a stone's own speckle is never re-injected and a genuinely flat
+    # (but valid) donor is kept instead of being misread as a hole. Selecting by
+    # donor validity, not grain magnitude, removes the decision-014 jigsaw: a
+    # footprint draws its speckle from ONE roll except in the small sub-region whose
+    # primary donor is masked. The fine residual (0-GRAIN_RADIUS band) carries no
+    # rock body (those live in the low band the membrane replaced), so no visible
+    # clone-stamp of structure; the fine statistics (core richness, shimmer) hold.
+    detail = source - _box_c(source, GRAIN_RADIUS)
+    grain = np.zeros_like(source)
+    chosen = np.zeros(mask.shape, dtype=bool)
+    for dy, dx in GRAIN_ROLLS:
+        cand = np.roll(np.roll(detail, dy, axis=0), dx, axis=1)
+        cand_valid = np.roll(np.roll(known, dy, axis=0), dx, axis=1)
+        take = (~chosen) & cand_valid
+        grain = np.where(take[..., None], cand, grain)
+        chosen |= take
     filled = base + graft + grain
     return np.where(m3, filled, source)
 

@@ -1,7 +1,7 @@
 extends SceneTree
 
 const DETAIL_PATH := "res://assets/village/ground_dirt_detail.png"
-const EXPECTED_SHA256 := "d4b49328a2c8bd0d20842b640556d0e4db32453abe018e01446b075131a6d0a7"
+const EXPECTED_SHA256 := "b92aab2c4ada68fc219769131a1d0c710c8b61204660d8f4e17077efc97c347a"
 const MIN_R_STD_BYTES := 18.0
 const MIN_R_MEAN_GRADIENT_BYTES := 7.0
 

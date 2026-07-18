@@ -85,19 +85,30 @@ SPIKE_MEAN = np.array([98.6, 85.0, 43.5], dtype=np.float64)
 # the plate-rock <-> shoulder xcorr stays ~0 (the detail bake's R shoulder reads
 # the radius-3 fine band, not mid) and the macro mud band is untouched.
 #
-# The final mid is 1.25, NOT higher: the decision-014 declutter now also grafts a
-# stone-free 16-64px substrate mid band into each vacated region (declutter
-# MID_GAIN), so the graft carries the mid-scale richness the extended stone
-# removal took out and the global mid gain does not need to be pushed up to
-# compensate. Pushing mid past 1.25 revives the diffuse muddy mid-band tone the
-# multiband reshape exists to suppress; 1.25 is the largest mid that avoids that
-# revival. The fine gain is lifted 1.85 -> 1.95 to carry the last of the
-# protected-core std back over the 18.44 floor (mid alone lands it at 18.38 with
-# fine 1.85; fine 1.95 + mid 1.25 lands rendered core std 18.80, clear of the
-# floor) while the rendered 0.5x clean-dirt fine-gradient stays well under the
-# ~10.75 grass shimmer ceiling.
+# Decision 015 (fill de-muddying) lifts ONLY lomid 1.55 -> 2.00; mid stays at the
+# decision-014 baseline 1.25. The decision-014 declutter fill propped the flat-core
+# std up with a HIGH-gain 16-64px mid-band graft (declutter MID_GAIN 3.80) injected
+# into each vacated footprint. That over-graft (~1.85x the local substrate mid
+# energy) plus its rolled-donor local DC WAS agy QA7's "membrane-smooth island +
+# muddy tone" tell. Decision 015 energy-matches that graft to the substrate
+# (declutter MID_GAIN 1.40) and re-centers each footprint on its local known-
+# substrate tone (declutter FILL_STATS_RADIUS), which kills the island and the
+# muddy DC but removes the core-std prop, dropping the rendered protected-core std
+# to 17.55 (below the 18.44 floor). The lost std is carried back GLOBALLY here, and
+# ONLY through lomid: the 3-12 px coarse speckle band sits well ABOVE the muddy
+# 12-64 mid band, so lifting it restores the core richness without touching the mid
+# band the multiband reshape exists to suppress. mid is held at 1.25 (NOT raised),
+# so the open clean-substrate window's 12-64 mid energy stays at the decision-014
+# baseline: the +60% muddy-mid revival codex's mid 2.50 grade produced (decision
+# 015 critique) is structurally impossible here because mid is unchanged. A GLOBAL
+# lomid gain lifts every pixel uniformly, so it restores richness without any
+# localized island. Result: rendered protected-core std 18.62 (margin +0.18 over
+# 18.44, the smallest global lift that clears the floor with a small margin). The
+# fine gain is UNCHANGED at 1.95; the 0.5x shimmer gradient is RE-MEASURED directly
+# from the rendered 0.5x capture (not inferred from the unchanged fine coefficient,
+# codex's caveat) and stays under the ~10.75 grass ceiling.
 RESHAPE_RADII = (3, 12, 64)
-BAND_GAINS = (1.95, 1.55, 1.25, 0.14)  # (fine, lomid, mid, macro)
+BAND_GAINS = (1.95, 2.00, 1.25, 0.14)  # (fine, lomid, mid, macro)
 
 # Mid-band spatial DE-PEAKING (decision 013 depeak follow-on). The graded plate
 # closed the muddy-tone and grid-seam tells, but ONE dominant tell remained: the

@@ -28,8 +28,11 @@ extends SceneTree
 # removed at the source, mid-band gain restored 0.55 -> 1.25 now that the stones
 # no longer prop the flat-core std), so the bake re-derives and its fingerprint
 # moved. The bake logic itself is unchanged.
+# Decision 015 (fill quality): the plate input changed again (energy-matched mid
+# graft + local-tone anchoring + validity-mask grain in the fill, grade lomid
+# 1.55 -> 2.00), so the fingerprint moved again. The bake logic is still unchanged.
 # Expected decoded image_sha256:
-# d4b49328a2c8bd0d20842b640556d0e4db32453abe018e01446b075131a6d0a7
+# b92aab2c4ada68fc219769131a1d0c710c8b61204660d8f4e17077efc97c347a
 const LAYOUT_SEED := 7007
 const SHOULDER_DETAIL_OFFSET := 12109
 const CORE_DRIFT_OFFSET := 14503
