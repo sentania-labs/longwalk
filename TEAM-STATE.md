@@ -125,9 +125,30 @@ adversarial round, not "looks good"). Critique SHAs (decision 009 cites these):
 - agy    `dcc696d5ffd36d08a65b30601b807fa33e4247d4` (`agy/007-critique`)
 Proposals + critiques collected onto `round/007-village` @ `6ab2f4a` (pushed).
 
-**PHASE 3 synthesis formulated + FOUR-BALLOT DISPATCHED (stamp `20260718-044306`,
-cap 1800s, worktrees on `<d>/007-ballot` branches).** My full synthesis + the
-ballot question + my ballot: `.pka/round007/synthesis-and-ballot.md` (READ IT).
+**PHASE 3 COMPLETE. Four-ballot resolved 4-0 for Option H (hybrid graft).
+Decision record 009 WRITTEN + pushed to the round branch @ `bc80b4d`
+(`docs/decisions/009-village-art-method.md`).** My full synthesis working doc:
+`.pka/round007/synthesis-and-ballot.md`.
+
+Ballot SHAs (all voted H, all accepted their DoL slice, NO constitution-violation
+claim; critic NOT invoked since not 2-2):
+- claude `e2ab0c3819e77dbe5d75dab1ac470f8c0f0fffb7` (voted AGAINST its own Option
+  S: "codex's occlusion critique is correct, it is decisive")
+- codex  `10e0d69ddc8ba2cea9df417799e94337929ea162`
+- agy    `828296b88f810a66320408544618671da6b71ac9`
+
+**Decision 009 (4-0 Option H):** ship cleanly-separable unoccluded spike objects
+as sliced sprites (zero-drift, zero-credit floor); generate COMPLETE RGBA objects
+via image-to-image conditioned on an accepted spike-derived style crop for
+everything occluded/net-new; MANDATORY first-district gate at 0.5x/1x/2x + four-
+landmark projection.gd registration BEFORE any batch spend. Plus the converged
+rulings (sprites-on-grid, codex's isolated-packaged export audit, source PNGs
+under res://assets/village, town_layout viewport-free, explicit setup_free(),
+drop 3D-render-as-primary, agy Image.load ban + multimodal QA, micro-cluster
+baking, first-buildable = one inn-green district). DoL: codex=asset production,
+claude=render integration + town_layout + free-cam, agy=multimodal QA.
+Protected paths the record authorizes: `src/sim/`, `export_presets.cfg`,
+`project.godot`.
 
 CONVERGED after critique (I rule directly, no ballot; captured in the synthesis
 doc): (1) sprites-on-grid composition, NOT plates (codex conceded; agy's sim/
@@ -149,20 +170,44 @@ CONTESTED (the four-ballot): **primary pixel-production method** -- Option S
 ORCHESTRATOR BALLOT = H). Provisional DoL: codex=asset production, claude=render
 integration + town_layout + free-cam, agy=multimodal QA.
 
-**NEXT (poll + TALLY the four-ballot):** poll
-`/home/scott/claude/lw-007-<d>/.team/markers/<d>-007-ballot-<stamp>-end.md`;
-verify from marker + tree; read each `docs/proposals/<d>-007-ballot.md`; record
-each vote + rationale VERBATIM. TALLY = my H + the 3 doer votes. 3-1 or 4-0
-decides; a 2-2 split invokes the critic (`roles/critic.md`, `cursor-agent --mode
-ask`, read-only, one written vote) and I fold its vote in verbatim; if the critic
-sides against my ruling there is no majority -> adopt the critic's side OR hold +
-escalate to Scott with both verbatim (do NOT settle alone). A losing objection
-that CLAIMS a constitution violation escalates to Scott. Then WRITE decision
-record 009 (`docs/decisions/009-*.md`, cite all 9 proposal/critique SHAs, every
-losing objection VERBATIM, the DoL + capability reasoning), collect the two
-required signatures (protected-path record), and begin IMPLEMENTATION on the
-round branch (per-slice doer branches off the round branch, peer sign-off, local
---no-ff integration, one round PR). Balance still 2970; NO paid Meshy yet.
+**NEXT (execution phase kickoff):**
+
+1. **Collect the 3 doer signatures on decision 009** (protected-path record; the
+   consensus gate reads `Signed-off-by:` lines from claude/codex/agy-worker with
+   REAL UTC timestamps, currently placeholders). Mechanism: dispatch each doer to
+   read 009 and, if it accepts, replace ONLY its own placeholder line with a real
+   timestamp + commit (each on a signoff branch off the round head, or sequential
+   into `lw-007-round`; then orchestrator integrates/pushes the round branch).
+   Their ballots already attest acceptance, so this is near-formality, but the
+   gate needs the literal signed lines before the round PR can merge. Can also be
+   folded into each slice's dispatch (a dispatched worker reads + signs 009 as it
+   picks up its slice).
+2. **Implementation slices** (per decision 009 DoL, off the round branch, peer
+   sign-off by a non-author, local --no-ff integration, ONE round PR at the end):
+   - START with the FIRST-DISTRICT GATE (decision 009 item 9 + the Option-H
+     pre-spend gate): codex produces ONE inn-green district's worth of assets
+     (slice the unoccluded spike objects; generate the few occluded/net-new ones
+     via image-to-image conditioned on a spike style crop -- this is the FIRST
+     PAID Meshy point, SUPERVISE it: verify prior attempt dead + no duplicate
+     billable work before any relaunch, NEVER pass save_to to
+     meshy_download_model, cost-confirm, balance 2970 -> watch); claude wires the
+     village scene + setup_free() free-cam + expanded town_layout.gd (under 009) +
+     res://assets/village export-safe loading + the isolated-packaged export
+     audit; agy multimodal-QA the district capture against the spike at 0.5x/1x/2x.
+   - The district must PROVE from an isolated packaged export (not source) and be
+     landmark-registered to projection.gd BEFORE any batch spend on more
+     districts. Method failure at this gate changes the method, not the count.
+   - Only after the district passes the confusable-with-spike bar do we expand to
+     the full ~12-16-structure village, then open the ONE round PR + external
+     Codex review, address findings, merge, sweep.
+3. Surface a build to Scott ONLY when the team believes screenshots genuinely
+   pass his "confusable with the spike" bar (directive 1500 posture).
+
+Balance still 2970; NO paid Meshy this run. Round-007 worktrees live:
+`lw-007-{claude,codex,agy}` (currently on `<d>/007-ballot` branches) +
+`lw-007-round` (integration tree on `round/007-village`). Proposal/critique/ballot
+branches (`<d>/007-{proposal,critique,ballot}`) hold the cited artifact SHAs;
+archive under `refs/archive/007/*` at round close.
 
 ## Round 006 -- CLOSED (superseded by Scott's redefinition)
 
@@ -250,6 +295,10 @@ Round-007's first decision record is **009**.
   older stuck escalations (walk-cycle art spike, PR#18 gate) are moot under the
   redefinition.
 
-**Last updated:** 2026-07-18 (round 007 opened: closed + archived round 006,
-scoped the village milestone, cut `round/007-village` @ 07078d1, dispatched
-three blind proposals detached at stamp 20260718-042834). Polling in progress.
+**Last updated:** 2026-07-18 (round 007 FULL DELIBERATION run: closed+archived
+round 006 as superseded; scoped the village milestone; cut `round/007-village`;
+ran phase 1 (3 blind proposals), phase 2 (3 adversarial critiques -- a real
+round, not looks-good), phase 3 (synthesis + four-ballot 4-0 for Option H +
+decision record 009 written+pushed @ bc80b4d). Every dispatch verified from end
+marker + tree. Balance 2970, zero paid Meshy. NEXT: collect the 3 decision-009
+signatures + start the first-district execution slice, per the NEXT block above.)
