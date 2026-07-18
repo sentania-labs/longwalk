@@ -85,6 +85,17 @@ ran `tools/run_tests.sh` (ALL PASS) + `tools/art/village_export_gate.sh`
   corner planting. codex flagged "repetition left for tuning". This is claude's
   tuning slice, per 017 division of labor.
 
+**claude review+tune DISPATCHED + IN FLIGHT** 2026-07-18 21:31:14 (detached
+setsid, cap 2400s, opus). worktree `lw-016-render`, branch `claude/017-tune` off
+`6e31e7e`, run_id `baseveg-tune-claude-20260718-213114`, prompt
+`.pka/round007/composition/iter4/claude-review-tune-prompt.md`, log
+`.../logs/tune-claude.log`. ON RESPAWN: DO NOT re-dispatch; verify end marker
+`lw-016-render/.team/markers/baseveg-tune-claude-20260718-213114-end.md` + expect
+(a) a `.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md` marker (reviewed_by
+claude, authored_by codex) AND (b) a tuning commit past 6e31e7e; independently
+re-run gates + DECODE the new 1x vs spike; if claude BLOCKED (`.team/blocked/`)
+bounce to codex. Detail of claude's two jobs below.
+
 **NEXT (claude review + tune, one dispatch):** provision claude on `claude/017-tune`
 off `6e31e7e`. claude: (1) REAL non-author peer review of codex 6e31e7e -> write
 `.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md` (reviewed_sha
