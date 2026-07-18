@@ -133,7 +133,26 @@ reviews codex's `019bbd9` (marker on `claude/007-village-render`). Markers ride
 each reviewer's branch into integration. Prompts:
 `.pka/round007/signoff-{codex-reviews-claude,claude-reviews-codex}-prompt.md`.
 
-**INTEGRATION PLAN (after both markers land, both `result: signed-off`):**
+**SIGN-OFF OUTCOME (peer review did its job, caught a real defect):**
+- claude reviewed codex `019bbd9`: **signed-off** (marker on `claude/007-village-
+  render` @ `9ed400a`; verified pixel dims 16/16, provenance honesty by decoding
+  PNGs, export hygiene). codex assets are integration-ready.
+- codex reviewed claude `17611ac`: **CHANGES-REQUESTED** (marker on `codex/007-
+  village-assets` @ `bcf02d9`). Genuine defect: `village_export_gate.sh` line ~47
+  runs `village_placeholder_assets.py` before every export, which REWRITES all of
+  `assets/village/` incl `manifest.json`. So post-integration the gate would
+  overwrite codex's REAL assets with placeholders and audit the placeholders,
+  defeating decision 009 item 2. claude's "16/16 pass" only held vs its own
+  regenerated placeholders. Confirmed against the script directly.
+- **FIX DISPATCHED** to claude (stamp 20260718-053747, cap 1500, label
+  claude-fix-gate): remove placeholder-regen from the production gate; gate audits
+  the COMMITTED assets without mutating them; add a non-mutation guard; re-run gate
+  + run_tests. New HEAD on `claude/007-village-render`. Prompt:
+  `.pka/round007/fix-claude-gate-prompt.md`.
+- **After the fix: codex must RE-REVIEW the new claude head** (changed SHA requires
+  review at the new head) before integration. Then integrate.
+
+**INTEGRATION PLAN (after fix + codex re-review both signed-off):**
 1. On `lw-007-round` (`round/007-village` @ bc80b4d), merge codex `019bbd9` and
    claude `17611ac` (--no-ff, preserve authorship/trailer). Overlap = `assets/
    village/*` + `manifest.json` (take codex's REAL assets, drop claude's provisional
