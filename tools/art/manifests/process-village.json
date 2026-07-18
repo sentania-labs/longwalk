@@ -10,11 +10,11 @@
     {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/rock_b.png", "crop": [198, 425, 283, 480], "polygon": [[16, 8], [52, 0], [84, 24], [73, 48], [31, 54], [0, 39]]},
     {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/flower_cluster_a.png", "crop": [91, 400, 180, 477], "polygon": [[24, 5], [59, 0], [88, 28], [78, 62], [48, 76], [8, 64], [0, 31]]},
     {"source": "../../../docs/art/iso-five-asset-spike.png", "output": "../../../assets/village/flower_cluster_b.png", "crop": [1002, 514, 1119, 597], "polygon": [[17, 17], [62, 0], [102, 12], [116, 47], [91, 78], [39, 82], [0, 58]]},
-    {"output": "../../../assets/village/cottage_front.png", "placeholder_size": [280, 300]},
-    {"output": "../../../assets/village/fence_section.png", "placeholder_size": [144, 96]},
-    {"output": "../../../assets/village/inn.png", "placeholder_size": [420, 380]},
-    {"output": "../../../assets/village/cottage_rear.png", "placeholder_size": [280, 300]},
-    {"output": "../../../assets/village/smithy_cluster.png", "placeholder_size": [360, 320]},
-    {"output": "../../../assets/village/crown_foliage.png", "placeholder_size": [300, 220]}
+    {"source": "../generated_src/cottage_front.src.png", "output": "../../../assets/village/cottage_front.png", "operation": "remove_border_background", "target_size": [280, 300], "flood_tolerance": 12, "max_chroma": 18, "feather_radius": 1.0},
+    {"source": "../generated_src/fence_section.src.png", "output": "../../../assets/village/fence_section.png", "operation": "remove_border_background", "target_size": [144, 96], "flood_tolerance": 12, "max_chroma": 18, "feather_radius": 1.0},
+    {"source": "../generated_src/inn.src.png", "output": "../../../assets/village/inn.png", "operation": "remove_border_background", "target_size": [420, 380], "flood_tolerance": 12, "max_chroma": 18, "feather_radius": 1.0},
+    {"source": "../generated_src/cottage_rear.src.png", "output": "../../../assets/village/cottage_rear.png", "operation": "remove_border_background", "target_size": [280, 300], "flood_tolerance": 12, "max_chroma": 18, "feather_radius": 1.0},
+    {"source": "../generated_src/smithy_cluster.src.png", "output": "../../../assets/village/smithy_cluster.png", "operation": "remove_border_background", "target_size": [360, 320], "flood_tolerance": 12, "max_chroma": 18, "feather_radius": 1.0},
+    {"source": "../generated_src/crown_foliage.src.png", "output": "../../../assets/village/crown_foliage.png", "operation": "remove_border_background", "target_size": [300, 220], "flood_tolerance": 12, "max_chroma": 18, "feather_radius": 1.0}
   ]
 }
