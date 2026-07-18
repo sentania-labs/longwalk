@@ -18,15 +18,23 @@ shader_type canvas_item;
 //     vivid petals keep their chroma while the surrounding foliage is graded.
 //
 // TEXTURE-DOUBLING FIX (decision 016 D4, second iteration). In a canvas_item
-// fragment the built-in COLOR is ALREADY texture(TEXTURE, UV) * MODULATE. The
+// fragment the built-in COLOR is ALREADY texture(TEXTURE, UV) * modulate. The
 // first cut multiplied the graded texture by that COLOR again (`* mod_col`),
 // which re-applied the texture a second time (output = tex^2 * mul), crushing
 // every object toward black: a mid-value roof texel (~0.25) came out ~0.10, so
 // the grade could never reach its target midtone and the buildings read dark and
-// contrasty (agy QA D4). We now apply the per-item MODULATE (the sprite modulate,
-// white here) exactly ONCE and never re-multiply the texture, so the grade lands
-// on its designed key. The village CanvasModulate is still applied after, once,
-// by the canvas compositor.
+// contrasty (agy QA D4). We now read texture(TEXTURE, UV) DIRECTLY (never the
+// texture-carrying COLOR), grade that, and apply the per-item modulate exactly
+// ONCE via the item_modulate uniform, so the grade lands on its designed key and
+// the texture is never squared. The village CanvasModulate is still applied
+// after, once, by the canvas compositor.
+//
+// item_modulate carries the per-sprite modulate (the canvas_item fragment
+// built-in MODULATE does not exist in Godot 4.3-stable, so we pass it explicitly
+// from village_render.gd). It defaults to white, so an ungraded caller is a
+// no-op; a caller that wants to tint or fade a sprite sets it alongside where it
+// builds the material.
+uniform vec4 item_modulate : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 
 uniform vec3 tonal_mul = vec3(1.0, 1.0, 1.0);
 uniform float highlight_guard : hint_range(0.0, 1.0) = 1.0;
@@ -71,6 +79,6 @@ void fragment() {
 	float shade = 1.0 - smoothstep(shadow_lift_lo, shadow_lift_hi, lum);
 	c += shadow_lift * shade * shadow_lift_tint;
 
-	// Apply the per-item MODULATE exactly once (NOT the texture-carrying COLOR).
-	COLOR = vec4(min(c, vec3(1.0)), tex.a) * MODULATE;
+	// Apply the per-item modulate exactly once (NOT the texture-carrying COLOR).
+	COLOR = vec4(min(c, vec3(1.0)), tex.a) * item_modulate;
 }

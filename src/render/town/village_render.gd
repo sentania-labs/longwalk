@@ -372,6 +372,10 @@ func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, stren
 	mat.set_shader_parameter("shadow_color", Vector3(SHADOW_COLOR.r, SHADOW_COLOR.g, SHADOW_COLOR.b))
 	mat.set_shader_parameter("feather_px", feather_px)
 	mat.set_shader_parameter("strength", strength)
+	# Whole-layer fade hook (replaces the shadow shader's old MODULATE.a, invalid in
+	# Godot 4.3). No caller fades the grounding-shadow layer today, so this is the
+	# no-fade identity; it is the explicit seam for a future layer fade.
+	mat.set_shader_parameter("layer_fade", 1.0)
 	sprite.material = mat
 	_shadow_layer.add_child(sprite)
 
@@ -497,6 +501,12 @@ func _build_tonal_material(texture: Texture2D, kit_id: String, kind: String) -> 
 
 	var mat := ShaderMaterial.new()
 	mat.shader = ObjectShader
+	# Per-item modulate (replaces the object shader's old MODULATE built-in, invalid
+	# in Godot 4.3). Objects carry no per-sprite tint today, so this is white
+	# (identity); it is the explicit seam a caller uses to tint or fade one sprite
+	# without disturbing the tonal grade, applied exactly once so the texture is
+	# never squared.
+	mat.set_shader_parameter("item_modulate", Color(1.0, 1.0, 1.0, 1.0))
 	mat.set_shader_parameter("tonal_mul", mul)
 	mat.set_shader_parameter("highlight_guard", clampf(highlight_guard_255 / 255.0, 0.0, 1.0))
 	mat.set_shader_parameter("guard_softness", GUARD_SOFTNESS)

@@ -95,19 +95,35 @@ echo "=== run audit against the isolated bundle (no source tree) ==="
 # "Isolated" is enforced by the packed bundle + non-repo cwd, not by --headless.
 # A timeout backstops any future capture hang so the gate fails loudly instead
 # of wedging.
+AUDIT_LOG="${WORK}/audit.log"
 set +e
 (
 	cd "${BUNDLE_DIR}" && \
 	VILLAGE_CAPTURE_DIR="${CAP_DIR}" timeout 240 xvfb-run -a "${GODOT}" \
 		--main-pack "${BUNDLE_DIR}/village.pck" \
 		--script res://tools/art/village_export_audit.gd
-)
-GATE_RC=$?
+) 2>&1 | tee "${AUDIT_LOG}"
+# Preserve the audit's own exit status through the pipe (tee would otherwise mask it).
+GATE_RC=${PIPESTATUS[0]}
 set -e
 
 if [ "${GATE_RC}" -ne 0 ]; then
 	echo "GATE FAILED (audit exit ${GATE_RC})"
 	exit "${GATE_RC}"
+fi
+
+# Shader-compile gate (decision 016 iter2). A shader that fails to compile makes
+# Godot silently fall back to default canvas rendering, so the graded/feathered
+# output never runs while the audit still screenshots a (wrong) scene and exits 0.
+# That is exactly how a broken MODULATE built-in passed this gate green once. Treat
+# any shader compile failure on the audit run as fatal so the next shader bug fails
+# loudly instead of shipping the fallback.
+if grep -qiE 'SHADER ERROR|Shader compilation failed' "${AUDIT_LOG}"; then
+	echo "GATE FAILED: the audit run emitted shader compile errors." >&2
+	echo "A failed shader compile falls back to default canvas rendering, so the" >&2
+	echo "captured scene is NOT the real shader output. Offending lines:" >&2
+	grep -niE 'SHADER ERROR|Shader compilation failed' "${AUDIT_LOG}" >&2
+	exit 1
 fi
 
 # Collect captures into the repo for the side-by-side vs the spike.

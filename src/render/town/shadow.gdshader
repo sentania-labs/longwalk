@@ -32,6 +32,13 @@ uniform float feather_px : hint_range(0.0, 6.0) = 1.2;
 // Opacity scale on the feathered alpha (bounded per-object in village_render.gd).
 uniform float strength : hint_range(0.0, 1.0) = 0.55;
 
+// Whole-layer fade multiplier on the shadow opacity (0..1). Replaces the
+// canvas_item fragment built-in MODULATE.a, which does not exist in Godot
+// 4.3-stable; village_render.gd passes it explicitly (1.0 = no fade). This lets a
+// caller fade the entire grounding-shadow layer without touching per-object
+// strength, mirroring what a node modulate would have done.
+uniform float layer_fade : hint_range(0.0, 1.0) = 1.0;
+
 // Gaussian shape constant over the fixed 7x7 tap grid (i,j in -3..3). Taps are
 // weighted exp(-(i*i+j*j)/(2*SIGMA*SIGMA)); feather_px scales their pixel step.
 const int R = 3;
@@ -51,9 +58,9 @@ void fragment() {
 	}
 	float feathered = (wsum > 0.0) ? acc / wsum : 0.0;
 	// Output the earth-brown tint with the FEATHERED alpha. We drive alpha from the
-	// blurred mask (not the raw COLOR.a, which is mask*MODULATE and would re-clip
-	// the feather back to the mask's hard shape); the per-item MODULATE.a still lets
+	// blurred mask (not the raw COLOR.a, which is mask*modulate and would re-clip
+	// the feather back to the mask's hard shape); the layer_fade uniform still lets
 	// a caller fade the whole layer. This lets the soft edge grade past the mask's
 	// hard boundary into the ground, which is the whole point of the feather.
-	COLOR = vec4(shadow_color, feathered * strength * MODULATE.a);
+	COLOR = vec4(shadow_color, feathered * strength * layer_fade);
 }
