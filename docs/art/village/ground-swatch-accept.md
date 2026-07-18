@@ -1,38 +1,40 @@
-# Ground swatch acceptance
+# Ground plate acceptance
 
-The two 512 by 512 swatches were made from the supervised paid source fields
-`.pka/round007/ground-source/source-grass.png` and
-`.pka/round007/ground-source/source-dirt.png` with deterministic
-offset-and-heal. The grass crop is source rectangle `(256, 192, 768, 704)`
-and the dirt crop is `(256, 256, 768, 768)`. Each crop is used at native
-resolution, rolled by exactly
-256 pixels on both axes, then healed only within the 96-pixel-wide central
-seam cross. Healing clones fixed translations from the same organic crop,
-using offsets `(137, 173)` for grass and `(151, 181)` for dirt, with a cubic
-smoothstep feather. No RNG or iteration-dependent choice is used. Pixels
-outside the seam cross are unchanged from the half-offset crop.
+The tileable-swatch approach failed its 8 by 8 zoom gate three times. The
+paid source fields contain faint quasi-regular structure throughout their
+images. Seam-only offset-and-heal processing could hide a boundary, but it
+could not remove source-wide structure. Repeating either small swatch made
+that structure conspicuous at gameplay zoom levels.
 
-## Texel-density budget
+Decision 010 pre-authorized a bounded plate fallback for this outcome. The
+district now uses `ground_grass_plate.png` and `ground_dirt_plate.png`, each
+sampled once across the district at low or no repeat. The old ground tiles,
+their tiling baker, and the 8 by 8 contact-sheet gate are retired.
 
-The shader contract repeats one 512-pixel swatch per projected 128-pixel cell
-width. At maximum 2x zoom, one repeat covers 256 screen pixels, so
-`512 / 256 = 2.0` source texels per screen pixel. This exceeds the required
-minimum of 1.0. The 0.5x and 1x densities are 8.0 and 4.0 source texels per
-screen pixel.
+## Plate production
 
-`ground-swatch-contactsheet.png` shows each swatch tiled 8 by 8 at the actual
-0.5x, 1x, and 2x display periods.
+Both plates preserve the complete 1024 by 1024 paid source field at native
+resolution:
+
+- `ground_grass_plate.png` is an unchanged copy of
+  `.pka/round007/ground-source/source-grass.png`, nano-banana task
+  `019f7414-c219-75c8-ac2e-dc6f33b3c97f`.
+- `ground_dirt_plate.png` is an unchanged copy of
+  `.pka/round007/ground-source/source-dirt.png`, nano-banana task
+  `019f7415-90bb-78e0-a533-9b758d723b74`.
+
+No crop was needed. Neither source has a corner vignette strong enough to
+justify discarding paid pixels. No offset, seam healing, global flattening,
+or other image processing was applied, preserving the organic painterly look.
+`ground_warp.png` remains available to break up residual structure in plate
+mode, and `shadow_decal.png` remains unchanged.
 
 ## Judgment
 
-- Grass: FAIL. The source is high resolution and painterly, but the 8 by 8
-  panels reveal a recurring horizontal tonal band and repeated bright texture
-  groupings. The seam heal is not the dominant defect.
-- Dirt: FAIL. The source field contains recurring stamped marks arranged on a
-  fine grid. The grid is conspicuous at 0.5x and remains legible at 1x and 2x,
-  so offset-and-heal cannot remove it without modifying pixels globally.
+- Grass: ACCEPT as a bounded district plate. Its faint structure reads as
+  organic detail when sampled once instead of as a repeated motif.
+- Dirt: ACCEPT as a bounded district plate. Its subtle marks no longer form a
+  repeated grid because the renderer does not tile the image 8 by 8.
 
-The offset-and-heal method preserves the source appearance and introduces no
-new global structure, but it cannot remove regular structure already present
-throughout a source while obeying the seam-only constraint. These sources do
-not clear Decision 010's visual gate.
+The manifest and art test enforce `ground_plate` kind and exact 1024 by 1024
+native dimensions for both assets.

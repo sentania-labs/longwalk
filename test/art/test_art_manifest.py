@@ -15,8 +15,8 @@ from process_assets import autocrop_and_fit, derive_shadows, remove_border_backg
 
 VILLAGE_ASSETS = ROOT / "assets/village"
 VILLAGE_GROUND_IDS = {
-    "ground_grass_tile": ("ground_tile", (512, 512), "generated"),
-    "ground_dirt_tile": ("ground_tile", (512, 512), "generated"),
+    "ground_grass_plate": ("ground_plate", (1024, 1024), "generated"),
+    "ground_dirt_plate": ("ground_plate", (1024, 1024), "generated"),
     "ground_warp": ("ground_warp", (256, 256), "generated"),
     "shadow_decal": ("shadow", (256, 128), "generated"),
 }
