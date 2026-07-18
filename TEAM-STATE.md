@@ -159,14 +159,21 @@ object-level completeness check, REDUCE mid gain (both dissents recorded verbati
 in 014). Not gate-required (no protected path). Division: claude implements,
 codex non-author signs off, agy QA7.
 
-**IMPLEMENTATION IN FLIGHT:** claude dispatched on `claude/014-stone-impl` (off
-a1e9915, de-peak in ancestry). run `014-impl-claude-20260718`, cap 3000s.
-Prompt `.pka/round007/014-impl-claude-prompt.md`. RESUME: verify impl end
-marker + tree + BOTH hard gates + DECODE the new ground-2x yourself (stones AND
-amber rocks gone, no membrane smear, no muddy revival). Then codex NON-AUTHOR
-sign-off -> FF-integrate into round/007-village -> re-run suite+export gate ->
-PUSH round branch -> agy QA pass 7. If QA CONFUSABLE and my own decode agrees ->
-SURFACE BUILD TO SCOTT (to: dalinar). Else diagnose from artifacts, tee up next.
+**IMPLEMENTATION on `claude/014-stone-impl`** (off a1e9915, de-peak in ancestry).
+First impl dispatch `014-impl-claude-20260718-132936` CAP-KILLED at 3001s (exit
+124, branch_changed:NO) with real work UNCOMMITTED in the worktree: declutter
++126 lines (extended detector + multiscale fill), grade mid gain 1.30->1.25,
+plate+detail re-baked. It did NOT re-capture the render, run gates, or commit; and
+running godot CLOBBERED project.godot (protected: stripped pinned-version header +
+run/disable_stdout) which MUST be reverted, never committed. **FINISH re-dispatched**
+`014-impl-finish` cap 3000s, prompt `.pka/round007/014-impl-finish-prompt.md`
+(preserve in-progress work, complete gates+capture+suite, revert project.godot, commit).
+RESUME: verify finish end marker + tree + BOTH hard gates + DECODE new ground-2x
+yourself (grey stones AND amber rocks gone, no membrane smear, no muddy revival) +
+CONFIRM project.godot NOT in the commit. Then codex NON-AUTHOR sign-off ->
+FF-integrate into round/007-village -> re-run suite+export gate -> PUSH round branch
+-> agy QA pass 7. If QA CONFUSABLE and my own decode agrees -> SURFACE BUILD TO
+SCOTT (to: dalinar). Else diagnose from artifacts, tee up next.
 
 === (prior) NEXT: phase 2 adversarial critique ===
 
