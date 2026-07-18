@@ -56,7 +56,40 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016. ROUND HEAD `5777b83`. ITERATION 4 (D2/D3 base veg) = FULL PROTOCOL. **PHASE 1 DONE (3 blind proposals committed); PHASE 2 ADVERSARIAL CRITIQUE DISPATCHED + IN FLIGHT.** ===
+=== WHERE WE ARE: DECISION 016 iter4 (D2/D3 base veg), FULL PROTOCOL. **PHASES 1-3 DONE. Decision 017 committed + pushed, ROUND HEAD NOW `fa09235`. IMPLEMENTATION next: codex owns core mechanism.** ===
+
+=== ITERATION 4 PHASE 3 DONE: decision 017 at `fa09235` (round head, pushed) ===
+`docs/decisions/017-base-vegetation.md`. Synthesis rulings:
+- D2 = discrete deterministic prop placement (3-0), render-only in
+  village_render.gd, reuse existing kits, NO paid spend.
+- Determinism = pure positional integer mixing (FNV or integer-mix), NO
+  hash()/RNG. agy's RNG-over-perimeter REJECTED (constitution violation, agy
+  CONCEDED it, so not a verbatim dissent).
+- Derived-instance contract required (codex finding: _build_shadows and
+  _build_objects iterate _layout.placements independently; scaled sprite + scaled
+  seam mask + tonal + depth key).
+- Candidate rejection = door (mandatory) + hard authored objects (fence/sign);
+  ALLOW proximity to tree/existing flora; never reject on derived order; bias
+  keep toward camera-facing edges.
+- D3 = separate flora_base.gdshader underlay reusing baked contact mask (3-1;
+  claude on-sprite DISSENT recorded VERBATIM in 017; NOT a constitution claim, no
+  escalation). Follow-up graft: if 1x shows a residual lit cutout on a sprite,
+  add a contact-mask-SHAPED on-sprite darken (NOT flat UV.y band).
+- Sequencing = spike-scale-first (mandatory corners + underlay at 1x vs spike
+  BEFORE full tuning). Fallback = DERIVED tuft (offline crop/downscale, NO spend),
+  gated on 1x reuse failing; paid regen NOT authorized by 017.
+- Tests = codex four-invariant suite + export audit.
+- **Division:** codex = D2+D3 core mechanism + tests + mandatory-corners 1x
+  capture. claude = non-author review/sign-off + 1x tuning + derived-tuft fallback
+  if reuse gate fails. agy = QA #005 (no impl slice; proposal lost on determinism,
+  harness fits neither build nor perceptual tuning better than the owners).
+- **Decision 017 Sign-offs = PENDING** (3 lines). Collect ratifying Signed-off-by
+  from codex (during impl), claude (during review), agy (during QA); orchestrator
+  transcribes into a single "fill 017 sign-offs" commit on the round branch before
+  the round PR. Not gate-blocking now (no round PR open).
+- Proposals: claude 65bfca1 / codex 46a1c26 / agy 1ff6a8c. Critiques: claude
+  f369615 / codex ee89af1 / agy b226920. (Preserved on branches claude/016-baseveg
+  @ f369615, agy/016-baseveg @ b226920, codex/016-baseveg @ ee89af1.)
 
 === ITERATION 4 (D2/D3 base vegetation), PHASE 2 IN FLIGHT ===
 Scope + goal: `.pka/round007/composition/iter4/assignment.md`. Design fork: D2
