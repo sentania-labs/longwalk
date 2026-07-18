@@ -23,7 +23,8 @@ Keep the heading structure stable (orchestrator + Dashboard parse by heading).
 
 **ROUND 007: Two Rivers village at spike fidelity, free-cam, no PC/no NPC.
 FULL PROTOCOL, four-ballot resolved 4-0 (Option H, decision 009).
-EXECUTION PHASE: first inn-green district, ZERO-CREDIT proof pass IN FLIGHT.**
+EXECUTION: first inn-green district ZERO-CREDIT rig PROVEN + INTEGRATED on
+`round/007-village` @ `5a42736` (pushed). NEXT = supervised FIRST PAID pass.**
 
 Scott redefined the milestone (2026-07-18T03:30Z, via dalinar relaying req
 c3ffe894; inbox `2026-07-18-0330-dalinar-vision-bar-answer-and-village-
@@ -78,22 +79,40 @@ settle). Check `.pka/inbound/orchestrator/` at EVERY phase boundary.
 
 ## Phase
 
-**EXECUTION PHASE (first inn-green district). ZERO-CREDIT PROOF PASS DISPATCHED.**
+**EXECUTION: ZERO-CREDIT RIG PROVEN + INTEGRATED. NEXT = SUPERVISED FIRST PAID PASS.**
 
-Deliberation is fully closed (decision 009, 4-0 Option H, on `round/007-village` @
-`bc80b4d`). Signatures on 009 still placeholders; being folded into the execution
-slices (claude + codex sign their own line this pass; agy signs at QA time).
-Balance verified 2970, zero PENDING/IN_PROGRESS Meshy tasks (no zombie to double-
-spend). NO paid Meshy this pass by design.
+=== WHAT IS DONE (this run, all verified from end markers + tree + a real gate run) ===
 
-**Execution sequencing decision (de-risk before spend):** the first paid point is
-image-to-image generation of the occluded/net-new objects. Rather than spend
-first, this pass PROVES the whole rig (the load-bearing export-safety fix +
-free-cam + landmark registration + isolated-packaged capture) at ZERO CREDIT using
-sliced-only art plus flat-magenta `generated-pending` placeholders. Only after the
-rig ships sliced art through an isolated packaged export do we spend, supervised,
-on the generated objects, then run the real confusable-with-spike gate. This is
-decision 009's judge-then-spend inversion.
+The first inn-green district's whole PIPELINE is built, peer-reviewed, integrated
+onto `round/007-village`, and PROVEN from an isolated packaged export against REAL
+sliced assets, at ZERO credits. Round branch head **`5a42736`** (pushed to origin).
+
+- **Integration commit chain on `round/007-village`:** bc80b4d (decision 009) ->
+  15803d2 (merge claude render c164ef7) -> 200af94 (merge codex assets 019bbd9,
+  real assets win over claude's provisional, 009 sigs resolved) -> 5a42736 (honest
+  real-asset gate proof captures).
+- **Suite GREEN** on the integrated tree: all active-path suites + 19 village-render
+  checks (16 placements join manifest, crown sorts above, no CharacterBody2D,
+  camera starts FREE with no follow target).
+- **HONEST export gate PASSED on codex's REAL assets:** `tools/art/
+  village_export_gate.sh` exported a `.pck` (stock Windows preset, all_resources),
+  ran it headless from a non-repo temp dir with NO source tree, and 16/16 manifest
+  assets resolved through ResourceLoader with declared dims; 4 landmarks project at
+  0.5/1/2x; non-mutation guard confirms `assets/village/` unchanged by the run. The
+  round-006 carry-forward finding (packaged builds silently shipping default art)
+  is CLOSED with a non-self-defeating gate. Captures: `docs/art/village/village-
+  inn-green-{0.5x,1x,2x}.png` show real sliced art (painterly tree, flower/bush
+  clusters, rocks, sign_post) on the iso grid with the lane junction, plus 6 MAGENTA
+  placeholder triangles marking the generated-pending objects.
+- **Signatures on decision 009:** claude 2026-07-18T05:25:08Z, codex
+  2026-07-18T05:03:08Z (both real, on the round branch). agy STILL PLACEHOLDER
+  (signs at QA time; consensus gate needs it before the round PR merges to main).
+
+Balance still **2970**, zero PENDING/IN_PROGRESS Meshy tasks. NO paid Meshy spent
+this run (the whole rig was proven at zero credit, decision 009's judge-then-spend
+inversion). This is a clean milestone: I deliberately did NOT start the first paid
+spend at the tail of a long run (mid-spend is the worst place to die; the paid pass
+needs a full turn for proper supervision).
 
 **BOTH EXECUTION SLICES COMPLETE + VERIFIED from end markers + tree (not
 narration). Cross peer sign-offs IN FLIGHT.**
@@ -144,30 +163,44 @@ each reviewer's branch into integration. Prompts:
   overwrite codex's REAL assets with placeholders and audit the placeholders,
   defeating decision 009 item 2. claude's "16/16 pass" only held vs its own
   regenerated placeholders. Confirmed against the script directly.
-- **FIX DISPATCHED** to claude (stamp 20260718-053747, cap 1500, label
-  claude-fix-gate): remove placeholder-regen from the production gate; gate audits
-  the COMMITTED assets without mutating them; add a non-mutation guard; re-run gate
-  + run_tests. New HEAD on `claude/007-village-render`. Prompt:
-  `.pka/round007/fix-claude-gate-prompt.md`.
-- **After the fix: codex must RE-REVIEW the new claude head** (changed SHA requires
-  review at the new head) before integration. Then integrate.
+- **FIX LANDED:** claude `c164ef7` "export gate audits committed assets, never
+  regenerates them" (dropped the regen, fail-loud on missing manifest, non-mutation
+  guard). Gate re-ran green + guard confirmed unchanged.
+- **RE-REVIEW LANDED:** codex re-reviewed `c164ef7`, **signed-off** (marker
+  `.team/signoffs/claude-007-village-render-c164ef720322.md` on `codex/007-village-
+  assets` @ `54e3811`; deleted the stale changes-requested marker for 17611ac).
+- **INTEGRATED + PROVEN** (see "WHAT IS DONE" above): round branch @ `5a42736`.
 
-**INTEGRATION PLAN (after fix + codex re-review both signed-off):**
-1. On `lw-007-round` (`round/007-village` @ bc80b4d), merge codex `019bbd9` and
-   claude `17611ac` (--no-ff, preserve authorship/trailer). Overlap = `assets/
-   village/*` + `manifest.json` (take codex's REAL assets, drop claude's provisional
-   placeholder PNGs; `village_placeholder_assets.py` may stay as a tool) + 009 sig
-   lines (adjacent, non-conflicting, resolve to keep both real timestamps).
-2. RE-RUN `tools/art/village_export_gate.sh` on the integrated tree with codex's
-   REAL assets. Green = zero-credit proof stands.
-3. Push `round/007-village`. Update state.
-4. THEN the SUPERVISED first PAID pass: codex image-to-image generates the 6
-   `generated-pending` objects conditioned on an accepted spike style crop (balance
-   2970, watch it; verify no in-flight task before any relaunch; never pass save_to
-   to meshy_download_model). Re-run gate + agy multimodal QA vs spike at 0.5/1/2x.
-   Only after that passes the confusable-with-spike bar do we expand to the full
-   village + open the ONE round PR.
-- agy: still not dispatched (QA runs on the first real-asset capture).
+=== NEXT: SUPERVISED FIRST PAID PASS (the first real Meshy spend -- SUPERVISE) ===
+
+Generate the 6 `generated-pending` objects and replace their magenta placeholders:
+**`inn`, `cottage_front`, `cottage_rear`, `smithy_cluster`, `crown_foliage`,
+`fence_section`** (per manifest; note codex deferred cottage_front + fence_section
+as not honestly sliceable). Method per decision 009 Option H: **image-to-image
+conditioned on an ACCEPTED spike-derived style crop** (the `meshy` MCP is live;
+`meshy_image_to_image`, nano-banana 3 / nano-banana-2 6 / nano-banana-pro 9 /
+gpt-image 9-12 credits per call -> ~18-72 credits total, cheap). This is codex's
+asset-production seat.
+
+SUPERVISION discipline (paid, first spend, balance 2970):
+- Before ANY relaunch, `meshy_list_tasks` to confirm no PENDING/IN_PROGRESS task
+  (a second launch into the same work = double-spend). Cost-confirm every paid
+  call. NEVER pass `save_to` to `meshy_download_model`. Watch the balance delta.
+- First establish an ACCEPTED spike style crop (from `docs/art/iso-five-asset-
+  spike.png`) as the conditioning reference; each generated object gets a per-object
+  provenance manifest entry (`provenance: generated`, the source crop + prompt).
+- Each generated PNG must keep its manifest `native_px` == real dims (claude's gate
+  asserts this) and a correct `anchor_px`. Overwrite `assets/village/<id>.png` +
+  flip `provenance` to `generated` in `manifest.json`.
+- Then: peer sign-off (non-author), integrate onto the round branch, RE-RUN the
+  honest export gate, and **agy multimodal QA** the capture vs the spike at
+  0.5/1/2x (agy's first dispatch; agy then signs decision 009 with a real ts).
+- Method failure at this gate changes the METHOD, not the count (decision 009 item
+  9). Only once the district capture passes the confusable-with-spike bar do we
+  expand to the full ~12-16-structure village, then open the ONE round PR + external
+  Codex review, address findings, merge, sweep.
+- Surface a build to Scott ONLY when the team believes screenshots genuinely pass
+  his "confusable with the spike" bar. NOT yet (6 magenta placeholders remain).
 
 <!-- prior phase history retained below for the record -->
 
@@ -297,11 +330,19 @@ integration + town_layout + free-cam, agy=multimodal QA.
 3. Surface a build to Scott ONLY when the team believes screenshots genuinely
    pass his "confusable with the spike" bar (directive 1500 posture).
 
-Balance still 2970; NO paid Meshy this run. Round-007 worktrees live:
-`lw-007-{claude,codex,agy}` (currently on `<d>/007-ballot` branches) +
-`lw-007-round` (integration tree on `round/007-village`). Proposal/critique/ballot
-branches (`<d>/007-{proposal,critique,ballot}`) hold the cited artifact SHAs;
-archive under `refs/archive/007/*` at round close.
+**Live worktrees + branches (all LOCAL; only `round/007-village` is on origin):**
+- `lw-007-round` on `round/007-village` @ `5a42736` (integration tree, pushed).
+- `lw-007-claude` on `claude/007-village-render` @ `c164ef7` (render + gate fix +
+  its signoff of codex + claude 009 sig). Reuse for the next claude dispatch.
+- `lw-007-codex` on `codex/007-village-assets` @ `54e3811` (real assets + manifest
+  + process_assets + codex 009 sig + its signoff of claude's c164ef7). Reuse for
+  the paid generation dispatch.
+- `lw-007-agy` on `agy/007-ballot` (idle; agy's first execution dispatch is QA of
+  the first real-asset capture, after the paid pass).
+- Deliberation branches `<d>/007-{proposal,critique,ballot}` hold the decision-009
+  cited artifact SHAs; archive under `refs/archive/007/*` at round close.
+- Doer execution branches are LOCAL-ONLY (never push). The paid-pass integration
+  will re-merge codex's regenerated assets onto the round branch the same way.
 
 ## Round 006 -- CLOSED (superseded by Scott's redefinition)
 
@@ -394,10 +435,15 @@ Round-007's first decision record is **009**.
   not treat a missing POST as a failure.** The three older stuck escalations
   (walk-cycle art spike, PR#18 gate) are moot under the village redefinition.
 
-**Last updated:** 2026-07-18 (round 007 FULL DELIBERATION run: closed+archived
-round 006 as superseded; scoped the village milestone; cut `round/007-village`;
-ran phase 1 (3 blind proposals), phase 2 (3 adversarial critiques -- a real
-round, not looks-good), phase 3 (synthesis + four-ballot 4-0 for Option H +
-decision record 009 written+pushed @ bc80b4d). Every dispatch verified from end
-marker + tree. Balance 2970, zero paid Meshy. NEXT: collect the 3 decision-009
-signatures + start the first-district execution slice, per the NEXT block above.)
+**Last updated:** 2026-07-18 (round 007 EXECUTION run: dispatched both slices
+parallel [codex assets 019bbd9, claude render+gate 17611ac]; ran a cross peer-
+review that CAUGHT A REAL DEFECT [claude's gate regenerated placeholders before
+export, would overwrite real assets -- codex changes-requested]; fix landed
+[c164ef7] + codex re-signed [54e3811]; integrated both onto round/007-village
+resolving asset add/add to codex's real art + the 009 sig conflict; suite green +
+the HONEST export gate PASSED on real assets [16/16 resolve from an isolated .pck,
+non-mutation guard clean]; pushed round branch @ 5a42736. Handled the 0445 inbox
+steer [dashboard /team POST disabled]. Every dispatch verified from end marker +
+tree. Balance 2970, ZERO paid Meshy. Stopped at a clean pre-spend milestone. NEXT:
+supervised FIRST PAID pass -- generate the 6 generated-pending objects via image-
+to-image, per the NEXT block above.)
