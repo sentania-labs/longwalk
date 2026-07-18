@@ -107,8 +107,15 @@ const SHADOW_COLOR := Color(0.09, 0.07, 0.05)
 # directional polygon is the defect").
 const SIGN_CAST_STRENGTH := 0.0
 const BASE_VEGETATION_SEED := 17017
-const BASE_VEGETATION_KITS := ["bush_a", "bush_a", "bush_b", "flower_cluster_b", "flower_cluster_b", "rock_a", "rock_b", "flower_cluster_a"]
-const BASE_VEGETATION_SCALES := [0.48, 0.56, 0.64]
+# Balanced kit table (decision 017 tuning, gap 2 repetition): the two bushes and
+# the two flower clusters carry equal weight so no single silhouette (the round
+# bush_a, the tall flower_cluster_b) recurs at every clump; rocks stay sparse as
+# accents. Selection is `(_mix_candidate >> 8) % size`, uniform over the index,
+# so listed count == weight.
+const BASE_VEGETATION_KITS := ["bush_a", "bush_b", "bush_b", "flower_cluster_a", "flower_cluster_b", "flower_cluster_a", "rock_a", "bush_a", "flower_cluster_b", "rock_b"]
+# Wider scale spread (gap 2): five steps instead of three so adjacent clumps
+# differ in size as well as kit; kept in the weed band, not diorama scale.
+const BASE_VEGETATION_SCALES := [0.42, 0.50, 0.56, 0.64, 0.72]
 const FLORA_BASE_COLOR := Color(0.24, 0.22, 0.09)
 
 # Per-kit tonal grade (decision 016 D4). TONAL_STRENGTH damps the move from each
@@ -462,6 +469,14 @@ func _build_objects() -> void:
 		sprite.position = contact_screen
 		sprite.offset = Vector2(-float(anchor[0]), -float(anchor[1]))
 		sprite.scale = Vector2(instance.scale, instance.scale)
+		# Deterministic horizontal-flip variation for derived vegetation (decision
+		# 017 tuning, gap 2): flip_h mirrors the texture within its unchanged rect,
+		# so the ground-contact anchor column moves to (native_width - anchor_x);
+		# re-seat offset.x there to keep the base pinned to contact_screen.
+		if instance.get("flip", false):
+			sprite.flip_h = true
+			var native: Array = record.get("native_px", [float(anchor[0]) * 2.0, float(anchor[1])])
+			sprite.offset.x = float(anchor[0]) - float(native[0])
 		sprite.set_meta("kit_id", instance.kit_id)
 		sprite.set_meta("derived_base_vegetation", instance.derived)
 		# Per-kit tonal coherence grade (decision 016 D4). A bounded, guarded
@@ -498,10 +513,10 @@ func _build_render_instances() -> Array:
 	for i in range(_layout.placements.size()):
 		var p = _layout.placements[i]
 		out.append({"kit_id": p.id, "kind": p.kind, "contact": Iso.building_contact_cell(p.cell, p.footprint),
-			"scale": 1.0, "sort_id": "%s#%d" % [p.id, i], "derived": false})
+			"scale": 1.0, "flip": false, "sort_id": "%s#%d" % [p.id, i], "derived": false})
 	for derived in derive_base_vegetation(_layout.placements, _seam_policy):
 		out.append({"kit_id": derived.kit_id, "kind": derived.kind, "contact": derived.contact,
-			"scale": derived.scale, "sort_id": derived.sort_id, "derived": true})
+			"scale": derived.scale, "flip": derived.flip, "sort_id": derived.sort_id, "derived": true})
 	return out
 
 
@@ -513,6 +528,11 @@ static func derive_base_vegetation(placements: Array, seam_policy: Dictionary) -
 	for p in placements:
 		if p.kind not in ["building_anchor", "building", "cottage", "tree"]:
 			continue
+		# A tree has no stone foundation to hug: veg on its rear/far perimeter reads
+		# as loose scatter on open grass (gap 1). Restrict it to a single tight
+		# front-base clump (facing corners only), matching the spike's trunk-base
+		# planting instead of a full perimeter ring.
+		var is_tree: bool = p.kind == "tree"
 		var candidates := _perimeter_candidates(p.cell, p.footprint)
 		for candidate in candidates:
 			var q: Vector2i = candidate.q
@@ -521,33 +541,58 @@ static func derive_base_vegetation(placements: Array, seam_policy: Dictionary) -
 				continue
 			if _overlaps_hard_object(contact, placements):
 				continue
-			var mixed := _mix_candidate(BASE_VEGETATION_SEED, q)
 			var facing: bool = candidate.edge in ["south", "east"]
-			var keep_limit := 62 if facing else 28
-			if not candidate.mandatory and mixed % 100 >= keep_limit:
+			if is_tree and (not facing or not candidate.corner):
+				continue
+			var mixed := _mix_candidate(BASE_VEGETATION_SEED, q)
+			# Density profile (decision 017 tuning). Only the camera-facing edges
+			# (south/east) carry the derived planting: those are the visible stone
+			# foundation the veg hugs and creeps up. The rear (north/west) has no
+			# visible wall, so anything placed there floats in the open lanes
+			# between buildings (gap 1) rather than reading as foundation planting;
+			# it is cut entirely (decision 017 item 4: no density behind the
+			# building). On the facing edges, corners carry dense mixed clumps
+			# toward the spike (gap 3) and mid-edges stay a controlled fill.
+			var keep_limit: int = 0
+			if facing:
+				keep_limit = 92 if candidate.corner else 30
+			# Force-keep the mandatory anchor only on a facing edge, so every
+			# building still gets its two front foundation corners (the >=2-anchor
+			# invariant) without a rear anchor stranded on open grass.
+			var force_keep: bool = candidate.mandatory and facing
+			if not force_keep and mixed % 100 >= keep_limit:
 				continue
 			var kit: String = BASE_VEGETATION_KITS[(mixed >> 8) % BASE_VEGETATION_KITS.size()]
 			var kind := "flower" if kit.begins_with("flower") else ("bush" if kit.begins_with("bush") else "rock")
 			out.append({"building": p.id, "kit_id": kit, "kind": kind, "contact": contact,
 				"candidate_q": q, "mandatory": candidate.mandatory,
 				"scale": BASE_VEGETATION_SCALES[(mixed >> 16) % BASE_VEGETATION_SCALES.size()],
+				"flip": ((mixed >> 24) & 1) == 1,
 				"sort_id": "derived:%d:%d:%s" % [q.x, q.y, kit]})
 	out.sort_custom(func(a, b): return a.sort_id < b.sort_id)
 	return out
 
 
 static func _perimeter_candidates(cell: Vector2i, footprint: Vector2i) -> Array:
-	var x0 := cell.x * 4 - 1
-	var y0 := cell.y * 4 - 1
-	var x1 := (cell.x + footprint.x) * 4 + 1
-	var y1 := (cell.y + footprint.y) * 4 + 1
+	# Hug the foundation: candidates sit ON the footprint boundary (offset 0), not
+	# a quarter-cell outside it, so clumps creep UP the stone base instead of
+	# sitting in front of it on open ground (decision 017 tuning, gap 1). The
+	# perimeter is walked at quarter-cell resolution (step 1) so corner clumps can
+	# pack tightly with distinct coordinates; the keep profile in
+	# derive_base_vegetation thins the mid-edges back out.
+	var x0 := cell.x * 4
+	var y0 := cell.y * 4
+	var x1 := (cell.x + footprint.x) * 4
+	var y1 := (cell.y + footprint.y) * 4
 	var out: Array = []
-	for x in range(x0, x1 + 1, 2):
-		out.append({"q": Vector2i(x, y0), "edge": "north", "mandatory": x == x0 or x == x1})
-		out.append({"q": Vector2i(x, y1), "edge": "south", "mandatory": x == x0 or x == x1})
-	for y in range(y0 + 2, y1, 2):
-		out.append({"q": Vector2i(x0, y), "edge": "west", "mandatory": false})
-		out.append({"q": Vector2i(x1, y), "edge": "east", "mandatory": false})
+	for x in range(x0, x1 + 1):
+		var cx: bool = x <= x0 + 1 or x >= x1 - 1
+		out.append({"q": Vector2i(x, y0), "edge": "north", "mandatory": x == x0 or x == x1, "corner": cx})
+		out.append({"q": Vector2i(x, y1), "edge": "south", "mandatory": x == x0 or x == x1, "corner": cx})
+	for y in range(y0 + 1, y1):
+		var cy: bool = y <= y0 + 1 or y >= y1 - 1
+		out.append({"q": Vector2i(x0, y), "edge": "west", "mandatory": false, "corner": cy})
+		out.append({"q": Vector2i(x1, y), "edge": "east", "mandatory": false, "corner": cy})
 	return out
 
 
