@@ -96,6 +96,16 @@ uniform float apron_width_cells : hint_range(0.0, 3.0) = 1.1;
 uniform float apron_strength : hint_range(0.0, 1.0) = 0.85;
 uniform float door_strength : hint_range(0.0, 1.0) = 0.95;
 uniform float apron_tone : hint_range(0.0, 0.4) = 0.14;
+// Apron edge-break (decision 016 D2, second iteration). The apron outer edge was
+// a clean smoothstep isoline on the signed footprint distance, so it read as a
+// hard, straight diagonal against the grass (agy QA D2, the first thing Scott's
+// eye catches). We break that isoline the SAME WAY the lane shoulder edge is
+// already broken: perturb the signed distance by the decorrelated zero-mean R
+// field (edge_detail) BEFORE the falloff smoothstep, so the apron dissolves into
+// a patchy, noise-broken transition into grass. Measured in cells; zero-mean, so
+// it does not change net apron coverage, only wanders the boundary. The apron
+// still only RAISES dirt (max()) and zeroing baked R still zeroes the ring.
+uniform float apron_edge_break_cells : hint_range(0.0, 1.5) = 0.55;
 
 // District size in cells (UV runs 0..grid_size). Used to turn cell space into
 // the mask's 0..1 sample space.
@@ -263,9 +273,16 @@ void fragment() {
 	// flooding their interior), B intensifies the worn pool at door thresholds.
 	float apron_coverage = fp.r;                    // authored coverage (bake R)
 	float dist_cells = (fp.g - 0.5) * 4.0;          // signed cells: + outside footprint
+	// Break the outer isoline (agy QA D2): perturb the signed distance by the same
+	// decorrelated zero-mean R field the lane shoulder edge-break uses, so the
+	// apron-to-grass boundary wanders into a patchy transition instead of a clean
+	// diagonal cut. Zero-mean about 0.5, bounded, consistent with the lane edge.
+	float apron_dist = dist_cells + (edge_detail - 0.5) * apron_edge_break_cells;
 	// G-driven edge falloff: soft ring just OUTSIDE the footprint edge (dist 0 ->
-	// apron_width_cells), gated so the apron only lives on the exterior seam.
-	float edge_falloff = (1.0 - smoothstep(0.0, apron_width_cells, dist_cells)) * step(0.0, dist_cells);
+	// apron_width_cells), gated so the apron only lives on the exterior seam. The
+	// falloff reads the broken distance so its outer edge is the dithered one; the
+	// exterior gate keeps the interior clean under the wall.
+	float edge_falloff = (1.0 - smoothstep(0.0, apron_width_cells, apron_dist)) * step(0.0, apron_dist);
 	// The worn ring is the AUTHORED coverage shaped by the G edge falloff. Zeroing
 	// the baked R zeroes the ring here (asserted by test_footprint_apron_r), so the
 	// baked coverage is honestly consumed, never dead.

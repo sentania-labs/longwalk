@@ -27,6 +27,7 @@ const Iso := preload("res://src/render/iso/projection.gd")
 const CameraRigScript := preload("res://src/render/town/camera_rig_2d.gd")
 const GroundShader := preload("res://src/render/town/ground.gdshader")
 const ObjectShader := preload("res://src/render/town/object.gdshader")
+const ShadowShader := preload("res://src/render/town/shadow.gdshader")
 
 const ASSET_DIR := "res://assets/village/"
 const MANIFEST_PATH := "res://assets/village/manifest.json"
@@ -79,13 +80,31 @@ const GROUND_PLATE_REPEAT := 1.0
 # directional cast masks (assets/village/seams/<id>_{contact,cast}.png, codex's
 # slice) on a shared below-sprite ground-plane layer. The masks share their
 # sprite's dimensions and frame, so they align pixel-for-pixel under the sprite
-# at the same anchored position. They carry the shadow shape in ALPHA (RGB is 0);
-# we draw them as flat black modulated by these bounded strengths so the pool
-# grounds the object without reading as a pasted ellipse. CONTACT is the tight
-# dark core hugging the base; CAST is the short light-driven grounding pool
-# (one shared manifest light_vector_px, baked in).
-const CONTACT_STRENGTH := 0.80
-const CAST_STRENGTH := 0.42
+# at the same anchored position. They carry the shadow shape in ALPHA (RGB is 0).
+#
+# Second-iteration D1 (agy QA: the masks read as HARD, too-dark painted polygons).
+# We no longer draw them as flat pure-black Sprite2Ds. Each shadow sprite carries
+# shadow.gdshader, which FEATHERS the mask's hard alpha edge into the ground and
+# tints it a dark desaturated earth-brown (SHADOW_COLOR) instead of 0,0,0, so the
+# pool reads as cast light-occlusion on soil, not a pasted black shape. CONTACT is
+# the tight dark core hugging the base (small feather); CAST is the wider short
+# grounding pool (feathers more). Strengths are lowered toward the spike's soft
+# shadow value.
+const CONTACT_STRENGTH := 0.55
+const CAST_STRENGTH := 0.30
+# Feather (texel spread of the Gaussian in shadow.gdshader). The wider cast pool
+# grades over a broader band than the tight contact core (rubric D1: cast feathers
+# more than contact).
+const CONTACT_FEATHER_PX := 1.2
+const CAST_FEATHER_PX := 2.8
+# Dark desaturated earth-brown the shadows grade toward (never pure black), so
+# they read as light-occlusion on soil at the spike's value, not painted polygons.
+const SHADOW_COLOR := Color(0.09, 0.07, 0.05)
+# Sign cast tell (agy QA D1): a hanging sign should not throw a hard directional
+# ground polygon. We SUPPRESS the standalone sign's cast entirely and keep only a
+# softened contact, per the rubric ("a small, soft contact is fine; the hard
+# directional polygon is the defect").
+const SIGN_CAST_STRENGTH := 0.0
 
 # Per-kit tonal grade (decision 016 D4). TONAL_STRENGTH damps the move from each
 # sprite's measured midtone toward its manifest target midtone (0 = no grade,
@@ -93,7 +112,7 @@ const CAST_STRENGTH := 0.42
 # disparity into one scene key without fully recoloring an object. Each channel
 # multiplier is clamped to [TONAL_MUL_LO, TONAL_MUL_HI] so no single kit is
 # pushed to an extreme even where its source midtone is far from target.
-const TONAL_STRENGTH := 0.48
+const TONAL_STRENGTH := 0.50
 # The clamp is deliberately asymmetric. Several flora targets are measured very
 # dark (bush_a mid is 40,36,16), so a symmetric low bound crushed foliage toward
 # black; TONAL_MUL_LO floors the darkening at 0.72 so flora reads muted, not
@@ -104,6 +123,27 @@ const TONAL_MUL_HI := 1.45
 # normalized to 0..1 for the shader. GUARD_SOFTNESS is the fade band below a
 # guard where the grade ramps back to identity.
 const GUARD_SOFTNESS := 0.12
+# Shadow-lift / de-contrast (decision 016 D4, second iteration). agy QA: the
+# buildings read dark AND contrasty (near-black slate roofs and heavy timbers)
+# while the ground is a brighter key, so structures look pasted on. A uniform
+# tonal multiply cannot lift the dark roofs without blowing the bright plaster on
+# the same sprite, so object.gdshader ALSO lifts only the SHADOW band toward a
+# warm scene-key tint. These are the per-BUCKET lift amounts (0 = disabled):
+# structures (buildings, wood props, stone) lift; flora and flowers do NOT (their
+# dark floor is owned by the tonal clamp, and lifting foliage shadows would grey
+# it). The lift is strongest on buildings, whose roofs are the worst offender.
+const SHADOW_LIFT_BUILDING := 0.13
+const SHADOW_LIFT_WOOD := 0.08
+const SHADOW_LIFT_STONE := 0.06
+# Ground key-warming (decision 016 D4, second iteration). agy QA: the buildings
+# read dark/contrasty against a flatter, brighter yellow-green ground, so the two
+# do not share one lighting key. Alongside the stronger per-kit object grade
+# (which lifts the buildings toward the warm scene-key target), we nudge the
+# ground layer a touch warmer/less-cold-green (drop blue, ease green) so its key
+# meets the buildings' instead of sitting apart. This is a bounded per-layer
+# modulate, NOT the global village CanvasModulate (the fixed final grade) and NOT
+# a plate-pixel edit (codex owns the plates).
+const GROUND_KEY_MODULATE := Color(1.0, 0.985, 0.93)
 
 # A distinct z-band the foreground crown is lifted into so it always draws over
 # every depth-sorted world object. The world band is 1..N (N is the world-object
@@ -216,6 +256,10 @@ func _build_ground() -> void:
 	var ground := MeshInstance2D.new()
 	ground.mesh = mesh
 	ground.material = _build_ground_material()
+	# Warm the ground key a touch toward the buildings' (decision 016 D4). A
+	# per-layer modulate, applied on the ground MeshInstance2D so it grades only the
+	# terrain, not the shadows or objects on their own layers.
+	ground.self_modulate = GROUND_KEY_MODULATE
 	_ground_layer.add_child(ground)
 
 
@@ -294,19 +338,25 @@ func _build_shadows() -> void:
 		var contact_screen := Iso.cell_to_screen(contact_cell)
 		var anchor: Array = record["anchor_px"]
 		var offset := Vector2(-float(anchor[0]), -float(anchor[1]))
-		# Cast first (the wider, lighter grounding pool), then contact on top (the
-		# tight dark core), so the anchor deepens rather than the far cast edge.
-		_add_seam_sprite(seam.get("cast", ""), contact_screen, offset, CAST_STRENGTH)
-		_add_seam_sprite(seam.get("contact", ""), contact_screen, offset, CONTACT_STRENGTH)
+		# The standalone sign throws a hard directional cast polygon (agy QA D1); we
+		# suppress its cast and keep only the softened contact. Every other object
+		# gets both, cast first (the wider, lighter grounding pool), then contact on
+		# top (the tight dark core), so the anchor deepens, not the far cast edge.
+		var cast_strength := SIGN_CAST_STRENGTH if placement.kind == "sign" else CAST_STRENGTH
+		_add_seam_sprite(seam.get("cast", ""), contact_screen, offset, cast_strength, CAST_FEATHER_PX)
+		_add_seam_sprite(seam.get("contact", ""), contact_screen, offset, CONTACT_STRENGTH, CONTACT_FEATHER_PX)
 
 
-# Draw one baked seam mask (contact or cast) as a flat-black, alpha-shaped
-# grounding pool on the ShadowLayer. The mask is a full-sprite-sized RGBA whose
-# alpha carries the shadow shape; modulating black at `strength` scales that
-# alpha into the ground without introducing any color. A path that does not
-# resolve is skipped (the export gate asserts the declared seam masks ship).
-func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, strength: float) -> void:
-	if png_rel == "":
+# Draw one baked seam mask (contact or cast) as a FEATHERED, earth-brown,
+# alpha-shaped grounding pool on the ShadowLayer (decision 016 D1, second
+# iteration). The mask is a full-sprite-sized RGBA whose alpha carries the shadow
+# shape; shadow.gdshader blurs that alpha into the ground (feather_px wider for
+# the cast) and tints it SHADOW_COLOR at `strength`, so the pool grounds the
+# object without the hard black polygon the first cut showed. strength <= 0 skips
+# the sprite entirely (the suppressed sign cast). A path that does not resolve is
+# skipped (the export gate asserts the declared seam masks ship).
+func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, strength: float, feather_px: float) -> void:
+	if png_rel == "" or strength <= 0.0:
 		return
 	var tex := _load_res(ASSET_DIR + png_rel) as Texture2D
 	if tex == null:
@@ -317,7 +367,12 @@ func _add_seam_sprite(png_rel: String, position: Vector2, offset: Vector2, stren
 	sprite.centered = false
 	sprite.position = position
 	sprite.offset = offset
-	sprite.modulate = Color(0.0, 0.0, 0.0, strength)
+	var mat := ShaderMaterial.new()
+	mat.shader = ShadowShader
+	mat.set_shader_parameter("shadow_color", Vector3(SHADOW_COLOR.r, SHADOW_COLOR.g, SHADOW_COLOR.b))
+	mat.set_shader_parameter("feather_px", feather_px)
+	mat.set_shader_parameter("strength", strength)
+	sprite.material = mat
 	_shadow_layer.add_child(sprite)
 
 
@@ -448,7 +503,26 @@ func _build_tonal_material(texture: Texture2D, kit_id: String, kind: String) -> 
 	# saturation_guard is optional (flowers only); >= 1.0 disables the guard.
 	var sat_guard := float(target.get("saturation_guard", 255))
 	mat.set_shader_parameter("saturation_guard", clampf(sat_guard / 255.0, 0.0, 1.5) if sat_guard < 255 else 1.5)
+	# Shadow-lift (decision 016 D4): lift only structures' shadow band toward the
+	# warm key. Flora/flowers pass 0 so their dark floor stays owned by the clamp.
+	mat.set_shader_parameter("shadow_lift", _shadow_lift_for(kind))
 	return mat
+
+
+# Per-bucket shadow-lift amount (decision 016 D4). Structures (buildings, wood
+# props, stone) lift their dark roofs/timbers into the shared key; flora, flowers,
+# and the crown do NOT (0), so foliage shadows are not greyed and the flora floor
+# stays owned by the tonal clamp.
+static func _shadow_lift_for(kind: String) -> float:
+	match kind:
+		"building_anchor", "building", "cottage":
+			return SHADOW_LIFT_BUILDING
+		"fence", "sign":
+			return SHADOW_LIFT_WOOD
+		"rock":
+			return SHADOW_LIFT_STONE
+		_:
+			return 0.0
 
 
 # One channel of the tonal multiply: damp the target/src ratio toward 1.0 by

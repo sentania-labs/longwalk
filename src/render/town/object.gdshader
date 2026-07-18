@@ -16,14 +16,37 @@ shader_type canvas_item;
 //     original color, so roof/spec highlights are not muddied.
 //   - saturation_guard: pixels more saturated than this fade back, so a flower's
 //     vivid petals keep their chroma while the surrounding foliage is graded.
+//
+// TEXTURE-DOUBLING FIX (decision 016 D4, second iteration). In a canvas_item
+// fragment the built-in COLOR is ALREADY texture(TEXTURE, UV) * MODULATE. The
+// first cut multiplied the graded texture by that COLOR again (`* mod_col`),
+// which re-applied the texture a second time (output = tex^2 * mul), crushing
+// every object toward black: a mid-value roof texel (~0.25) came out ~0.10, so
+// the grade could never reach its target midtone and the buildings read dark and
+// contrasty (agy QA D4). We now apply the per-item MODULATE (the sprite modulate,
+// white here) exactly ONCE and never re-multiply the texture, so the grade lands
+// on its designed key. The village CanvasModulate is still applied after, once,
+// by the canvas compositor.
 
 uniform vec3 tonal_mul = vec3(1.0, 1.0, 1.0);
 uniform float highlight_guard : hint_range(0.0, 1.0) = 1.0;
 uniform float guard_softness : hint_range(0.01, 0.5) = 0.12;
 uniform float saturation_guard : hint_range(0.0, 1.5) = 1.5;
 
+// Shadow-lift / de-contrast (decision 016 D4, second iteration). Even with the
+// grade landing on target, the buildings' near-black slate roofs and heavy timber
+// framing sit well below the ground key (agy QA: "highly contrasty and dark"). A
+// uniform multiply cannot lift those darks without blowing the bright plaster on
+// the same sprite, so we ALSO lift only the SHADOW band toward a warm scene-key
+// tint, compressing the internal contrast. Driven per-kit from village_render.gd
+// (structures lift; flora/flowers pass 0 so their floor stays owned by the tonal
+// clamp and foliage shadows are not greyed).
+uniform float shadow_lift : hint_range(0.0, 0.4) = 0.0;
+uniform vec3 shadow_lift_tint : source_color = vec3(1.0, 0.86, 0.62);
+uniform float shadow_lift_lo : hint_range(0.0, 1.0) = 0.05;
+uniform float shadow_lift_hi : hint_range(0.0, 1.0) = 0.42;
+
 void fragment() {
-	vec4 mod_col = COLOR; // the incoming modulate/vertex color
 	vec4 tex = texture(TEXTURE, UV);
 	vec3 c = tex.rgb;
 
@@ -42,5 +65,12 @@ void fragment() {
 	vec3 graded = c * tonal_mul;
 	c = mix(graded, c, protect);
 
-	COLOR = vec4(c, tex.a) * mod_col;
+	// Shadow-lift (de-contrast): the darker the pixel, the more it lifts toward the
+	// warm scene key, ramping to zero by shadow_lift_hi so mid/high plaster is
+	// untouched. This raises dark roofs/timbers into the shared key.
+	float shade = 1.0 - smoothstep(shadow_lift_lo, shadow_lift_hi, lum);
+	c += shadow_lift * shade * shadow_lift_tint;
+
+	// Apply the per-item MODULATE exactly once (NOT the texture-carrying COLOR).
+	COLOR = vec4(min(c, vec3(1.0)), tex.a) * MODULATE;
 }
