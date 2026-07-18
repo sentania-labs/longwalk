@@ -15,8 +15,9 @@ the authored `TownLayout.lanes` geometry. Both are 256 by 224 pixels, which is
 - `lane_mask.png`: RG8, R is the unwarped protected core, G is cosmetic
   shoulder coverage
 - `lane_density.png`: R8 independent low-frequency wear density
-- `lane_mask.png` pre-upload `Image` byte SHA-256:
-  `7e26447ef141426311bcf13459779b54c25f211fabcdee4fc59532046f7df43d`
+- `lane_mask.png` pre-upload `Image` byte SHA-256 (decision 012 narrowed
+  half_widths, ~0.70 scale):
+  `677c1829b876dd383cc9780f1f2f54c05dcd0e46e33ab379a07e4983e7c0c326`
 - `lane_density.png` pre-upload `Image` byte SHA-256:
   `eb2996df775e53ee16a25a400bcb89a8580c6c7c71c9cd834dffde52d88e5fc6`
 

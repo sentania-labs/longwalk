@@ -275,18 +275,28 @@ static func build_inn_green_district() -> TownLayout:
 	# width swells at entrances and the meeting place, then narrows between.
 	# These literals are the only lane source of truth. No seeded or stateful
 	# generator participates in the authored map.
+	#
+	# Decision 012 (tell #3, dirt over-coverage) authorizes narrowing these
+	# half_widths so the rendered dirt reads grass-dominant. The originals were
+	# scaled by ~0.70 (a ~30% narrow) uniformly, which preserves the swell/narrow
+	# rhythm exactly and keeps the junction-pool value (was 1.05, now 0.74) as the
+	# single widest point. Connectivity is unaffected: a cell the centerline
+	# threads through has segment-distance 0 and stays PATH at any width; only the
+	# off-centerline fringe cells drop. The lane mask/density bake MUST be
+	# regenerated after any change here (tools/art/bake_lane_mask.gd); a stale mask
+	# would leave this edit a render no-op.
 	var lanes: Array[LanePath] = [
 		LanePath.new(
 			PackedVector2Array([Vector2(0.0, 8.2), Vector2(3.0, 6.6), Vector2(5.2, 7.0), Vector2(7.8, 7.8), Vector2(10.5, 7.1), Vector2(13.0, 5.6), Vector2(16.0, 7.2)]),
-			PackedFloat32Array([0.72, 0.88, 0.48, 1.05, 0.52, 0.86, 0.68])
+			PackedFloat32Array([0.50, 0.62, 0.34, 0.74, 0.36, 0.60, 0.48])
 		),
 		LanePath.new(
 			PackedVector2Array([Vector2(10.0, 0.0), Vector2(9.5, 3.0), Vector2(10.0, 5.6), Vector2(7.8, 7.8), Vector2(9.4, 10.1), Vector2(9.1, 14.0)]),
-			PackedFloat32Array([0.62, 0.46, 0.58, 1.05, 0.48, 0.64])
+			PackedFloat32Array([0.43, 0.32, 0.41, 0.74, 0.34, 0.45])
 		),
 		LanePath.new(
 			PackedVector2Array([Vector2(7.8, 7.8), Vector2(10.1, 8.6), Vector2(12.2, 9.35)]),
-			PackedFloat32Array([1.05, 0.52, 0.82])
+			PackedFloat32Array([0.74, 0.36, 0.57])
 		),
 	]
 	_rasterize_lanes(ground, lanes, placements, width, height)

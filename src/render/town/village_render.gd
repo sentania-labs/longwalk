@@ -41,6 +41,14 @@ const GRASS_PLATE_PATH := "res://assets/village/ground_grass_plate.png"
 const DIRT_PLATE_PATH := "res://assets/village/ground_dirt_plate.png"
 const SHADOW_DECAL_PATH := "res://assets/village/shadow_decal.png"
 
+# Dirt DETAIL control texture (decision 012). The offline bake
+# (tools/art/bake_dirt_detail.gd) turns the grass plate's luminance high-pass
+# into this committed RG8 asset (R high-frequency shoulder structure, G broad
+# core drift). ground.gdshader samples it once across the district to give the
+# intrinsically flat dirt plate the source structure it lacks. codex owns the
+# baked pixels; this slice consumes them, same export-safe ResourceLoader path.
+const DIRT_DETAIL_PATH := "res://assets/village/ground_dirt_detail.png"
+
 # Baked lane data textures (decision 011). The offline bake
 # (tools/art/bake_lane_mask.gd) turns the authored sim polylines into these two
 # committed assets: lane_mask (RG8: R unwarped protected core, G cosmetic
@@ -196,6 +204,7 @@ func _build_ground_material() -> ShaderMaterial:
 	mat.set_shader_parameter("dirt_tex", _load_res(DIRT_PLATE_PATH))
 	mat.set_shader_parameter("lane_mask", _load_res(LANE_MASK_PATH))
 	mat.set_shader_parameter("lane_density", _load_res(LANE_DENSITY_PATH))
+	mat.set_shader_parameter("dirt_detail", _load_res(DIRT_DETAIL_PATH))
 	mat.set_shader_parameter("grid_size", Vector2(_layout.width, _layout.height))
 	mat.set_shader_parameter("plate_repeat", GROUND_PLATE_REPEAT)
 	return mat

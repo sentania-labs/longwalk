@@ -46,6 +46,19 @@ shader_type canvas_item;
 uniform sampler2D grass_tex : repeat_disable, filter_linear_mipmap;
 uniform sampler2D dirt_tex : repeat_disable, filter_linear_mipmap;
 
+// Dirt DETAIL control texture (decision 012), sampled ONCE at paint_uv exactly
+// like the plates. RG8, pinned lossless / non-sRGB, baked offline by
+// tools/art/bake_dirt_detail.gd from the grass plate's luminance high-pass:
+//   - R = full high-frequency SHOULDER detail (pebbles, tufts, worn flecks),
+//     zero-mean, centered 0.5. Modulates dirt tone on the cosmetic shoulder and
+//     dithers the shoulder coverage isoline (edge-break).
+//   - G = broad low-frequency CORE drift, zero-mean, centered 0.5. The ONLY
+//     detail the protected core receives (the ratified core-honesty ruling): a
+//     bounded value drift, never the high-frequency R band.
+// This carries the source structure the flat dirt plate lacks (tell #1); it is
+// applied ZERO-MEAN so it never changes coverage/opacity, only tone.
+uniform sampler2D dirt_detail : repeat_disable, filter_linear_mipmap;
+
 // Baked lane mask (decision 011). RG8, pinned lossless / non-sRGB: R is the
 // UNWARPED protected core, G is the cosmetic shoulder coverage (warp + junction
 // smooth-minimum baked in). Clamped so the district edge does not wrap a lane in
@@ -77,9 +90,14 @@ uniform float core_hi : hint_range(0.0, 1.0) = 0.65;
 // solid dirt; shoulder_mid..shoulder_hi ramps; shoulder_lo..shoulder_mid is the
 // outer mottled fade to grass. Two stops (mid, hi) give the soft patchy edge
 // instead of decision 010's single hard threshold.
-uniform float shoulder_lo : hint_range(0.0, 1.0) = 0.06;
-uniform float shoulder_mid : hint_range(0.0, 1.0) = 0.34;
-uniform float shoulder_hi : hint_range(0.0, 1.0) = 0.72;
+// Widened for decision 012 tell #2: shoulder_hi loosened (0.72 -> 0.60) so the
+// solid-dirt plateau starts sooner and the ramp is longer, and the lo..mid outer
+// band widened (0.06/0.34 -> 0.03/0.30) so the mottled fade to grass reaches
+// further. Combined with the R-field edge-break perturbation this turns the old
+// clean isoline into a broad, patchy, non-monotone transition.
+uniform float shoulder_lo : hint_range(0.0, 1.0) = 0.03;
+uniform float shoulder_mid : hint_range(0.0, 1.0) = 0.30;
+uniform float shoulder_hi : hint_range(0.0, 1.0) = 0.60;
 
 // Wear modulation (decision 011, tell #3). density_contrast is how far low wear
 // thins the OUTER (mottled) shoulder dirt; tone_contrast is how far low wear
@@ -87,6 +105,26 @@ uniform float shoulder_hi : hint_range(0.0, 1.0) = 0.72;
 // only, so the protected core stays solid true-tone dirt.
 uniform float density_contrast : hint_range(0.0, 1.0) = 0.5;
 uniform float tone_contrast : hint_range(0.0, 0.6) = 0.16;
+
+// Dirt-detail modulation (decision 012 #1, zero-mean value modulation
+// dirt.rgb *= mix(1-c, 1+c, detail)). detail_shoulder_amp is the full-amplitude
+// swing applied by the R channel on the cosmetic SHOULDER (strong structure);
+// detail_core_amp is the BOUNDED LOW swing applied by the G channel on the
+// protected CORE (broad drift only, never R). Both are zero-mean, so the mean
+// dirt tone and the coverage/opacity (dirt_amount, core_solid) are untouched.
+uniform float detail_shoulder_amp : hint_range(0.0, 0.5) = 0.40;
+uniform float detail_core_amp : hint_range(0.0, 0.2) = 0.11;
+
+// Transition edge-break (decision 012 #2). The R field, sampled at a FIXED
+// ROTATED/OFFSET UV so it decorrelates from the tone sample above (codex's
+// embossing critique: one shared sample would emboss bright flecks exactly onto
+// the edge bulges), perturbs the shoulder coverage BEFORE the two-stop
+// smoothstep. This dithers the clean isoline into a patchy grass-invades-dirt
+// edge; the widened two-stop feather then broadens that band. edge_break_amp is
+// zero-mean, so it does not change net coverage on its own (the widened feather
+// and the narrower authored lanes set net coverage).
+uniform float edge_break_amp : hint_range(0.0, 0.6) = 0.20;
+uniform vec2 edge_break_offset = vec2(0.041, 0.067);
 
 void fragment() {
 	// UV is fractional CELL space (the quad's UV array is its cell corners).
@@ -103,6 +141,19 @@ void fragment() {
 	vec4 grass = textureGrad(grass_tex, paint_uv, ddx, ddy);
 	vec4 dirt = textureGrad(dirt_tex, paint_uv, ddx, ddy);
 
+	// Dirt DETAIL, sampled ONCE at paint_uv with the same explicit gradients as
+	// the plates (decision 012). detail.r = high-frequency shoulder structure,
+	// detail.g = broad core drift, both zero-mean centered at 0.5.
+	vec2 detail = textureGrad(dirt_detail, paint_uv, ddx, ddy).rg;
+	// A SECOND, decorrelated R sample for the edge-break (decision 012 #2). A
+	// fixed 90-degree rotation about the plate center lands on entirely different
+	// texels than the tone sample yet stays inside 0..1 (no repeat_disable clamp
+	// smear), plus a small fixed offset. Mip selection is unchanged: a 90-degree
+	// rotation preserves derivative length, so the plate's own gradients pick the
+	// same level. This breaks the tone<->edge correlation codex flagged.
+	vec2 eb_uv = clamp(vec2(paint_uv.y, 1.0 - paint_uv.x) + edge_break_offset, vec2(0.0), vec2(1.0));
+	float edge_detail = textureGrad(dirt_detail, eb_uv, ddx, ddy).r;
+
 	// --- baked lane coverage (no in-shader warp; the warp is in the mask) ---
 	vec2 mask_uv = cell / grid_size;
 	vec2 lane = texture(lane_mask, mask_uv).rg;
@@ -114,10 +165,17 @@ void fragment() {
 	// the baked unwarped channel. Never reduced by the shoulder or the density.
 	float core_solid = smoothstep(core_lo, core_hi, core);
 
+	// Edge-break (tell #2): perturb the shoulder coverage by the decorrelated R
+	// field (zero-mean about 0.5) BEFORE the two-stop smoothstep, so the isoline
+	// wanders into a patchy, non-monotone dirt/grass boundary instead of a clean
+	// cut. Coverage never drops below the protected core (asserted below), so this
+	// cosmetic dither cannot eat into the honest nav footprint.
+	float shoulder_broken = shoulder + (edge_detail - 0.5) * edge_break_amp;
+
 	// Two-stop feathered shoulder (tell #2). dirt_full saturates near the lane;
-	// dirt_edge is the outer soft fade whose reach the wear field modulates.
-	float dirt_full = smoothstep(shoulder_mid, shoulder_hi, shoulder);
-	float dirt_edge = smoothstep(shoulder_lo, shoulder_mid, shoulder);
+	// dirt_edge is the widened outer soft fade whose reach the wear field modulates.
+	float dirt_full = smoothstep(shoulder_mid, shoulder_hi, shoulder_broken);
+	float dirt_edge = smoothstep(shoulder_lo, shoulder_mid, shoulder_broken);
 
 	// Wear thins the mottled outer band (tell #3): low density pulls the fade in,
 	// high density fills it out, so the dirt/grass edge is patchy, not a line.
@@ -131,6 +189,18 @@ void fragment() {
 	// reads non-uniform. The core keeps true dirt tone (mix weight 1 - core).
 	vec3 shoulder_rgb = dirt.rgb * mix(1.0 - tone_contrast, 1.0, density);
 	vec3 dirt_rgb = mix(dirt.rgb, shoulder_rgb, 1.0 - core_solid);
+
+	// Zero-mean DIRT-DETAIL value modulation (decision 012 #1). The SHOULDER
+	// takes the R channel at full amplitude (strong high-frequency structure);
+	// the protected CORE takes ONLY the G channel at a bounded low amplitude
+	// (broad drift, never R). core_solid selects between them, so the core never
+	// receives the high-frequency band. Being zero-mean (detail centered 0.5),
+	// this shifts tone only and leaves dirt_amount / core_solid untouched.
+	float shoulder_mod = mix(1.0 - detail_shoulder_amp, 1.0 + detail_shoulder_amp, detail.r);
+	float core_mod = mix(1.0 - detail_core_amp, 1.0 + detail_core_amp, detail.g);
+	float detail_mod = mix(shoulder_mod, core_mod, core_solid);
+	dirt_rgb *= detail_mod;
+
 	vec4 dirt_toned = vec4(dirt_rgb, dirt.a);
 
 	COLOR = mix(grass, dirt_toned, dirt_amount);

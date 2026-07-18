@@ -151,7 +151,7 @@ func _check_lane_mask_contract() -> int:
 	density.convert(Image.FORMAT_R8)
 	failures += _check(mask.get_width() == 256 and mask.get_height() == 224, "lane mask is 16 texels per cell")
 	failures += _check(density.get_size() == mask.get_size(), "lane density dimensions match mask")
-	failures += _check(_sha256(mask.get_data()) == "7e26447ef141426311bcf13459779b54c25f211fabcdee4fc59532046f7df43d", "lane mask pre-upload bytes match fingerprint")
+	failures += _check(_sha256(mask.get_data()) == "677c1829b876dd383cc9780f1f2f54c05dcd0e46e33ab379a07e4983e7c0c326", "lane mask pre-upload bytes match fingerprint")
 	failures += _check(_sha256(density.get_data()) == "eb2996df775e53ee16a25a400bcb89a8580c6c7c71c9cd834dffde52d88e5fc6", "lane density pre-upload bytes match fingerprint")
 	var core_preserved := true
 	for y in range(mask.get_height()):

@@ -89,6 +89,7 @@ func _run() -> void:
 		"res://assets/village/ground_warp.png",
 		"res://assets/village/lane_mask.png",
 		"res://assets/village/lane_density.png",
+		"res://assets/village/ground_dirt_detail.png",
 		"res://assets/village/shadow_decal.png",
 	]
 	for path in ground_statics:
