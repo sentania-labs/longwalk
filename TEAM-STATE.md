@@ -133,40 +133,63 @@ agy's opposite direction (over-graft) loses at the render, same failure mode as 
 decision-014 candidate. Decode is decisive over the gate numbers (agy passes 18.88
 yet the island persists).
 
-**PHASE 2 ADVERSARIAL CRITIQUE DISPATCHED + IN FLIGHT (2026-07-18 15:31:53Z).** All
-3 doers running PARALLEL/detached into their worktrees, run ids
-`015-crit-{claude,codex,agy}-20260718-153153`, cap 2400s, start markers confirmed +
-adapters alive at launch+20s. Prompt `.pka/round007/015-fill-quality-crit-prompt.md`
-(each reads the other 2 via `git show <branch>:...`, hunts NEW tells: codex clean-
-patch repeat/clone/seam, claude global band-lift reviving muddy mid outside
-footprints, agy dilated-mask over-graft). Logs `.pka/round007/015-crit-<doer>-dispatch.log`.
+**PHASE 2 CRITIQUE DONE + VERIFIED** (claude 1b18a9c / codex fe9d943 / agy ff829b2,
+all branch_changed yes, exit 0, not cap_expired). Genuine adversarial round:
+- claude found codex's fill is the most footprint-honest (mid -1.22) BUT codex's
+  GRADE (mid 1.25->2.50) revives global muddy mid (+60% open-window: 17.68 vs base
+  11.01). PROVED agy's ground-2x capture is STALE (md5 e792d297 == 2302d30 baseline,
+  never regenerated -> agy decode unsupported). agy over-graft = +12.36 mid deficit.
+- codex found claude's global lomid lift (1.55->2.00) coarsens the whole road +
+  claude's shimmer-unchanged claim overstated (shoulder 10.35->10.47). Recommends
+  claude's graft as the BASELINE. agy disqualified.
+- agy measured codex's clean-patch = 83.69% of masked pixels share offset (307,461)
+  = fixed-vector clone-stamp + 8,475 internal seam pixels. Recommends codex tone-
+  matching + claude MID_GAIN reduction, minus codex clone + minus claude global lift.
+
+**PHASE 3 SYNTHESIS DONE -> decision 015 committed round head `94ee00b` + PUSHED.**
+ORCHESTRATOR DECODE resolved the contested question (codex clone visible?): viewed
+codex village-inn-green-2x, NO visible clone/seam at district scale (32px high-pass
+confines the 83.7% translation to sub-32px speckle, as claude assessed; agy's visual-
+severity claim refuted, like its own stale-capture decode). agy DISQUALIFIED (2 peers
++ decode + stale capture). RULING: build on claude's clone-immune energy-matched mid-
+graft spine + GRAFT codex local-tone anchoring (`base+local_tone-box(base)`, all 3
+praised) + MINIMAL global grade lift remeasured from captures (reject codex mid-2.50)
++ explicit validity-mask grain (kills agy's jigsaw) + optional small anchor-off-
+shadow-rim nudge (NOT 4px dilation). 2 of 3 doers' own recs point at claude's spine.
+Losing objections recorded VERBATIM in the record (agy proposal claim; claude's
+codex-full-fill-spine rec I did not fully adopt). No 2-2, no four-ballot, no critic.
+Division: claude implements, codex NON-AUTHOR signs off, agy QA8.
+
+**IMPLEMENTATION DISPATCHED + IN FLIGHT (2026-07-18 15:47:11Z)** on
+`claude/015-fill-impl` off round head 94ee00b (decision record already in ancestry,
+so integration is a clean FF to the signed impl -- NO cherry-pick needed this time).
+Run `015-impl-claude-20260718-154711`, cap 3000s, start marker confirmed + adapter
+alive at launch+20s. Prompt `.pka/round007/015-fill-impl-prompt.md`. Log
+`.pka/round007/015-impl-claude-dispatch.log`.
 
 --- ON RESPAWN (decision 015), do in order: ---
 1. Check inbox `.pka/inbound/orchestrator/`. Fetch --all; scan doer branches for
    .team/blocked/.
-2. **VERIFY the 3 phase-2 critiques** from end markers
-   `<wt>/.team/markers/015-crit-<doer>-20260718-153153-end.md` (branch_changed yes,
-   critique committed `docs/proposals/<doer>-015-critique.md`). Missing marker =
-   still running (pgrep) or died; do NOT re-dispatch a live one. A round where every
-   critique says "looks good" is a FAILED round -> re-dispatch. Read each critique;
-   note any real defect found in claude's or codex's method (repeat-donor tiling in
-   codex clean-patch; muddy-mid revival or tone shift from claude global band lift;
-   shimmer from claude hole-fill).
-3. **PHASE 3 SYNTHESIS -> docs/decisions/015-*.md.** Provisional read from my decode:
-   winner is claude's energy-match OR codex's coherent clean-patch (both close the
-   tell); agy's over-graft LOSES (empirically refuted at render). Pick the method
-   whose rendered captures are stone-free AND island-free without a new tell; GRAFT
-   the better parts (e.g. codex's coherent patch idea + claude's energy-match, if a
-   critique shows one dominates). If claude+codex agree and agy dissents -> majority,
-   NO four-ballot / NO critic. A 2-2 contested question invokes the critic
-   (tiebreaker-only). Record every losing objection verbatim (esp. agy's, and any
-   codex-vs-claude method dispute).
-4. Winner impl off round head 2302d30, codex (or non-author) NON-AUTHOR sign-off,
-   FF-integrate into round/007-village, re-run suite+export gate + DECODE yourself,
-   PUSH round branch.
-5. Phase-2/3 note: several proposals already ARE working rendered candidates on their
-   branches, so the "impl" may be promoting the winning proposal commit directly
-   (verify its gates+decode fresh) rather than a new dispatch. -> docs/decisions/015-*.md
+2. **VERIFY the impl** from end marker
+   `lw-007-claude/.team/markers/015-impl-claude-20260718-154711-end.md` (branch_changed
+   yes, not cap_expired, ONE impl commit; missing marker = still running via pgrep, or
+   cap-killed with work uncommitted like the 014 first attempt -> re-dispatch a FINISH
+   that preserves in-progress work). Confirm project.godot NOT in the commit (running
+   godot clobbers its pinned-version header -> revert, never commit). RUN suite + BOTH
+   hard gates + DECODE ground-2x + village-inn-green-2x yourself (muddy islands gone,
+   dry tan crisp speckle, stones/amber gone, NO clone/seam/jigsaw/global-mud tell).
+   Check the open-window mid RMS is ~baseline (~11), not codex's 17.68.
+3. **codex NON-AUTHOR sign-off** (ephemeral detached review worktree off the impl SHA;
+   reviewed_by codex != authored_by claude; byte-reproduce + gates from captures).
+4. **FF-integrate** the signed impl into round/007-village (round head 94ee00b -> impl
+   SHA is a clean FF), re-run suite + export gate + DECODE, PUSH round branch. Then
+   cherry-pick codex's sign-off marker if it is a separate commit.
+5. **agy QA PASS 8** off the integrated head. If CONFUSABLE **and my own decode agrees**
+   -> **SURFACE A BUILD TO SCOTT** (cross-workspace `to: dalinar`). Stones + amber +
+   (now) fill islands closed = the known tells are gone. Else decode artifacts (never
+   narration), diagnose, tee up next.
+6. After dirt clears: expand inn-green district to the full ~12-16-structure village;
+   ONE round PR + external Codex review; address; merge; sweep. -> docs/decisions/015-*.md
    (unanimous/majority = no four-ballot; a 2-2 contested question invokes the critic
    tiebreaker-only). Winner impl off e08786f, codex NON-AUTHOR sign-off, FF-integrate
    into round/007-village, re-run suite+export gate, PUSH round branch.
@@ -178,14 +201,17 @@ footprints, agy dilated-mask over-graft). Logs `.pka/round007/015-crit-<doer>-di
    ONE round PR + external Codex review; address; merge; sweep.
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ `e08786f` (== origin; integration tree).
-- `lw-007-claude` on `claude/014-stone-impl` @ `c10a54c` (impl; also holds the
-  ONLY copy of `.pka/round007/ground-source/*`). Rebranch to `claude/015-fill`
-  off e08786f for decision 015.
-- `lw-007-codex` on `rev/014-signoff` @ `1a2ee48`. Rebranch to `codex/015-fill`.
-- `lw-007-agy` on `agy/014-qa7` @ `69063f3` (QA7 report). Rebranch to `agy/015-fill`.
-- Prior slices all in round head e08786f history. Local doer/deliberation branches
-  archive to `refs/archive/007/*` at round close.
+- `lw-007-round` on `round/007-village` @ `94ee00b` (== origin; integration tree;
+  has decision 015 record + QA7 report + decision-014 impl/signoff).
+- `lw-007-claude` on `claude/015-fill-impl` @ `94ee00b` at dispatch (impl in flight;
+  also holds the ONLY copy of `.pka/round007/ground-source/*`). Its 015 proposal is
+  `claude/015-fill` @ d48c7d2, critique 1b18a9c.
+- `lw-007-codex` on `codex/015-fill` @ `5bb9579` (proposal), critique fe9d943.
+  Reuse for the codex NON-AUTHOR sign-off of the impl (ephemeral rev/ worktree).
+- `lw-007-agy` on `agy/015-fill` @ `ff9f0e4` (proposal), critique ff829b2. Reuse for
+  agy QA8.
+- Prior 007 slices (010-014 + decision 015 record) all in round head 94ee00b history.
+  Local doer/deliberation branches archive to `refs/archive/007/*` at round close.
 
 ## Round 006 -- CLOSED (superseded)
 
@@ -244,10 +270,10 @@ no PENDING, `meshy_check_balance` before/after, cost-confirm, NEVER `save_to`).
 
 001-008 on main. Round-007 decisions **009** (art method), **010** (ground/lane),
 **011** (lane geometry), **012** (dirt fidelity + item-5 paid-regen path), **013**
-(dirt re-tune multiband reshape), **014** (source-level stone removal) all on the
-round branch @ e08786f. 009-012 signed 4-0; 013 + 014 are full-protocol converged
-records touching NO protected path (orchestrator synthesis + cited proposal/critique
-SHAs, not gate-required). Round-006's own 009/010 are archive-only.
+(dirt re-tune multiband reshape), **014** (source-level stone removal), **015** (dirt
+fill quality) all on the round branch @ 94ee00b. 009-012 signed 4-0; 013 + 014 + 015
+are full-protocol converged records touching NO protected path (orchestrator synthesis
++ cited proposal/critique SHAs, not gate-required). Round-006's own 009/010 archive-only.
 
 ## Notes for the next run
 
@@ -265,7 +291,21 @@ SHAs, not gate-required). Round-006's own 009/010 are archive-only.
   worktrees removed. NOTE: lw-007-codex still on rev/014-signoff and lw-007-agy on
   agy/014-qa7 (LOCAL only; rebranch off e08786f for decision 015, don't leak).
 
-**Last updated:** 2026-07-18 (DECISION 014 INTEGRATED + PUSHED + QA7. Verified
+**Last updated:** 2026-07-18 (DECISION 015 FILL-QUALITY, full-protocol converged round
+in ONE run on top of decision-014 integration. Blind proposal [claude d48c7d2 energy-
+match / codex 5bb9579 clean-patch / agy ff9f0e4 over-graft] + adversarial critique
+[claude 1b18a9c / codex fe9d943 / agy ff829b2], every dispatch verified from marker+
+tree, all 3 proposals DECODED by orchestrator. agy DISQUALIFIED [over-graft +12.36 mid
+deficit + STALE ground capture md5-proven]. Contested question [codex clone visible?]
+resolved by decode [not visible at district scale]. Synthesis = claude clone-immune
+graft spine + codex tone-anchoring + minimal global lift + validity-mask grain; reject
+agy over-graft + codex mid-2.50; losing objections verbatim. Decision 015 committed +
+pushed [round head 94ee00b]. claude impl DISPATCHED + IN FLIGHT [run 015-impl-claude-
+20260718-154711 off 94ee00b]. RESUME: verify impl marker+tree+gates+DECODE, codex non-
+author signoff, FF-integrate, push, agy QA8, surface to Scott iff confusable + my
+decode agrees. Every dispatch verified from marker+tree+decoded PNGs+self-run gates.)
+
+**PRIOR update:** 2026-07-18 (DECISION 014 INTEGRATED + PUSHED + QA7. Verified
 c10a54c from marker+tree [project.godot absent, tree clean], decoded before/after
 ground-2x [~15-20 grey stones + amber rock GONE], confirmed codex non-author signoff
 1a2ee48 [byte-reproduced, gates hold]. Integrated linear: round reset to 1a2ee48
