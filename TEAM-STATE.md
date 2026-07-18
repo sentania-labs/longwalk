@@ -56,7 +56,58 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016 iter4. **CODEX IMPL `6e31e7e` DONE + GATES VERIFIED (mechanism sound, orchestrator decode = strong improvement but NOT yet at spike bar: open-ground scatter + repetition). NEXT = claude REAL peer sign-off of 6e31e7e + 1x TUNING pass.** Round head still `fa09235` (impl NOT yet integrated). ===
+=== WHERE WE ARE: DECISION 016 iter4. codex impl `6e31e7e` (signed by claude 3815614) + claude tune `9879b36` DONE + verified. **CODEX SIGN-OFF OF THE TUNE IN FLIGHT.** Round head still `fa09235` (stack NOT yet integrated). ===
+
+=== ITERATION 4: IMPL + TUNE DONE; CODEX TUNE-SIGNOFF IN FLIGHT ===
+**Signed stack to integrate (all off round `fa09235`), on branch
+`claude/017-tune` then `codex/017-tune-signoff`:**
+- `6e31e7e` codex impl (base-veg mechanism + flora_base.gdshader underlay +
+  tests). PEER-SIGNED by claude marker `3815614`
+  (`.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md`, reviewed_by claude,
+  authored_by codex). Gates verified by orchestrator independently.
+- `3815614` claude's real peer sign-off marker for 6e31e7e.
+- `9879b36` claude tune (foundation-hugging offset-0, camera-facing corner
+  density 92, rear edges cut, kits rebalanced, 5 scale steps, deterministic flip;
+  only village_render.gd + captures; NO src/sim, NO assets/village, NO
+  object.gdshader; determinism preserved). Gates green (claude ran; orchestrator
+  verified diff scope). **NEEDS codex non-author sign-off (IN FLIGHT).**
+- codex tune-signoff DISPATCHED 2026-07-18 21:48:53 (cap 1800s), worktree
+  lw-007-codex, branch `codex/017-tune-signoff` off `9879b36`, run_id
+  `baseveg-tunesign-codex-20260718-214853`, prompt
+  `.pka/round007/composition/iter4/codex-tune-signoff-prompt.md`. Expect a
+  `.team/signoffs/codex-017-tune-9879b369.md` marker (reviewed_by codex,
+  authored_by claude) committed on top of 9879b36.
+
+**Decision-017 RATIFICATION lines collected (transcribe all 3 into 017 Sign-offs
+in one orchestrator "fill 017 sign-offs" commit before the round PR):**
+- codex: `Signed-off-by: codex-worker <codex@sentania.net> 2026-07-18T21:24:30Z`
+- claude: `Signed-off-by: claude-worker <claude@sentania.net> 2026-07-18T21:46:08Z`
+- agy: PENDING (collect during QA #005).
+
+**ORCHESTRATOR DECODE of tuned 1x (`9879b36` capture) vs spike:** foundation
+planting now HUGS the stone, corners dense, repetition broken, NO derived
+floaters. Big improvement, directly answers Scott's complaint. **Remaining gap
+(claude FLAGGED, verified):** a few open-ground floaters (central sunflower
+column, lower-left bush, 2 rocks) are AUTHORED props in `src/sim/town_layout.gd`
+(cells (10,6),(6,11),(13,12),(1,12)) - PROTECTED path, OUT of 017 scope, predate
+this round. NOT derived veg. claude correctly flagged rather than touching. These
+keep the whole scene from fully matching the spike's clean lanes. DECISION
+PENDING (post-QA): if QA #005 flags them as a blocking tell, a SEPARATE small
+follow-up (relocate/remove authored decorative props) needs its own decision
+record since src/sim is protected. Absent them, foundation planting is at bar.
+
+**ON RESPAWN (mid tune-signoff): DO NOT re-dispatch.** Verify end marker
+`lw-007-codex/.team/markers/baseveg-tunesign-codex-20260718-214853-end.md` +
+expect `.team/signoffs/codex-017-tune-9879b369.md` committed on
+codex/017-tune-signoff past 9879b36. If dead+no marker, inspect log/blocked,
+re-dispatch. THEN: FF-integrate the signed stack head (codex-tune-signoff HEAD)
+onto round/007-village; run suite+export gate on integrated round; push round.
+THEN agy QA #005 (anti-anchoring, off integrated head) + agy 017 ratification +
+orchestrator decode. If CONFUSABLE + orchestrator agrees (or only the authored-
+floater nit remains) -> surface build to Scott (`to: dalinar`) noting the
+authored-floater follow-up as separately scoped. Else iterate.
+
+=== PRIOR (superseded) impl-verified note ===
 
 === ITERATION 4 IMPL VERIFIED; TUNING NEXT ===
 **codex impl = `6e31e7e00fe2c6f1275fe333344d70b5d93745b3`** on `codex/017-impl`
