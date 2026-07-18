@@ -1,0 +1,21 @@
+{
+  "district": "inn-green",
+  "objects": [
+    {"id": "ground_grass", "png": "ground_grass.png", "kind": "ground", "anchor_px": [64, 32], "native_px": [128, 64], "provenance": "slice"},
+    {"id": "ground_lane", "png": "ground_lane.png", "kind": "ground", "anchor_px": [64, 32], "native_px": [128, 64], "provenance": "slice"},
+    {"id": "cottage_front", "png": "cottage_front.png", "kind": "cottage", "anchor_px": [140, 290], "native_px": [280, 300], "provenance": "generated-pending"},
+    {"id": "tree_large", "png": "tree_large.png", "kind": "tree", "anchor_px": [165, 350], "native_px": [330, 360], "provenance": "slice"},
+    {"id": "bush_a", "png": "bush_a.png", "kind": "bush", "anchor_px": [40, 70], "native_px": [79, 77], "provenance": "slice"},
+    {"id": "bush_b", "png": "bush_b.png", "kind": "bush", "anchor_px": [69, 76], "native_px": [138, 83], "provenance": "slice"},
+    {"id": "fence_section", "png": "fence_section.png", "kind": "fence", "anchor_px": [72, 88], "native_px": [144, 96], "provenance": "generated-pending"},
+    {"id": "sign_post", "png": "sign_post.png", "kind": "sign", "anchor_px": [40, 118], "native_px": [80, 127], "provenance": "slice"},
+    {"id": "rock_a", "png": "rock_a.png", "kind": "rock", "anchor_px": [39, 61], "native_px": [78, 68], "provenance": "slice"},
+    {"id": "rock_b", "png": "rock_b.png", "kind": "rock", "anchor_px": [43, 49], "native_px": [85, 55], "provenance": "slice"},
+    {"id": "flower_cluster_a", "png": "flower_cluster_a.png", "kind": "flower", "anchor_px": [45, 69], "native_px": [89, 77], "provenance": "slice"},
+    {"id": "flower_cluster_b", "png": "flower_cluster_b.png", "kind": "flower", "anchor_px": [59, 76], "native_px": [117, 83], "provenance": "slice"},
+    {"id": "inn", "png": "inn.png", "kind": "building_anchor", "anchor_px": [210, 370], "native_px": [420, 380], "provenance": "generated-pending"},
+    {"id": "cottage_rear", "png": "cottage_rear.png", "kind": "cottage", "anchor_px": [140, 290], "native_px": [280, 300], "provenance": "generated-pending"},
+    {"id": "smithy_cluster", "png": "smithy_cluster.png", "kind": "building", "anchor_px": [180, 310], "native_px": [360, 320], "provenance": "generated-pending"},
+    {"id": "crown_foliage", "png": "crown_foliage.png", "kind": "crown", "anchor_px": [150, 210], "native_px": [300, 220], "provenance": "generated-pending"}
+  ]
+}
