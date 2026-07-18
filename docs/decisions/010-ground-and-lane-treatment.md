@@ -274,6 +274,6 @@ resolution at signing.
 
 ## Sign-off lines
 
-Signed-off-by: claude-worker <claude@sentania.net> PENDING
-Signed-off-by: codex-worker <codex@sentania.net> PENDING
-Signed-off-by: agy-worker <agy@sentania.net> PENDING
+Signed-off-by: claude-worker <claude@sentania.net> 2026-07-18T06:48:46Z
+Signed-off-by: codex-worker <codex@sentania.net> 2026-07-18T06:48:54Z
+Signed-off-by: agy-worker <agy@sentania.net> 2026-07-18T06:48:34Z
