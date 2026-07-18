@@ -35,24 +35,25 @@ when the team believes a screenshot genuinely passes the confusable bar.
 
 **WHERE WE ARE:** one inn-green district at spike fidelity for BUILDINGS +
 GROUND-TEXTURE (010) + LANE MACRO-GEOMETRY (011) + DIRT FIDELITY (012 fork B +
-paid-regen re-tune) + **DIRT RE-TUNE method converged (decision 013, this run)**.
-Round head **`ff2a801`** (decision 013 committed on round branch; NOT yet pushed
--- push happens after integration). Origin still at `2ca6f62`. The PAID PATH IS
-DONE (plate accepted + rich); zero paid spend from here.
+paid-regen re-tune) + **DIRT RE-TUNE (decision 013) integrated + pushed**. Round
+head **`6bb94c6`** on origin (decision 013 + impl f81db85 + codex signoff + agy
+QA6). The PAID PATH IS DONE (plate accepted + rich); zero paid spend from here.
+The live status + resume steps are in the "STATUS: decision 013 IMPL landed +
+QA6 = NOT-CONFUSABLE; DE-PEAK slice in flight" section below -- read THAT, it
+supersedes the historical detail in this block.
 
-**THIS RUN so far:** ran decision-013 FULL PROTOCOL on the three pass-5 tells
-(muddy tone, tiling, seams). Triage flipped to full protocol after the
-orchestrator decoded the spike-dirt crop (std 40.59 > graded plate 19.78),
-overturning "reduce contrast" and revealing a frequency-distribution problem with
-genuine method alternatives. Blind 3-way proposal (claude 531e701, codex 8a5ef44,
-agy 824c456) + adversarial critique (claude 035e9a6, codex a04e79e, agy ab3bb78),
-every dispatch verified from end marker + tree. **Unanimous convergence, every
-author conceded its contested point, NO 2-2 split so NO four-ballot / NO critic**
-(tiebreaker-only). Synthesis = `docs/decisions/013-dirt-retune-fidelity.md`
-(round head ff2a801). **IMPL SLICE DISPATCHED** (claude, run
-`013-impl-claude-20260718-111122`, branch `claude/013-dirt-impl` off ff2a801, cap
-3600s) -- IN FLIGHT as of this writing; verify from its end marker + tree, NOT
-narration.
+**THIS RUN:** ran decision-013 FULL PROTOCOL on the three pass-5 tells (muddy
+tone, tiling, seams). Triage flipped to full protocol after the orchestrator
+decoded the spike-dirt crop (std 40.59 > graded plate 19.78), overturning "reduce
+contrast" and revealing a frequency-distribution problem with genuine method
+alternatives. Blind 3-way proposal (claude 531e701, codex 8a5ef44, agy 824c456) +
+adversarial critique (claude 035e9a6, codex a04e79e, agy ab3bb78), every dispatch
+verified from end marker + tree. **Unanimous convergence, every author conceded
+its contested point, NO 2-2 split so NO four-ballot / NO critic** (tiebreaker-only).
+Synthesis = `docs/decisions/013-dirt-retune-fidelity.md`. Impl f81db85 (multiband
+reshape) integrated (round FF), codex non-author signed, suite/gate GREEN, PUSHED
+(round `6bb94c6`). agy QA6 = NOT-CONFUSABLE, closed muddy-tone + seams, stones
+remain -> DE-PEAK follow-on slice IN FLIGHT (see STATUS section below).
 
 Converged method (decision 013 is authoritative): (1) replace the affine grade in
 `grade_dirt_plate.py` with a deterministic MULTIBAND luminance reshape (attenuate
