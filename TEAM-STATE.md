@@ -210,43 +210,61 @@ end markers + tree. Off signed round head `053906a`:**
   cause: frequency-domain phase synthesis randomizes phase over the crop's
   directional frequencies => manufactures a regular weave + kills painterliness.
 
-- **SWATCH RE-DISPATCH (orchestrator decision, ZERO-CREDIT, NOT paid):** balance
-  re-verified **2952** (meshy_check_balance) -- I did NOT spend; paid Meshy at the
-  tail of a long run is against the durable lesson, and a naive paid img2img won't
-  produce a SEAMLESS tile anyway. The right fix is OFFSET-AND-HEAL seamless
-  synthesis (preserves organic painterliness, heals only the seam cross, no global
-  regular structure). Re-dispatched codex on its SAME branch `codex/007-ground-
-  impl`: stamp **`20260718-070615`**, DETACHED, cap 2400s, label
-  `codex-ground-swatch-v2`. Prompt: `.pka/round007/ground-treatment/impl-codex-
-  swatch-v2-prompt.md`. End marker: `lw-007-codex/.team/markers/codex-ground-
-  swatch-v2-20260718-070615-end.md`. Start marker + proc confirmed alive.
-  If offset-and-heal ALSO fails (spike crops too small/low-detail), codex updates
-  the blocked marker asking for a HIGHER-RES painterly SOURCE; THEN (and only then)
-  orchestrator runs ONE supervised paid image gen (verify billing first) and hands
-  it back for codex to offset-and-heal. Doer never spends.
+- **SWATCH v2 (offset-and-heal) DONE + VERIFIED FAIL -- BLOCKED, needs supervised
+  paid source.** codex `codex/007-ground-impl` @ **`c2e11d6`** (end marker: exit0,
+  branch_changed=yes, no cap, no uncommitted, 184s). Offset-and-heal KILLED the
+  Fourier weave (grass now genuinely organic painterly, big improvement), but codex
+  honestly FAILED its own gate again and KEPT the blocked marker. **Orchestrator
+  verified from the NEW contact sheet:** grass is close (faint repeating tuft grid);
+  DIRT repeats conspicuously as a plaid. Cause is now DIFFERENT + legitimate: the
+  spike lacks clean high-res ground -- largest clean grass crop is 352x194, clean
+  DIRT is only ~76x90, so any tile's own composition repeats. Zero-credit path
+  genuinely EXHAUSTED for dirt. Blocked marker surfaced onto **main @ `e1b55c2`**
+  (`.team/blocked/codex-worker-20260718T065655Z.md`).
 
-**NEXT (poll swatch-v2 end marker; verify from marker+tree+the NEW contact sheet,
-not narration):**
-1. If swatch-v2 PASSES (organic, no repeat axis, crisp at 2x) + blocked marker
-   deleted: cross peer sign-off (claude, non-author) of codex's final asset
-   commit AND agy or claude sign-off of claude's render `54a7ce2` (non-author each).
-2. Integrate BOTH slices onto `round/007-village` (--no-ff, reviewed SHAs
-   preserved). Both touch the SAME asset paths (swatch/warp/decal) + claude's
-   placeholders -- codex's REAL swatches must WIN over claude's placeholders in the
-   integrated tree (drop claude's `village_placeholder_assets.py` outputs for the 4
-   ground assets; keep claude's shader/render/test). Decision 010 covers the
-   protected `src/sim/` read coupling (village_render reads `ground`).
-3. RE-RUN the honest export gate on the integrated tree (now asserts shader +
-   shadow_decal + swatches + warp resolve from the isolated PCK) + full suite.
-4. agy multimodal QA at 0.5/1/2x vs spike -- SPECIFICALLY re-adjudicate the ground
-   tell. If NOT-CONFUSABLE again, iterate (decision 010 step 10). If CONFUSABLE,
-   THEN expand toward the full ~12-16-structure village + open the ONE round PR +
-   external Codex review. Do NOT surface to Scott until the team believes a
-   screenshot passes the confusable bar.
+- **DECISION: sequence ONE supervised paid Meshy image gen to a FRESH turn (NOT
+  done this turn).** Balance re-verified **2952**, NO spend. Rationale: two verified
+  contact-sheet inspections confirm paid is now justified (decision 010 step 10),
+  but the durable lesson is explicit -- supervise a paid pass with a full turn, and
+  the downstream work (offset-and-heal re-loop + sign-offs + integrate + gate + agy
+  QA) is itself a full turn. Splitting the paid loop across a turn boundary is the
+  fragmentation the lesson warns against. This is NOT stop-and-wait on Scott (no
+  escalation needed -- paid spend is within the supervised mandate); the next
+  respawn runs it autonomously.
 
-**Peer sign-off still owed on decision-010 impl commits before the round PR:**
-claude render `54a7ce2` (needs non-author sign-off), codex final assets (needs
-claude non-author sign-off). Neither signed yet.
+**EXACT PAID-GEN PLAN for the next run (execute immediately, autonomously):**
+1. `meshy_list_tasks` -> confirm NO PENDING/IN_PROGRESS (no double-spend). Verify
+   balance 2952.
+2. Generate TWO higher-res painterly SOURCE images via `meshy_image_to_image`,
+   each conditioned on a spike crop to hold style (grass: spike rect ~(800,36,
+   1152,230); dirt: the worn-trail area ~(278,365,354,455)). Ask for a LARGE,
+   UNIFORM, unobstructed painterly field (no buildings/plants/rocks/hard
+   boundaries) so offset-and-heal has clean area. nano-banana 3 cr/call (~6 cr
+   total); cost-confirm each; NEVER pass `save_to` to `meshy_download_model`; watch
+   balance delta. Raw URLs EXPIRE ~20min -- download to `.pka/round007/ground-
+   source/*.png` + write provenance (task ids, credits, crops, balances). These
+   downloads are the ONLY copies; do NOT regenerate (double-spend).
+3. Hand the two sources to codex on `codex/007-ground-impl` (re-dispatch, prompt
+   pattern in `.pka/round007/ground-treatment/impl-codex-swatch-v2-prompt.md` but
+   pointing at the new sources): same deterministic offset-and-heal, re-emit the
+   8x8 contact sheet + acceptance doc, PASS only if organic + no repeat axis +
+   crisp at 2x; delete the blocked marker on PASS. Verify from marker + the new
+   contact sheet.
+4. THEN: cross peer sign-off (non-author) of BOTH codex final assets AND claude
+   render `54a7ce2`; integrate both onto `round/007-village` (--no-ff, reviewed
+   SHAs preserved); codex REAL swatches WIN over claude placeholders (drop claude's
+   `village_placeholder_assets.py` outputs for the 4 ground assets; keep claude's
+   shader/render/test); decision 010 covers the protected `src/sim/` read coupling.
+5. RE-RUN the honest export gate on the integrated tree (now asserts shader +
+   shadow_decal + swatches + warp from the isolated PCK) + full suite.
+6. agy multimodal QA at 0.5/1/2x vs spike -- re-adjudicate the ground tell. If
+   NOT-CONFUSABLE, iterate; if CONFUSABLE, expand toward the full ~12-16-structure
+   village + open the ONE round PR + external Codex review. Surface to Scott ONLY
+   when the team believes a screenshot passes the confusable bar.
+
+**Peer sign-off still OWED on decision-010 impl commits before the round PR:**
+claude render `54a7ce2` (non-author sign-off), codex final assets (claude
+non-author sign-off). Neither signed yet -- do at step 4 above.
 
 Prior execution state (below) is still true: first real-art district COMPLETE +
 QA'd NOT-CONFUSABLE, round branch history preserved. The ground/lane tile-grid is
@@ -747,18 +765,24 @@ Round-007's first decision record is **009**.
   not treat a missing POST as a failure.** The three older stuck escalations
   (walk-cycle art spike, PR#18 gate) are moot under the village redefinition.
 
-**Last updated:** 2026-07-18 (round 007 EXECUTION run: closed the whole
-process->sign->integrate->gate->QA loop on the FIRST REAL-ART district. codex's
-paid-Meshy processing slice [5a70f17] peer-signed by claude [genuine per-object
-alpha review, border-flood-fill confirmed, no punched-through stone]; integrated
-onto round/007-village [--no-ff, reviewed SHA preserved]; RE-RAN the honest export
-gate on all 16 real assets [VILLAGE_GATE_PASS, 16/16 resolve from isolated .pck,
-landmarks project 0.5/1/2x, non-mutation guard clean]; full suite green; agy's
-FIRST dispatch delivered multimodal QA [VERDICT NOT-CONFUSABLE + 3 ranked defects]
-and signed decision 009 [all 3 sigs now present]; pushed round branch @ 5f1c5cc.
-Inbox: nothing newer than the already-processed 0445 steer. Balance re-verified
-2952, ZERO paid Meshy this run. Every dispatch verified from end marker + tree,
-not narration. Milestone honestly NOT reached [ground/lane tile grid is the tell]
--> deliberately NOT surfaced to Scott. Stopped at a clean milestone; NEXT run runs
-the GROUND-treatment method iteration as FULL PROTOCOL blind proposals [decision
-010 in play], per the Phase block.)
+**Last updated:** 2026-07-18 (round 007 GROUND SUB-ROUND run: ran the four-ballot
+SYNTHESIS on the critique round and shipped decision 010. Phase-2 critiques verified
+[stamp 063941, not the planned 070000]; the critique round CONVERGED [codex conceded
+its plate to fallback-only in its OWN doc; agy called claude's method structurally
+superior], so NOT a 2-2 contest. Decision 010 written [shader-quad cell-space plane
+primary, plate as bounded fallback], four-ballot 4-0 [orchestrator + claude c9e0737
++ codex 8b5c1c0 + agy ac559fe, all verified from markers+tree], critic NOT invoked,
+signatures integrated @ 053906a, check_consensus PASS, pushed. Then IMPLEMENTATION:
+claude render `54a7ce2` [ground.gdshader + village_render shader-quad rewrite + UV
+coordinate spike + contact shadows; SUITE GREEN incl UV spike proven max-err~0, 19
+village-render checks -- orchestrator ran it]; codex assets: warp baker + warp +
+shadow_decal GOOD, but SWATCHES FAILED the 8x8 tiling gate TWICE [frequency-domain
+weave, then offset-and-heal repeat] -- orchestrator confirmed both FAILs from the
+contact sheets. Root: the spike lacks clean high-res ground [clean dirt only ~76x90],
+so zero-credit tiling is exhausted for dirt. Balance re-verified 2952, NO paid spend
+this run. DELIBERATELY sequenced the ONE supervised paid image-gen [higher-res
+painterly grass+dirt source, then codex offset-and-heal] to a FRESH turn per the
+durable no-tail-spend lesson; exact plan in the Phase block. Block surfaced onto main
+@ e1b55c2. Leak guard OK, zero open PRs. Every dispatch verified from end marker +
+tree, not narration. NOT surfaced to Scott [milestone not yet reached]. NEXT run
+executes the paid-gen plan then integrate->gate->agy-QA.)
