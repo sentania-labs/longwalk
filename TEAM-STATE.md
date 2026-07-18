@@ -62,7 +62,56 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**HOUSEKEEPING RUN (orchestrator-run-20260718, doer-branch-leak cleanup + root
+**HOUSEKEEPING RUN (orchestrator-run-20260718-b, WINDOWS PLAYTEST BUILD of round
+006 for Scott). Round 006 iteration NOT resumed (still paused, awaiting Scott).**
+Targeted build dispatch so Scott can play the round-006 build himself and inform
+his own vision-bar answer. No code authored (referee); build mechanics only, all
+worktree changes reverted. What it did, verified on disk:
+- INBOX re-checked: only new file is `c3ffe894-...md` = dalinar's routing reply
+  (already recorded last run). Still NOT Scott's vision-bar answer. Escalation
+  c3ffe894 remains OPEN, awaiting Scott. Did not act on it (per dispatch).
+- BUILD DELIVERED (mechanism 1, local headless export; CI mechanisms 2/3 not
+  needed). Exact CI commands (`godot --headless --import .` then
+  `--export-release "Windows Desktop"`) run from worktree `lw-006-round` at round
+  head **5eee7bf**. Deliverable is OUTSIDE the repo at:
+    **/home/scott/longwalk-playtest/round006/**
+      longwalk.exe (121 MB, valid PE/MZ, embedded pck)
+      play-current.bat      -> LONGWALK_ART_CANDIDATE unset  (default round-005 art)
+      play-candidate-a.bat  -> LONGWALK_ART_CANDIDATE=a       (pilot Candidate A)
+      play-candidate-b.bat  -> LONGWALK_ART_CANDIDATE=b       (pilot Candidate B)
+      README.txt
+  Env var confirmed against src/render/town/candidate_art.gd: `LONGWALK_ART_CANDIDATE`,
+  values `a`/`b`, anything else (unset/"current") = default. Confirmed it really is
+  these three .bat files.
+- REAL FINDING (surfaced to Scott, not a blocker for this build): the A/B
+  candidate switch does NOT survive a stock export. Candidate art lives under the
+  `assets/art_src/.gdignore`'d authoring tree and is loaded via raw
+  `Image.load`/`FileAccess` off `res://`; a normal export excludes that whole tree,
+  so a default-config exe would show default art for ALL three .bat files. The
+  candidate loader had only ever been exercised running Godot FROM SOURCE (the
+  acceptance harness), never from a packaged build. FIXED for THIS build only via
+  export-config (no game-code change): removed the art_src + candidate `.gdignore`s,
+  shielded the heavy siblings (cleaned/cottage/player, ~266 MB) + unused
+  finished/player with temp `.gdignore`s, and marked the 5 loader-read files per
+  candidate (atlas png, cottage_w png, 3 JSONs) `importer="keep"` so they ship RAW
+  and Image.load resolves them. ALL of this reverted; worktree `lw-006-round` is
+  pristine at 5eee7bf (git status clean, no stray files).
+- VERIFIED end-to-end, not just "exe exists": exported a standalone .pck and loaded
+  it in an ISOLATED empty project (no on-disk source fallback) for BOTH the Linux
+  and Windows packs. Both candidate A and B atlases (960x1280), cottage sprites
+  (512x512), and manifests (3277 B) load with err=0 through the real loader path.
+  For the isolation test I fetched the Linux export template (linux_release.x86_64)
+  into ~/.local/share/godot/export_templates/4.3.stable/ (harmless, uncommitted;
+  the repo's fetch script is Windows-only by design).
+- PROPER FIX is a doer task when the round resumes: make candidate art export-safe
+  (either move the finished candidate art to a non-.gdignore'd res:// location and
+  update candidate_art.gd's 4 path fns, or add a reviewed keep-import/export-hook).
+  Routed through the gate; not done this run because the round is paused and this
+  was a no-code build dispatch.
+- No Meshy touched (balance still 2970, no paid calls). No PR. No commits to any
+  branch (TEAM-STATE edit is the only repo change, straight to main per orch norm).
+
+**PRIOR HOUSEKEEPING RUN (orchestrator-run-20260718, doer-branch-leak cleanup + root
 cause). Round 006 iteration NOT resumed (still paused, awaiting Scott).** This
 run was a targeted housekeeping dispatch, not a continuation of the paused
 Two Rivers iteration. What it did, all verified on disk:
