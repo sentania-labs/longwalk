@@ -62,52 +62,65 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
-**Status:** `ROUND 006 MESHY PILOT: steps 1-3 DONE. BOTH candidates A+B are
-byte-stable, clean-signed, INTEGRATED on round/006-two-rivers, suite GREEN.
-STEP 4 (in-engine integration) DISPATCHED DETACHED this run. Run
-orchestrator-run-20260718-022000ish. Meshy balance 2970 (verified via
-meshy_check_balance THIS run; NO paid work). No PR yet.
+**Status:** `ROUND 006 MESHY PILOT: steps 1-4 DONE. BOTH candidates A+B
+byte-stable + clean-signed + integrated; STEP 4 (in-engine integration) now
+DONE, peer-signed, MERGED onto round/006-two-rivers @ **5eee7bf**, suite GREEN,
+pushed. STEP 5 (codex acceptance-capture harness + gate verdict) DISPATCHED
+DETACHED this run (orchestrator-run-20260718-024xxx). Meshy balance 2970
+(verified via meshy_check_balance THIS run; NO paid work all run). No PR yet
+(round PR opens only after the acceptance gate passes).
 
-*** THIS RUN (0220): candidate A re-integrated at byte-stable head; step 4
-dispatched. Verified from tree, not narration: ***
-- CANDIDATE A byte-stability re-review LANDED CLEAN. codex/006-candidate-a head
-  acf822f = marker-only commit (45-line signoff, NO code) on top of code 8212464.
-  Marker .team/signoffs/codex-006-candidate-a-8212464520e9.md: reviewed_by
-  claude-worker / authored_by codex-worker / reviewed_sha 8212464 / result
-  signed-off. Non-author claude PROVED byte-stability (fresh reproduce.sh, 733s,
-  clean git status after = zero drift on all 50 deliverables), suite exit 0,
-  real PROVENANCE render times (841s/832s), no em-dash, balance 2970. End marker
-  candidate-a-review-fix2-20260718-015206-end.md: branch_changed=yes, exit0,
-  cap_expired=no (uncommitted_work=yes was just untracked marker/tools-blender
-  scratch; acf822f itself is clean marker-only).
-- A RE-INTEGRATED --no-ff onto round: 80435d1 (round+B, old provisional A from
-  1208ef0) + acf822f -> round head **84e54f8**. Merge brought the 4-line
-  determinism pins in tools/art/blender_pose_rig.py + regenerated 50 PNGs + the
-  signoff marker; no conflicts (B forked its own render_candidate_b.py so no
-  shared-driver clash). Round suite GREEN (SUITE_EXIT=0, all active-path suites;
-  the get_node absolute-path ERROR line is a benign tolerated Godot warning).
-  PUSHED origin/round/006-two-rivers @ 84e54f8.
-- BOTH CANDIDATES NOW DONE. B @ f08e2c7 (signed 60ceb9c) integrated 80435d1; A @
-  8212464 (signed acf822f) integrated 84e54f8. The FAIRNESS/BLAST-RADIUS flag is
-  RESOLVED: A's byte-stability was re-verified at codex's per-pixel rigor (clean
-  git status after fresh reproduce = zero drift), matching B. Both clean.
-- STEP 4 DISPATCHED (claude, its owned integration lane; DETACHED, cap 2400s,
-  --model opus, NO Meshy): label integrate, worktree lw-006-integrate, branch
-  claude/006-integrate cut off round @ 84e54f8. Prompt
-  .pka/round006/integrate-prompt.md. Scope: wire BOTH candidate atlases
-  (8-facing x 6-pose, cell 160, anchor [80,159]) + candidate cottages into
-  starter_town.gd/player_controller_2d.gd via a clean deterministic selector
-  (env LONGWALK_ART_CANDIDATE=current|a|b; current=unchanged default), full
-  8-facing player (retire the 4-facing proxy fold), cottage at contact anchor,
-  scale per decision 010, suite green, headless proof run FOREGROUND (no
-  backgrounding). ONE commit, no self-signoff, no PR. Start marker
-  integrate-20260718-022227-start.md; proc tree confirmed alive (adapter pid
-  3596315). POLL lw-006-integrate/.team/markers/integrate-*-end.md; VERIFY from
-  end marker + tree. Peer reviewer = codex or agy (non-author; author is claude).
-  After it signs clean: integrate --no-ff onto round, suite green, then STEP 5
-  (codex owns): anonymized acceptance-capture harness (static + walk-GIF for
-  A/B/spike/current) + gate verdict vs the six pass conditions. Do NOT open the
-  round PR until the acceptance gate passes.
+*** THIS RUN (0248): step 4 verified+signed+integrated; step 5 dispatched.
+Verified from tree/markers, not narration: ***
+- STEP 4 integration landed CLEAN as ONE commit ae74a8a on claude/006-integrate
+  (end marker integrate-20260718-022227-end.md: branch_changed=yes, exit0,
+  cap_expired=no, uncommitted=no; 4 files +329/-4: src/render/town/candidate_art.gd
+  [new], player_controller_2d.gd, starter_town.gd, tools/art/verify_candidate_integration.gd
+  [new]). Selector LONGWALK_ART_CANDIDATE=current|a|b; default = byte-for-byte
+  round-005. Orchestrator independently ran suite (exit0) + both headless proofs
+  (a,b PASS); no protected paths; no em-dash.
+- PEER GATE WORKED (codex, non-author). Round 1 (integrate-review, 104s):
+  **changes-requested** at .team/signoffs/claude-006-integrate-ae74a8a5fd0f.md --
+  REAL defect: commit CLAIMED cell size manifest-driven but set_candidate() only
+  ASSERTED cell==hardcoded WALK_CELL_SIZE while _apply_walk_frame() + the verifier
+  hardcoded 160. Fix routed to author (claude, fast-lane one-repair, no ballot).
+- FIX landed as ONE commit 2b7d94e ("Make candidate atlas cell size genuinely
+  manifest-driven"): stores _walk_cell_size from manifest, region math + verifier
+  derive cell from manifest; default path unchanged. Orchestrator re-ran suite
+  (exit0) + both proofs (PASS), no em-dash, tree clean.
+- RE-REVIEW (integrate-resign, codex non-author, 86s): **signed-off** at
+  .team/signoffs/claude-006-integrate-2b7d94e7c6c0.md (reviewed_sha 2b7d94e).
+  Genuine: mutation probe cell_size 160->161 -> "5x7 cells versus expected 6x8",
+  proving manifest-derived geometry. Signed head affa249 = code 2b7d94e +
+  marker-only commit.
+- INTEGRATED --no-ff: round 84e54f8 + affa249 -> round head **5eee7bf** (no
+  conflicts). Round suite GREEN + both candidate proofs (a,b) PASS on the
+  integrated tree. PUSHED origin/round/006-two-rivers @ 5eee7bf.
+- STEP 5 DISPATCHED (codex, owns the acceptance-capture harness per decision 009
+  DoL; DETACHED, cap 2400s, NO Meshy): label acceptance-harness, worktree
+  lw-006-accept, branch codex/006-acceptance cut off round @ 5eee7bf (godot
+  fetched; xvfb-run available). Prompt .pka/round006/acceptance-harness-prompt.md.
+  Scope: anonymized matched-composition shipping-zoom fixed-color-management
+  STATIC + walk-GIF captures for FOUR subjects (candidate A, B, the SPIKE
+  reference docs/art/iso-five-asset-spike.png + player-walk-iso-spike.gif, the
+  CURRENT round-005 default build) under docs/art/acceptance/subject-<N>/ with a
+  SEALED _key.json; PLUS deterministic measurements per candidate (8 distinct
+  facings, feet within 2px contact-anchor tol, no-boiling metric, scale ratios +
+  no-runtime-tweak, ground seams + shared light vector, cleanup-ledger economics
+  extrapolated to ~200 assets); PLUS docs/art/acceptance/VERDICT.md scoring the
+  SIX pass conditions (measurable = PASS/FAIL+numbers; aesthetic = defer to
+  orchestrator, anonymized subject-N). Full rerender from committed local inputs,
+  NO Meshy. ONE commit, no self-signoff, no PR. Start marker
+  acceptance-harness-20260718-024836-start.md; proc tree confirmed alive.
+  POLL lw-006-accept/.team/markers/acceptance-harness-*-end.md; VERIFY from end
+  marker + tree; balance must stay 2970.
+  AFTER it lands: orchestrator READS the anonymized subject-N images + VERDICT.md
+  and RULES the gate against the six conditions (form the aesthetic judgment
+  BEFORE opening _key.json; four-ballot if the A-vs-B choice is contested). Then
+  peer-sign the harness (non-author = claude or agy). Do NOT open the round PR
+  until the acceptance gate PASSES. When it clears: surface the playable build to
+  Scott (vision bar, directive 1500) + the Meshy production-adoption escalation
+  (decision 009 / directive 1515), paired with the git-lfs/artifact-store call.
 
 *** PRIOR RUN (013944): integrated B; dispatched A's byte-stability re-review
 (stale-signoff catch). Both now resolved (see THIS RUN above). ***
@@ -653,19 +666,35 @@ constitution violation or critic-vs-orchestrator standoff escalates.
 
 ## Notes for the next run
 
-**IMMEDIATE NEXT STEP (this run's handoff): verify the DETACHED STEP-4 integration
-slice (integrate, claude, cap 2400s, stamp 20260718-022227, worktree
-lw-006-integrate, branch claude/006-integrate @ 84e54f8).** Check inbox FIRST.
+**IMMEDIATE NEXT STEP (this run's handoff): verify the DETACHED STEP-5 acceptance
+harness (acceptance-harness, codex, cap 2400s, stamp 20260718-024836, worktree
+lw-006-accept, branch codex/006-acceptance @ 5eee7bf).** Check inbox FIRST.
 Confirm Meshy balance still 2970 (free meshy_check_balance; this slice does NO
-paid work, pure engine wiring).
-- Poll `lw-006-integrate/.team/markers/integrate-*-end.md`: read branch_changed /
-  uncommitted / cap_expired. Expect ONE commit on claude/006-integrate wiring
-  both candidate atlases + cottages via LONGWALK_ART_CANDIDATE selector.
-- If clean commit: run its headless proof + suite in-worktree yourself to confirm,
-  then PEER-REVIEW with codex or agy (non-author; author is claude). On sign-off,
-  integrate --no-ff onto round @ 84e54f8, suite GREEN.
-- If branch_changed=no + uncommitted=yes (the recurring claude no-commit bug):
-  COMMIT-ONLY rescue dispatch (nothing to background).
+paid work, full rerender from committed local inputs only).
+- Poll `lw-006-accept/.team/markers/acceptance-harness-*-end.md`: read
+  branch_changed / uncommitted / cap_expired. Expect ONE commit on
+  codex/006-acceptance adding tools/art/ capture code + docs/art/acceptance/
+  (subject-1..4 static PNG + walk GIF, _key.json, VERDICT.md).
+- If clean commit: READ the four anonymized subject-N static PNGs + walk GIFs +
+  VERDICT.md yourself. RULE the gate against the six pass conditions (decision 009
+  lines 142-149): painterly fidelity, structural preservation (no landmark
+  mutation), motion stability (no boiling / real gait / 8 distinct facings / feet
+  within 2px contact-anchor tol), scale (ratios, no runtime tweak), grounding (no
+  ground seams / shared light vector), production economics (ledger). Form the
+  aesthetic judgment BEFORE opening _key.json. Four-ballot if the A-vs-B choice is
+  contested (blind subject-N). THEN peer-sign the harness (non-author = claude or
+  agy) and integrate --no-ff onto round.
+- If codex left it empty/skipped captures (headless dummy-display trap) or the
+  recurring no-commit way (branch_changed=no + uncommitted=yes): re-dispatch with
+  xvfb-run made mandatory / a COMMIT-ONLY rescue.
+- WHEN THE GATE PASSES: THAT is the surface-to-Scott moment (vision bar, directive
+  1500) + the Meshy production-adoption escalation (decision 009 / 1515), paired
+  with the git-lfs/artifact-store call. Do NOT open the round PR until the gate
+  passes.
+--- SUPERSEDED (step 4, DONE this run) ---
+- STEP 4 integration: verified clean (ae74a8a), peer-gate found+fixed a real
+  cell-size-hardcode defect (changes-requested -> fix 2b7d94e -> signed-off), and
+  integrated --no-ff onto round -> 5eee7bf, suite green, pushed.
 - THEN STEP 5 (codex owns the acceptance-capture harness): anonymized static +
   walk-GIF captures for candidate A, candidate B, the SPIKE
   (docs/art/iso-five-asset-spike.png + docs/art/player-walk-iso-spike.gif), and
@@ -787,19 +816,22 @@ an anchor-drift gate in `process_assets.py`.
 
 ---
 
-**Last updated:** 2026-07-18T~02:24Z (orchestrator run 0220). This run:
-(1) inbox clean (1620 newest, already processed; no new steer). (2) VERIFIED from
-tree that the A byte-stability re-review landed CLEAN (acf822f = marker-only,
-non-author claude signoff of codex's 8212464, byte-stability proven zero-drift).
-(3) RE-INTEGRATED A --no-ff onto round -> 84e54f8 (replaced provisional old-A);
-round suite GREEN; pushed. Both candidates A+B now byte-stable + clean-signed +
-integrated; the fairness/blast-radius flag is RESOLVED (A re-verified at per-pixel
-rigor). (4) DISPATCHED step 4 (in-engine integration, claude, detached, cap 2400s,
-opus, NO Meshy) into lw-006-integrate; proc tree confirmed alive; poll for its end
-marker. Balance 2970, zero paid work this run. NEXT: verify the integration slice,
-peer-sign, integrate onto round, then step 5 (codex acceptance-capture harness +
-anonymized gate vs the six pass conditions). Do NOT open the round PR until both
-candidates are wired in-engine + the acceptance gate passes.
+**Last updated:** 2026-07-18T~02:50Z (orchestrator run 0248). This run:
+(1) inbox clean (1620 newest, already processed; no new steer). (2) VERIFIED step
+4 integration ae74a8a from end marker + tree (clean, suite green, both proofs
+pass, no protected paths/em-dash). (3) Ran the PEER GATE with codex (non-author):
+changes-requested on a REAL cell-size-hardcode defect (commit overclaimed
+manifest-driven) -> routed fix to author claude -> fix 2b7d94e (genuinely
+manifest-driven) -> codex re-review signed-off (mutation probe 160->161 proved
+it). (4) INTEGRATED --no-ff onto round -> **5eee7bf**; round suite GREEN + both
+candidate proofs pass; pushed. Step 4 DONE. (5) DISPATCHED step 5 (codex
+acceptance-capture harness + gate verdict, detached, cap 2400s, NO Meshy) into
+lw-006-accept (godot fetched, xvfb available); proc tree confirmed alive.
+Balance 2970, zero paid work this run. NEXT: verify the harness from its end
+marker + tree, READ the anonymized subject-N captures + VERDICT.md, RULE the gate
+vs the six conditions, peer-sign + integrate; then surface to Scott (vision bar +
+Meshy adoption escalation) when the gate passes. Do NOT open the round PR until
+the acceptance gate passes.
 
 --- PRIOR RUN (`orchestrator-run-20260717-204425`, ~01:53Z) ---
 (1) inbox clean (1620 newest, already processed). (2) DIAGNOSED why the A re-review attempt 1 (stamp 014501) left no marker:
