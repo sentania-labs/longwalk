@@ -77,26 +77,56 @@ settle). Check `.pka/inbound/orchestrator/` at EVERY phase boundary.
 
 ## Phase
 
-**PHASE 1 (blind proposal) DISPATCHED + IN FLIGHT.** Round branch
-`round/007-village` created from `main` @ `07078d1`, pushed. Three blind
-proposals dispatched DETACHED at run stamp `20260718-042834`:
-- claude on `claude/007-proposal` (worktree `/home/scott/claude/lw-007-claude`)
-- codex on `codex/007-proposal` (worktree `/home/scott/claude/lw-007-codex`)
-- agy on `agy/007-proposal` (worktree `/home/scott/claude/lw-007-agy`)
-Cap 2400s. Each writes `docs/proposals/<prefix>-007-village-production.md` and
-commits it (NO push). Start markers confirmed present for all three.
+**PHASE 1 (blind proposal) COMPLETE + verified. PHASE 2 (adversarial critique)
+DISPATCHED + IN FLIGHT.**
 
-**NEXT (poll + verify):** for each doer, poll
-`<worktree>/.team/markers/<prefix>-007-proposal-<stamp>-end.md`. VERIFY from the
-end marker + tree, NOT narration: `branch_changed` yes, `uncommitted_work` no,
-`cap_expired` no; then `git -C <worktree> log --oneline -1` and read the
-committed proposal doc. Record each proposal's full 40-char SHA (decision record
-cites them). If a doer ends `branch_changed=no` + `uncommitted=yes` (the
-recurring claude/agy no-commit failure), do a tiny COMMIT-ONLY re-dispatch. Then
-PHASE 2 (adversarial critique, template `roles/phases/2-critique.md`): each doer
-reads the other two proposals and critiques them; a round where everyone says
-"looks good" is a FAILED round, send it back. Then PHASE 3 synthesis + four-
-ballot on the contested method/composition questions, decision record 009.
+Phase-1 proposals, all committed clean (branch_changed=yes, uncommitted=no,
+exit0, cap_expired=no), verified from markers + tree. Full SHAs (decision record
+009 cites these):
+- claude `cc83cb956d052880a65de9ea9254f7b8668e2606` (`claude/007-proposal`) --
+  SLICE THE SPIKE: cut the spike's own pixels into anchored iso sprites on the
+  grid (zero-credit, spike-fidelity by construction); optional image-to-image
+  variants conditioned on the slices (<=45 credits, not load-bearing). Diagnoses
+  round-006 failure as a MEDIUM MISMATCH (3D-render can't reconstruct
+  painterliness). Composition = sprites-on-grid. Free-cam = `setup_free()` +
+  sibling village scene. Export-safe = res://assets/village + .import + packaged
+  verify.
+- codex `17d30086bee1a34b9d0124753fcf96917c4491ef` (`codex/007-proposal`) --
+  GENERATED PAINTERLY DISTRICTS: freeze an art brief + blockout from the spike,
+  generate 6 overlapping 2048px painterly district PLATES via `tools/art` 2D
+  generation, assemble a master mosaic, extract only occlusion-crossing objects
+  as separate layers. Argues AGAINST independent sprites ("stickers"). Meshy/
+  Blender = composition-guide fallback only. Free-cam + export-safe converge with
+  claude.
+- agy `87d4550800e23ab4feb12f941445ced740a7e8c0` (`agy/007-proposal`) -- 3D->2D:
+  Meshy 3D base models (20-40 credits) through the round-006 Blender iso render
+  pipeline to sprites on the grid, stylized/img2img for painterliness.
+  Composition + free-cam converge with claude; export-safe lighter (standard
+  load + a static Image.load ban).
+
+THE SPREAD (why phase 2 matters): art METHOD is a genuine 3-way fork (slice /
+generate-plates / 3D-render). Note agy's 3D-render is the SAME FAMILY that missed
+the spike bar TWICE in round 006 (claude's central argument). Composition is 2-1
+(claude+agy sprites-on-grid vs codex plates). Free-cam and export-safe SHAPE are
+near-consensus. The contested synthesis question is method + composition.
+
+**Phase-2 setup done:** collected all three proposals onto `round/007-village`
+(orchestrator integration commit `1ed5b15`, pushed); switched each doer worktree
+to a `<prefix>/007-critique` branch off that commit (all three proposals visible
+in each). Critique prompt `.pka/round007/critique-prompt.md` (each doer
+critiques the OTHER TWO; "looks good" = failed round, send back). Dispatched
+DETACHED at run stamp `20260718-043522` (worktrees `/home/scott/claude/lw-007-
+{claude,codex,agy}`, on `<d>/007-critique` branches).
+
+**NEXT (poll + verify phase 2):** poll
+`/home/scott/claude/lw-007-<d>/.team/markers/<d>-007-critique-<stamp>-end.md`;
+verify from marker + tree; read each `docs/proposals/<d>-007-critique.md`. If any
+critique is all-agreement ("looks good"), send it back. Record critique SHAs.
+Then PHASE 3: synthesize (not average, not vote-count), FOUR-BALLOT the contested
+method+composition question (orchestrator + 3 doers; critic only on 2-2), write
+decision record 009 with every losing objection VERBATIM, divide labor by
+capability. Then implementation on the round branch, round-branch integration,
+one round PR.
 
 ## Round 006 -- CLOSED (superseded by Scott's redefinition)
 
