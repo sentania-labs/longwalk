@@ -112,7 +112,25 @@ branch FF'd to signed d0c861c + marker cherry-picked on top. **Round head now
 lw-016-review removed (ephemeral). D3 flora rematte still pending the paid regen
 below.
 
-**D3 FLORA HARD-STOP (sound, verified):** the 5 polygon-sliced flora
+**D3 FLORA REGEN DONE (this run, PAID, supervised) + CODEX FINISH IN FLIGHT.**
+Supervised scoped Meshy regen of the 5 flora COMPLETE and orchestrator-verified
+visually. Balance 2937 -> **2892** (45 credits, 5 x nano-banana-pro
+image-to-image @ 9; API consumed_credits matched exactly; no double-spend, guard
+clean: no PENDING tasks pre-spend). Recipe: per-object STYLE CROP from the spike
+-> image-to-image on NEUTRAL MID-GREY bg (clean-mattable, the sanctioned D3
+HARD-STOP fallback, NOT the rejected same-seam regen). All 5 verified clean
+isolated objects on uniform grey, spike style, crisp edges. Raw sprites +
+`PROVENANCE.md` (task ids) at `.pka/round007/composition/flora-regen/`. Task ids:
+tree 019f7663-59d6; bush_a 019f7664-558a; bush_b 019f7664-7716; flower_a
+019f7664-9844; flower_b 019f7664-b820.
+**CODEX FINISH dispatched** (`codex/016-flora` off integrated round head 3000e93,
+run flora-finish-016-20260718-180745, detached, cap 2400s): rematte via existing
+`remove_border_background` recipe + re-bake flora seam masks + manifest + tonal
+targets-as-data. VERIFY from its end marker + tree on respawn; then non-author
+sign-off (agy or claude, != codex) + FF integrate + gates. The D3 block is
+resolved by this regen.
+
+**D3 FLORA HARD-STOP (original block, now RESOLVED by the regen above):** the 5 polygon-sliced flora
 (`bush_a`, `bush_b`, `flower_cluster_a`, `flower_cluster_b`, `tree_large`) carry
 chromatic painted-grass boundaries (edge chroma 25-81), no recoverable matte, so
 they were intentionally NOT rematted (eroding deletes petals). `crown_foliage`
