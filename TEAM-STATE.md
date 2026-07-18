@@ -100,8 +100,17 @@ render contract (documented in `docs/art/village-seam-bake.md`), baker
 `tools/art/bake_footprint_field.gd`, byte-stability + layout-drift test
 `test/active_path/test_footprint_field_bake.gd` wired into `tools/run_tests.sh`.
 **ORCHESTRATOR SELF-RAN `tools/run_tests.sh` on the bake tree: ALL GREEN**
-(incl. the new footprint-field byte-stability/drift test). NOT yet integrated
-(needs claude NON-AUTHOR sign-off first).
+(incl. the new footprint-field byte-stability/drift test).
+
+**UPDATE (this run): BAKE SLICE SIGNED + INTEGRATED + PUSHED.** claude
+NON-AUTHOR sign-off `bd169cf` (`.team/signoffs/codex-016-bake-d0c861c9550b.md`,
+reviewed_by=claude-worker, authored_by=codex-worker, reviewed_sha=d0c861c;
+claude RE-BAKED byte-identically to verify determinism, not narration). Round
+branch FF'd to signed d0c861c + marker cherry-picked on top. **Round head now
+`3000e93` on origin** (pushed 4022fb8..3000e93). Orchestrator self-ran
+`tools/run_tests.sh` on the integrated tree: ALL GREEN. Review worktree
+lw-016-review removed (ephemeral). D3 flora rematte still pending the paid regen
+below.
 
 **D3 FLORA HARD-STOP (sound, verified):** the 5 polygon-sliced flora
 (`bush_a`, `bush_b`, `flower_cluster_a`, `flower_cluster_b`, `tree_large`) carry
