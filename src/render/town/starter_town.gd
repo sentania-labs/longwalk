@@ -43,6 +43,7 @@ const Iso := preload("res://src/render/iso/projection.gd")
 const PlayerScene := preload("res://scenes/player.tscn")
 const ChimneySmokeScene := preload("res://scenes/chimney_smoke.tscn")
 const CameraRigScript := preload("res://src/render/town/camera_rig_2d.gd")
+const CandidateArt := preload("res://src/render/town/candidate_art.gd")
 
 const GROUND_COLORS := {
 	TownLayoutScript.GroundTile.GRASS: Color(0.36, 0.54, 0.29),
@@ -67,6 +68,11 @@ const PLAYER_SORT_ID := "player"
 @onready var _boundary: Node2D = $Boundary
 @onready var _name_label: Label = $UI/NameLabel
 
+# Which pilot art set to render: "" (default round-005 proxy), "a", or "b".
+# Resolved once from the LONGWALK_ART_CANDIDATE env var at _ready() via the
+# CandidateArt switch; the acceptance-capture harness sets it per capture.
+var _art_candidate := ""
+
 var _layout: TownLayoutScript
 var _player: CharacterBody2D
 var _player_shadow: Polygon2D
@@ -90,6 +96,7 @@ var appearance_variant := ""
 func _ready() -> void:
 	if character_name.is_empty() or appearance_variant.is_empty():
 		_load_from_game_state()
+	_art_candidate = CandidateArt.selected()
 	_layout = TownLayoutScript.build_starter_town()
 	_build_ground()
 	_build_buildings()
@@ -159,7 +166,23 @@ func _build_buildings() -> void:
 		_ground_layer.add_child(shadow)
 
 		# Building sprite, drawn upward from its projected ground-contact anchor.
-		var texture: Texture2D = load(BUILDING_TEXTURE_PATHS[building.sprite_key])
+		# By default the facade texture's contact line is its bottom-center edge.
+		# A selected pilot candidate replaces the cottage with its finished sprite
+		# and pivots on the authored contact_px from cottage_scale.json instead,
+		# honoring the building_contact_cell anchor contract exactly.
+		var texture: Texture2D
+		var contact_offset: Vector2
+		if _art_candidate != "" and building.sprite_key == "cottage_facade":
+			texture = CandidateArt.load_texture(CandidateArt.cottage_texture_path(_art_candidate))
+			var scale_data := CandidateArt.load_json(CandidateArt.cottage_scale_path(_art_candidate))
+			var contact_px: Array = scale_data["projected_landmarks"]["contact_px"]
+			contact_offset = Vector2(
+				texture.get_width() / 2.0 - float(contact_px[0]),
+				texture.get_height() / 2.0 - float(contact_px[1])
+			)
+		else:
+			texture = load(BUILDING_TEXTURE_PATHS[building.sprite_key])
+			contact_offset = Vector2(0, -texture.get_height() / 2.0)
 		var sprite := Sprite2D.new()
 		sprite.texture = texture
 		sprite.centered = true
@@ -168,7 +191,7 @@ func _build_buildings() -> void:
 		# (see IsoProjection.building_contact_cell for the anchor contract that
 		# codex's generated iso sprites are authored against).
 		sprite.position = contact_screen
-		sprite.offset = Vector2(0, -texture.get_height() / 2.0)
+		sprite.offset = contact_offset
 		sprite.set_meta("sprite_key", building.sprite_key)
 		_world.add_child(sprite)
 		if building.sprite_key == "cottage_facade":
@@ -277,6 +300,8 @@ func _add_boundary_wall(center: Vector2, size: Vector2) -> void:
 func _spawn_player() -> void:
 	var player := PlayerScene.instantiate()
 	player.set_appearance(appearance_variant)
+	if _art_candidate != "":
+		player.set_candidate(_art_candidate)
 	player.set_layout(_layout)
 	# Authoritative SQUARE-space spawn, unchanged from round 004.
 	var spawn_cell := Vector2i(int(_layout.width / 2.0), 7)
