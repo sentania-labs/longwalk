@@ -232,6 +232,6 @@ Every worker named in `Workers dispatched` signs. This record authorizes the
 `src/sim/town_layout.gd` edit (the `LanePath` contract, hand-authored waypoints, and
 derived-PATH rasterization).
 
-    Signed-off-by: claude-worker <claude@sentania.net> PENDING
-    Signed-off-by: codex-worker <codex@sentania.net> PENDING
-    Signed-off-by: agy-worker <agy@sentania.net> PENDING
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-18T08:17:41Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-18T08:17:46Z
+    Signed-off-by: agy-worker <agy@sentania.net> 2026-07-18T08:18:00Z
