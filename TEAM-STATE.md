@@ -56,7 +56,55 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016 iter4. codex impl `6e31e7e` (signed by claude 3815614) + claude tune `9879b36` DONE + verified. **CODEX SIGN-OFF OF THE TUNE IN FLIGHT.** Round head still `fa09235` (stack NOT yet integrated). ===
+=== WHERE WE ARE: DECISION 016 iter4. **SIGNED STACK INTEGRATED + PUSHED. ROUND HEAD NOW `8f03157` on origin/round/007-village. AGY QA #005 (anti-anchoring) IN FLIGHT off the integrated head.** ===
+
+=== ITERATION 4 INTEGRATED; QA #005 IN FLIGHT ===
+**Round head `8f03157` on origin/round/007-village** (pushed). FF-integrated the
+signed stack `fa09235..8f03157`: `6e31e7e` codex impl (signed by claude
+`3815614`) -> `3815614` claude signoff marker -> `9879b36` claude tune (signed by
+codex `8f03157`) -> `8f03157` codex signoff marker. Both `.team/signoffs/` markers
+are proper non-author (claude signed codex impl; codex signed claude tune;
+reviewed_sha exact, no rebase). Orchestrator RAN suite (ALL PASS) + export gate
+(VILLAGE_GATE_PASS, 37 derived sprites resolve, non-mutation guard held, NO
+shader errors) on the INTEGRATED round. Orchestrator decode of the integrated 1x
+= foundation planting at bar, no derived floaters; remaining nit = AUTHORED
+props in src/sim/town_layout.gd (separate scope, see below).
+
+**agy QA #005 DISPATCHED 2026-07-18 21:52:52 (cap 1800s), anti-anchoring
+(forbids reading prior QA 001-004, requires pixel-cited tells, NO hint of the
+authored-floater issue so agy finds it fresh).** worktree lw-016-qa, branch
+`agy/017-qa` off `8f03157`, run_id `baseveg-qa005-agy-20260718-215252`, prompt
+`.pka/round007/composition/iter4/agy-qa-005-prompt.md`. Writes
+`docs/art/village/qa-agy-composition-005.md`; emits agy's 017 ratification line.
+
+**ON RESPAWN (mid QA #005): DO NOT re-dispatch.** Verify end marker
+`lw-016-qa/.team/markers/baseveg-qa005-agy-20260718-215252-end.md` + the
+committed `qa-agy-composition-005.md` on agy/017-qa past 8f03157. Read the
+verdict. Then DECIDE (see below). Collect agy's 017 ratification line.
+
+**DECISION AFTER QA #005 (orchestrator):**
+- If QA #005 = CONFUSABLE AND orchestrator's own decode agrees (foundation
+  planting reads at bar; only the locked dirt or the separately-scoped authored-
+  floater nit remains) -> SURFACE A BUILD to Scott (`to: dalinar`) for his OWN
+  playtest verdict, noting (a) base-veg foundation planting is the fix for his
+  "buildings don't feel organic" complaint, (b) the authored open-ground floaters
+  (central sunflower column / lower-left bush / 2 rocks, in src/sim/town_layout.gd)
+  are a KNOWN separately-scoped follow-up needing its own decision record since
+  src/sim is protected. Do NOT auto-expand the village.
+- If QA #005 flags the authored floaters (or anything else) as a BLOCKING tell
+  Scott's eye catches first -> that decides the follow-up: open a small protected-
+  path decision record to relocate/remove the authored decorative props (sim
+  layout is arguably mis-homed: decorative flora placement for VISUAL reasons
+  sits in src/sim but sim/render separation says sim owns placement/footprint
+  only; flag this framing to the team). Iterate, re-QA, THEN surface.
+- Do NOT surface on the orchestrator's eye alone. Do NOT trust a stale/anchored
+  QA (QA #002 was compromised this way).
+
+**Decision-017 sign-offs to fill (one orchestrator commit before round PR):**
+codex `21:24:30Z`, claude `21:46:08Z`, agy (from QA #005 report). Replace the 3
+PENDING lines in `docs/decisions/017-base-vegetation.md`.
+
+=== PRIOR (superseded) tune-signoff-in-flight note ===
 
 === ITERATION 4: IMPL + TUNE DONE; CODEX TUNE-SIGNOFF IN FLIGHT ===
 **Signed stack to integrate (all off round `fa09235`), on branch
