@@ -11,7 +11,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/art"))
 
 from ingest_generated_sheet import ManifestError, ingest, validate_sheet
-from process_assets import derive_shadows
+from process_assets import autocrop_and_fit, derive_shadows, remove_border_background
 
 
 def manifest(root: pathlib.Path) -> pathlib.Path:
@@ -56,6 +56,16 @@ def main() -> int:
         contact_alpha = np.asarray(contact)
         assert cast_alpha[2:21].max() == 0, "roof pixels leaked into cast source"
         assert cast_alpha[28:].max() > 0 and contact_alpha[28:].max() > 0
+
+        generated = Image.new("RGB", (64, 64), (140, 141, 140))
+        generated_draw = ImageDraw.Draw(generated)
+        generated_draw.rectangle((16, 12, 47, 55), fill=(90, 70, 45))
+        generated_draw.rectangle((20, 16, 43, 51), fill=(138, 139, 138))
+        cleaned = remove_border_background(generated, tolerance=12, max_chroma=18, feather_radius=1.0)
+        assert cleaned.getpixel((0, 0))[3] == 0
+        assert cleaned.getpixel((24, 20))[3] == 255, "border fill punched through enclosed gray stone"
+        fitted = autocrop_and_fit(cleaned, (20, 30))
+        assert fitted.width <= 20 and fitted.height <= 30
     print("art manifest tests passed.")
     return 0
 

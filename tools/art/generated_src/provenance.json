@@ -1,0 +1,21 @@
+{
+  "pass": "round-007 first-district (inn-green) supervised first paid generation",
+  "date_utc": "2026-07-18",
+  "method": "meshy image-to-image (Option H, decision 009), conditioned on spike-derived style crops",
+  "source_spike": "docs/art/iso-five-asset-spike.png",
+  "style_crops_dir": ".pka/round007/style-crops/",
+  "model": "nano-banana",
+  "credits_per_call": 3,
+  "balance_before": 2970,
+  "balance_after": 2952,
+  "credits_spent_total": 18,
+  "note": "Meshy result URLs expire ~20min after generation; the downloaded PNGs in this directory are the only durable copies. Do NOT re-generate: that would double-spend. codex asset-seat processes these into game-ready RGBA sprites.",
+  "objects": [
+    {"id": "cottage_front", "png": "cottage_front_probe.png", "task_id": "019f73c9-0b57-7ae2-b7e7-aaf2f4b0e1b1", "credits": 3, "ref_crop": "cottage_front_ref.png", "spike_box": [455,350,720,625], "role": "method-validation probe, ACCEPTED", "raw_size": [1024,1024], "raw_mode": "RGB"},
+    {"id": "inn", "png": "inn.png", "task_id": "019f73ca-9820-7b39-b712-cee433e2af4b", "credits": 3, "ref_crop": "inn_ref.png", "spike_box": [350,40,835,470], "role": "building_anchor, ACCEPTED", "raw_size": [1024,1024], "raw_mode": "RGB"},
+    {"id": "cottage_rear", "png": "cottage_rear.png", "task_id": "019f73ca-2d9e-7495-a687-c3d12bf13934", "credits": 3, "ref_crop": "cottage_front_ref.png", "spike_box": [455,350,720,625], "role": "cottage rear variant, ACCEPTED", "raw_size": [1024,1024], "raw_mode": "RGB"},
+    {"id": "smithy_cluster", "png": "smithy_cluster.png", "task_id": "019f73ca-3954-70a6-a8f0-da818a14ea26", "credits": 3, "ref_crop": "smithy_ref.png", "spike_box": [835,265,1180,600], "role": "smithy w/ anvil+grindstone, ACCEPTED", "raw_size": [1024,1024], "raw_mode": "RGB"},
+    {"id": "crown_foliage", "png": "crown_foliage.png", "task_id": "019f73ca-4513-749b-94a0-b7b75a9062a5", "credits": 3, "ref_crop": "tree_crown_ref.png", "spike_box": [30,30,360,300], "role": "occlusion crown canopy, ACCEPTED", "raw_size": [1024,1024], "raw_mode": "RGB"},
+    {"id": "fence_section", "png": "fence_section.png", "task_id": "019f73ca-4d61-749c-b0ff-4049d57bd9d1", "credits": 3, "ref_crop": "fence_ref.png", "spike_box": [735,235,870,340], "role": "post-and-rail fence, ACCEPTED", "raw_size": [1024,1024], "raw_mode": "RGB"}
+  ]
+}
