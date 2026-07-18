@@ -103,29 +103,70 @@ darker-than-local muddy tone. Source plate is the ONLY copy + untracked; each do
 worktree needs a COPY of `.pka/round007/ground-source/` (do NOT overwrite original).
 `src/render/town/` + tools/art NOT protected; `src/sim/` untouched.
 
-**PHASE 1 BLIND PROPOSALS DISPATCHED + IN FLIGHT (2026-07-18 14:55:21Z).** All 3
-doers running in PARALLEL, detached (setsid), into their own worktrees off round
-head 2302d30 on branches `claude/015-fill` / `codex/015-fill` / `agy/015-fill`.
-Run ids `015-prop-{claude,codex,agy}-20260718-145521`; start markers confirmed
-written; adapters confirmed alive at launch+20s. Cap 3000s each (renders ~26min).
-Prompt (same for all 3, blind): `.pka/round007/015-fill-quality-prop-prompt.md`
-(grounds them in the existing pull-push/grain/mid-graft pipeline; asks each to
-diagnose the ACTUAL root cause with a measurement before proposing, warns the
-naive MID_GAIN bump already shipped in 014 and was insufficient). Dispatch logs
-`.pka/round007/015-prop-<doer>-dispatch.log`.
+**PHASE 1 BLIND PROPOSALS DONE + VERIFIED + DECODED (all off round head 2302d30):**
+- **claude `d48c7d2`** (branch claude/015-fill, elapsed 2019s): root cause = mid
+  graft OVER-grafts (MID_GAIN 3.80 = ~1.85x local mid energy) -> the graft became
+  the island + muddy DC + ~16% fine-grain dropout holes. Fix: MID_GAIN 3.80->1.40
+  (energy-match), 2nd decorrelated roll fills grain holes, restore core std GLOBALLY
+  via grade band gains (lomid 1.55->2.00, mid 1.25->1.35, fine UNCHANGED). Island
+  check inside/ring: fine 1.05x, mid 1.06x, tone -0.56. Gates flat-core 18.92,
+  shimmer unchanged. 20/20 recall.
+- **codex `5bb9579`** (codex/015-fill, 1069s): root cause = structural gaps (9.88%
+  zero mid-feather from erode(mask,3), 16.31% zero fine grain) + 2.54 lum muddy. Fix:
+  REPLACE separate mid+fine grafts with ONE coherent full-band clean-patch fill (4
+  fixed rolls pick first donor outside mask, re-centered 32px, >=35% real patch).
+  Grade (1.55,1.55,2.50,0.14). Island check fine 1.148x (14.8%), tone -0.27. Gates
+  flat-core 20.94, shimmer 9.32. 20/20 recall.
+- **agy `ff9f0e4`** (agy/015-fill, 759s): root cause = dark-rim mask anchoring +
+  feather erosion. Fix: DILATE mask 4px + INCREASE MID_GAIN 3.80->5.0. Island check
+  mid deficit +7.39 (OVER, not matched). Gates flat-core 18.88, shimmer 9.48.
+All 3 verified from end markers (branch_changed yes, exit 0, not cap_expired).
+
+**ORCHESTRATOR RENDERED DECODE (viewed all 3 ground-2x vs c10a54c baseline + spike):
+claude ~ codex >> agy.** claude closes the muddy islands best (dry tan, continuous,
+cleanest center). codex closes them too (slightly more dark mid-structure center-
+right). **agy did NOT close the tell -- its ground-2x is nearly identical to the
+decision-014 muddy-island baseline; the MID_GAIN 5.0 over-graft entrenched the
+island (its own +7.39 mid deficit predicted this).** Strong 2-converge-1-dissent:
+claude+codex independently reach matched island energy (the decode rewards it);
+agy's opposite direction (over-graft) loses at the render, same failure mode as its
+decision-014 candidate. Decode is decisive over the gate numbers (agy passes 18.88
+yet the island persists).
+
+**PHASE 2 ADVERSARIAL CRITIQUE DISPATCHED + IN FLIGHT (2026-07-18 15:31:53Z).** All
+3 doers running PARALLEL/detached into their worktrees, run ids
+`015-crit-{claude,codex,agy}-20260718-153153`, cap 2400s, start markers confirmed +
+adapters alive at launch+20s. Prompt `.pka/round007/015-fill-quality-crit-prompt.md`
+(each reads the other 2 via `git show <branch>:...`, hunts NEW tells: codex clean-
+patch repeat/clone/seam, claude global band-lift reviving muddy mid outside
+footprints, agy dilated-mask over-graft). Logs `.pka/round007/015-crit-<doer>-dispatch.log`.
 
 --- ON RESPAWN (decision 015), do in order: ---
-1. Check inbox `.pka/inbound/orchestrator/` (nothing new as of this run; all
-   processed through 04:45Z). Fetch --all; scan doer branches for .team/blocked/.
-2. **VERIFY the 3 phase-1 proposals** from end markers
-   `<wt>/.team/markers/015-prop-<doer>-20260718-145521-end.md` (branch_changed yes,
-   not cap_expired, work committed). If a marker is missing, the dispatch is still
-   running (pgrep `adapters/<h>.sh --workdir .../lw-007-<doer>`) or died -- do NOT
-   re-dispatch a live one. For each committed proposal: RUN its suite + both hard
-   gates + DECODE its ground-2x + village-inn-green-2x yourself (fill islands gone,
-   crisp dusty speckle + dry tan tone, stones still gone, no new tell). A candidate
-   that reopens a tell or breaks a gate is disqualified.
-3. Phase-2 adversarial critique; phase-3 synthesis -> docs/decisions/015-*.md
+1. Check inbox `.pka/inbound/orchestrator/`. Fetch --all; scan doer branches for
+   .team/blocked/.
+2. **VERIFY the 3 phase-2 critiques** from end markers
+   `<wt>/.team/markers/015-crit-<doer>-20260718-153153-end.md` (branch_changed yes,
+   critique committed `docs/proposals/<doer>-015-critique.md`). Missing marker =
+   still running (pgrep) or died; do NOT re-dispatch a live one. A round where every
+   critique says "looks good" is a FAILED round -> re-dispatch. Read each critique;
+   note any real defect found in claude's or codex's method (repeat-donor tiling in
+   codex clean-patch; muddy-mid revival or tone shift from claude global band lift;
+   shimmer from claude hole-fill).
+3. **PHASE 3 SYNTHESIS -> docs/decisions/015-*.md.** Provisional read from my decode:
+   winner is claude's energy-match OR codex's coherent clean-patch (both close the
+   tell); agy's over-graft LOSES (empirically refuted at render). Pick the method
+   whose rendered captures are stone-free AND island-free without a new tell; GRAFT
+   the better parts (e.g. codex's coherent patch idea + claude's energy-match, if a
+   critique shows one dominates). If claude+codex agree and agy dissents -> majority,
+   NO four-ballot / NO critic. A 2-2 contested question invokes the critic
+   (tiebreaker-only). Record every losing objection verbatim (esp. agy's, and any
+   codex-vs-claude method dispute).
+4. Winner impl off round head 2302d30, codex (or non-author) NON-AUTHOR sign-off,
+   FF-integrate into round/007-village, re-run suite+export gate + DECODE yourself,
+   PUSH round branch.
+5. Phase-2/3 note: several proposals already ARE working rendered candidates on their
+   branches, so the "impl" may be promoting the winning proposal commit directly
+   (verify its gates+decode fresh) rather than a new dispatch. -> docs/decisions/015-*.md
    (unanimous/majority = no four-ballot; a 2-2 contested question invokes the critic
    tiebreaker-only). Winner impl off e08786f, codex NON-AUTHOR sign-off, FF-integrate
    into round/007-village, re-run suite+export gate, PUSH round branch.
