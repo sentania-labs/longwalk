@@ -23,6 +23,10 @@ def setup_scene_and_camera():
     # We will set up FileOutput node in the render function
     cam_obj = blender_calibration.setup_camera(scene)
     scene.cycles.use_denoising = True
+    scene.cycles.seed = 0
+    scene.render.dither_intensity = 0.0
+    scene.render.threads_mode = 'FIXED'
+    scene.render.threads = 1
 
     world = bpy.data.worlds.new("Two Rivers World")
     scene.world = world
