@@ -42,7 +42,14 @@
       "wood_prop": {"mid_rgb": [103, 82, 43], "highlight_guard": 188},
       "stone": {"mid_rgb": [112, 108, 82], "highlight_guard": 184},
       "flora": {"mid_rgb": [67, 78, 29], "highlight_guard": 176},
-      "flower": {"mid_rgb": [79, 81, 34], "highlight_guard": 168, "saturation_guard": 72}
+      "flower": {"mid_rgb": [79, 81, 34], "highlight_guard": 168, "saturation_guard": 72},
+      "flora_kits": {
+        "tree_large": {"mid_rgb": [79, 75, 20], "highlight_guard": 176},
+        "bush_a": {"mid_rgb": [40, 36, 16], "highlight_guard": 176},
+        "bush_b": {"mid_rgb": [90, 83, 24], "highlight_guard": 176},
+        "flower_cluster_a": {"mid_rgb": [76, 72, 23], "highlight_guard": 168, "saturation_guard": 72},
+        "flower_cluster_b": {"mid_rgb": [79, 72, 23], "highlight_guard": 168, "saturation_guard": 72}
+      }
     }
   },
   "objects": [
@@ -53,15 +60,15 @@
     {"id": "ground_warp", "png": "ground_warp.png", "kind": "ground_warp", "anchor_px": [0, 0], "native_px": [256, 256], "provenance": "generated"},
     {"id": "shadow_decal", "png": "shadow_decal.png", "kind": "shadow", "anchor_px": [128, 64], "native_px": [256, 128], "provenance": "generated"},
     {"id": "cottage_front", "png": "cottage_front.png", "kind": "cottage", "anchor_px": [140, 279], "native_px": [280, 280], "provenance": "generated"},
-    {"id": "tree_large", "png": "tree_large.png", "kind": "tree", "anchor_px": [165, 350], "native_px": [330, 360], "provenance": "slice"},
-    {"id": "bush_a", "png": "bush_a.png", "kind": "bush", "anchor_px": [40, 70], "native_px": [79, 77], "provenance": "slice"},
-    {"id": "bush_b", "png": "bush_b.png", "kind": "bush", "anchor_px": [69, 76], "native_px": [138, 83], "provenance": "slice"},
+    {"id": "tree_large", "png": "tree_large.png", "kind": "tree", "anchor_px": [162, 359], "native_px": [324, 360], "provenance": "generated"},
+    {"id": "bush_a", "png": "bush_a.png", "kind": "bush", "anchor_px": [40, 49], "native_px": [79, 50], "provenance": "generated"},
+    {"id": "bush_b", "png": "bush_b.png", "kind": "bush", "anchor_px": [67, 82], "native_px": [133, 83], "provenance": "generated"},
     {"id": "fence_section", "png": "fence_section.png", "kind": "fence", "anchor_px": [44, 95], "native_px": [87, 96], "provenance": "generated"},
     {"id": "sign_post", "png": "sign_post.png", "kind": "sign", "anchor_px": [40, 118], "native_px": [80, 127], "provenance": "slice"},
     {"id": "rock_a", "png": "rock_a.png", "kind": "rock", "anchor_px": [39, 61], "native_px": [78, 68], "provenance": "slice"},
     {"id": "rock_b", "png": "rock_b.png", "kind": "rock", "anchor_px": [43, 49], "native_px": [85, 55], "provenance": "slice"},
-    {"id": "flower_cluster_a", "png": "flower_cluster_a.png", "kind": "flower", "anchor_px": [45, 69], "native_px": [89, 77], "provenance": "slice"},
-    {"id": "flower_cluster_b", "png": "flower_cluster_b.png", "kind": "flower", "anchor_px": [59, 76], "native_px": [117, 83], "provenance": "slice"},
+    {"id": "flower_cluster_a", "png": "flower_cluster_a.png", "kind": "flower", "anchor_px": [45, 123], "native_px": [89, 124], "provenance": "generated"},
+    {"id": "flower_cluster_b", "png": "flower_cluster_b.png", "kind": "flower", "anchor_px": [59, 72], "native_px": [117, 73], "provenance": "generated"},
     {"id": "inn", "png": "inn.png", "kind": "building_anchor", "anchor_px": [177, 379], "native_px": [354, 380], "provenance": "generated"},
     {"id": "cottage_rear", "png": "cottage_rear.png", "kind": "cottage", "anchor_px": [140, 294], "native_px": [280, 295], "provenance": "generated"},
     {"id": "smithy_cluster", "png": "smithy_cluster.png", "kind": "building", "anchor_px": [139, 319], "native_px": [278, 320], "provenance": "generated"},

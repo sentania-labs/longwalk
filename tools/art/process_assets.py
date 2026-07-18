@@ -21,6 +21,7 @@ def remove_border_background(
     tolerance: float = 12.0,
     max_chroma: int = 18,
     feather_radius: float = 1.0,
+    decontaminate_rgb: bool = False,
 ) -> Image.Image:
     """Remove a smooth neutral background connected to the image border.
 
@@ -116,10 +117,35 @@ def remove_border_background(
         background[y, x] = False
 
     background_mask = Image.fromarray(background.astype(np.uint8) * 255, "L")
+    if decontaminate_rgb:
+        # Contract the matte by one source pixel before feathering. Generated
+        # antialiasing blends neutral background RGB into this outermost ring.
+        background_mask = background_mask.filter(ImageFilter.MaxFilter(3))
     if feather_radius > 0:
         background_mask = background_mask.filter(ImageFilter.GaussianBlur(feather_radius))
     alpha = 255 - np.asarray(background_mask, dtype=np.uint8)
     result = image.convert("RGBA")
+    if decontaminate_rgb:
+        pixels = np.asarray(result).copy()
+        rgb = pixels[:, :, :3]
+        known = alpha == 255
+        edge = (alpha > 0) & ~known
+        # Feather pixels are at most two pixels from the contracted opaque
+        # matte. Propagate subject RGB outwards so filtering cannot reveal the
+        # neutral source background as a halo.
+        for _step in range(16):
+            if not edge.any():
+                break
+            next_known = known.copy()
+            for dy, dx in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
+                source_known = np.roll(known, (dy, dx), axis=(0, 1))
+                source_rgb = np.roll(rgb, (dy, dx), axis=(0, 1))
+                take = edge & source_known & ~next_known
+                rgb[take] = source_rgb[take]
+                next_known[take] = True
+            known = next_known
+            edge &= ~known
+        result = Image.fromarray(pixels, "RGBA")
     result.putalpha(Image.fromarray(alpha, "L"))
     return result
 
@@ -212,6 +238,7 @@ def process_manifest(path: Path) -> list[Path]:
                 float(asset.get("flood_tolerance", 12.0)),
                 int(asset.get("max_chroma", 18)),
                 float(asset.get("feather_radius", 1.0)),
+                bool(asset.get("decontaminate_rgb", False)),
             )
             image = autocrop_and_fit(image, tuple(asset["target_size"]))
             destination.parent.mkdir(parents=True, exist_ok=True)

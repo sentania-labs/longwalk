@@ -100,6 +100,14 @@ def main() -> int:
         assert cleaned.getpixel((24, 20))[3] == 255, "border fill punched through enclosed gray stone"
         fitted = autocrop_and_fit(cleaned, (20, 30))
         assert fitted.width <= 20 and fitted.height <= 30
+
+        decontaminated = remove_border_background(
+            generated, tolerance=12, max_chroma=18, feather_radius=1.0, decontaminate_rgb=True
+        )
+        edge_pixels = np.asarray(decontaminated)
+        feather = (edge_pixels[:, :, 3] > 0) & (edge_pixels[:, :, 3] < 255)
+        assert feather.any(), "decontaminated matte lost its feather ring"
+        assert not np.all(edge_pixels[feather, :3] == (140, 141, 140), axis=1).any(), "neutral RGB survived beneath feather alpha"
     print("art manifest tests passed.")
     return 0
 
