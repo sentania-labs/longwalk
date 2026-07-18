@@ -73,6 +73,28 @@ func _run() -> void:
 			return
 	print("all %d manifest assets resolved through ResourceLoader with declared dims" % manifest.size())
 
+	# --- (2b) continuous-ground statics resolve from the bundle (decision 010
+	# step 9). These are NOT manifest placements: the ground shader, its two
+	# tiling swatches, the CPU-baked warp field, and the contact-shadow decal.
+	# A stock export that silently dropped any of them would ship a blank/checker
+	# ground or unshadowed floating objects; assert each is packed and loads. ---
+	var ground_statics := [
+		"res://src/render/town/ground.gdshader",
+		"res://assets/village/ground_grass_tile.png",
+		"res://assets/village/ground_dirt_tile.png",
+		"res://assets/village/ground_warp.png",
+		"res://assets/village/shadow_decal.png",
+	]
+	for path in ground_statics:
+		if not ResourceLoader.exists(path):
+			_fail("ground asset absent from bundle (ResourceLoader.exists false): %s" % path)
+			return
+		var res := ResourceLoader.load(path)
+		if res == null:
+			_fail("ground asset did not resolve through ResourceLoader: %s" % path)
+			return
+	print("all %d continuous-ground statics resolved through ResourceLoader" % ground_statics.size())
+
 	# --- Stand up the district scene ---
 	var village = VillageScene.instantiate()
 	root.add_child(village)
