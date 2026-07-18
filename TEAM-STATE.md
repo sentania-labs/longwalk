@@ -118,15 +118,51 @@ critiques the OTHER TWO; "looks good" = failed round, send back). Dispatched
 DETACHED at run stamp `20260718-043522` (worktrees `/home/scott/claude/lw-007-
 {claude,codex,agy}`, on `<d>/007-critique` branches).
 
-**NEXT (poll + verify phase 2):** poll
-`/home/scott/claude/lw-007-<d>/.team/markers/<d>-007-critique-<stamp>-end.md`;
-verify from marker + tree; read each `docs/proposals/<d>-007-critique.md`. If any
-critique is all-agreement ("looks good"), send it back. Record critique SHAs.
-Then PHASE 3: synthesize (not average, not vote-count), FOUR-BALLOT the contested
-method+composition question (orchestrator + 3 doers; critic only on 2-2), write
-decision record 009 with every losing objection VERBATIM, divide labor by
-capability. Then implementation on the round branch, round-branch integration,
-one round PR.
+**PHASE 2 COMPLETE + verified** (all clean from markers + tree; a genuinely
+adversarial round, not "looks good"). Critique SHAs (decision 009 cites these):
+- claude `e30bee2e44d91f024987a36fbb0553aeb8586fe4` (`claude/007-critique`)
+- codex  `0c2914866d32f11bafb229da998097c12eeedbb6` (`codex/007-critique`)
+- agy    `dcc696d5ffd36d08a65b30601b807fa33e4247d4` (`agy/007-critique`)
+Proposals + critiques collected onto `round/007-village` @ `6ab2f4a` (pushed).
+
+**PHASE 3 synthesis formulated + FOUR-BALLOT DISPATCHED (stamp `20260718-044306`,
+cap 1800s, worktrees on `<d>/007-ballot` branches).** My full synthesis + the
+ballot question + my ballot: `.pka/round007/synthesis-and-ballot.md` (READ IT).
+
+CONVERGED after critique (I rule directly, no ballot; captured in the synthesis
+doc): (1) sprites-on-grid composition, NOT plates (codex conceded; agy's sim/
+render-separation + ecology-roadmap critique decisive); (2) codex's isolated-
+packaged-capture export audit adopted verbatim + claude's non-placeholder assert;
+(3) commit SOURCE PNGs under res://assets/village (NOT .import sidecars -- repo
+gitignores `*.import`/`.godot/`), engine `--headless --import` then export, do
+NOT glob the protected export_presets.cfg (uses all_resources); (4) town_layout.gd
+stays viewport-free + texture-ignorant, decision 009 for the edit; (5) explicit
+setup_free() no-PC free-cam, FOLLOW path preserved; (6) DROP 3D-Meshy-render as
+primary (twice-failed round-006 family; Meshy not wired for agy anyway), keep
+Blender/scale-contract as optional guide; (7) agy Image.load static ban + agy on
+multimodal QA; (8) micro-cluster baking; (9) first-buildable = ONE inn-green
+district at final pixel density proven from isolated packaged export, landmark-
+registered at 0.5x/1x/2x.
+
+CONTESTED (the four-ballot): **primary pixel-production method** -- Option S
+(slice-first, claude), Option G (generate-first, codex), Option H (hybrid graft,
+ORCHESTRATOR BALLOT = H). Provisional DoL: codex=asset production, claude=render
+integration + town_layout + free-cam, agy=multimodal QA.
+
+**NEXT (poll + TALLY the four-ballot):** poll
+`/home/scott/claude/lw-007-<d>/.team/markers/<d>-007-ballot-<stamp>-end.md`;
+verify from marker + tree; read each `docs/proposals/<d>-007-ballot.md`; record
+each vote + rationale VERBATIM. TALLY = my H + the 3 doer votes. 3-1 or 4-0
+decides; a 2-2 split invokes the critic (`roles/critic.md`, `cursor-agent --mode
+ask`, read-only, one written vote) and I fold its vote in verbatim; if the critic
+sides against my ruling there is no majority -> adopt the critic's side OR hold +
+escalate to Scott with both verbatim (do NOT settle alone). A losing objection
+that CLAIMS a constitution violation escalates to Scott. Then WRITE decision
+record 009 (`docs/decisions/009-*.md`, cite all 9 proposal/critique SHAs, every
+losing objection VERBATIM, the DoL + capability reasoning), collect the two
+required signatures (protected-path record), and begin IMPLEMENTATION on the
+round branch (per-slice doer branches off the round branch, peer sign-off, local
+--no-ff integration, one round PR). Balance still 2970; NO paid Meshy yet.
 
 ## Round 006 -- CLOSED (superseded by Scott's redefinition)
 
