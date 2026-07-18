@@ -3,6 +3,10 @@
   "objects": [
     {"id": "ground_grass", "png": "ground_grass.png", "kind": "ground", "anchor_px": [64, 32], "native_px": [128, 64], "provenance": "slice"},
     {"id": "ground_lane", "png": "ground_lane.png", "kind": "ground", "anchor_px": [64, 32], "native_px": [128, 64], "provenance": "slice"},
+    {"id": "ground_grass_tile", "png": "ground_grass_tile.png", "kind": "ground_tile", "anchor_px": [0, 0], "native_px": [512, 512], "provenance": "slice"},
+    {"id": "ground_dirt_tile", "png": "ground_dirt_tile.png", "kind": "ground_tile", "anchor_px": [0, 0], "native_px": [512, 512], "provenance": "slice"},
+    {"id": "ground_warp", "png": "ground_warp.png", "kind": "ground_warp", "anchor_px": [0, 0], "native_px": [256, 256], "provenance": "generated"},
+    {"id": "shadow_decal", "png": "shadow_decal.png", "kind": "shadow", "anchor_px": [128, 64], "native_px": [256, 128], "provenance": "generated"},
     {"id": "cottage_front", "png": "cottage_front.png", "kind": "cottage", "anchor_px": [140, 279], "native_px": [280, 280], "provenance": "generated"},
     {"id": "tree_large", "png": "tree_large.png", "kind": "tree", "anchor_px": [165, 350], "native_px": [330, 360], "provenance": "slice"},
     {"id": "bush_a", "png": "bush_a.png", "kind": "bush", "anchor_px": [40, 70], "native_px": [79, 77], "provenance": "slice"},
