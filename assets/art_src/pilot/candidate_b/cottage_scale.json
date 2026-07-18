@@ -1,0 +1,17 @@
+{
+  "asset_kind": "cottage_2x2",
+  "scene_geometry": {
+    "scene_units_per_meter": 1.0,
+    "contact_plane_z_m": 0.0,
+    "door_height_m": 2.0,
+    "eaves_height_m": 2.4,
+    "ridge_height_m": 5.2
+  },
+  "output": {
+    "resolution_px": [512, 512]
+  },
+  "projected_landmarks": {
+    "contact_px": [256, 448],
+    "top_px": [256, 40.404028]
+  }
+}
