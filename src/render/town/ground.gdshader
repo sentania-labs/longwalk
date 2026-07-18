@@ -70,6 +70,33 @@ uniform sampler2D lane_mask : repeat_disable, filter_linear;
 // dirt reads as patchy worn earth, never a flat uniform fill (tell #3).
 uniform sampler2D lane_density : repeat_disable, filter_linear;
 
+// Baked footprint interaction field (decision 016 D2). RGBA8, 16 texels/cell,
+// a pure function of the authored layout (tools/art/bake_footprint_field.gd),
+// INDEPENDENT of lane_density:
+//   - R = building-apron coverage (1 at/inside a footprint, 0 outside).
+//   - G = signed distance in cells to the nearest footprint, encoded
+//     clamp(0.5 + distance / 4.0, 0, 1); 0.5 is the footprint edge, >0.5 is
+//     outside, <0.5 is inside.
+//   - B = deterministic door-threshold wear concentrated at manifest doors.
+// This shader consumes it ONLY at the named worn-apron insertion point below
+// (SEAM TREATMENT, decision 016). It NEVER feeds the frozen lane core / plate /
+// detail path above: it only RAISES dirt coverage in a bounded ring around
+// foundations so grass meets wall through a graded worn seam, reusing the same
+// dirt plate + detail tone for palette continuity (no new dirt bake).
+uniform sampler2D footprint_field : repeat_disable, filter_linear;
+
+// Worn-apron shaping (decision 016 D2). apron_width_cells is how far the worn
+// ring reaches OUTSIDE a footprint edge; apron_strength is its peak dirt
+// coverage at the wall; door_strength / door_width_cells widen and deepen the
+// worn pool at door thresholds. apron_tone darkens the apron dirt a touch so a
+// trampled foundation seam reads slightly more worn than a clean lane. All are
+// bounded and additive: the apron can only RAISE dirt coverage, never reduce
+// the protected lane core.
+uniform float apron_width_cells : hint_range(0.0, 3.0) = 1.1;
+uniform float apron_strength : hint_range(0.0, 1.0) = 0.85;
+uniform float door_strength : hint_range(0.0, 1.0) = 0.95;
+uniform float apron_tone : hint_range(0.0, 0.4) = 0.14;
+
 // District size in cells (UV runs 0..grid_size). Used to turn cell space into
 // the mask's 0..1 sample space.
 uniform vec2 grid_size = vec2(16.0, 14.0);
@@ -219,5 +246,24 @@ void fragment() {
 
 	vec4 dirt_toned = vec4(dirt_rgb, dirt.a);
 
-	COLOR = mix(grass, dirt_toned, dirt_amount);
+	// --- worn-apron seam treatment (decision 016 D2), NAMED insertion point ---
+	// Everything above is the frozen decision-010/011/012 lane core / plate /
+	// detail path, untouched. Here we sample the layout-derived footprint field
+	// and RAISE dirt coverage in a bounded ring hugging each foundation, so the
+	// grass-to-wall boundary meets through a graded worn seam instead of a hard
+	// cut. This never touches the lane core (max() only lifts coverage) and
+	// reuses dirt_toned for palette continuity with the lanes.
+	vec4 fp = texture(footprint_field, mask_uv);
+	float dist_cells = (fp.g - 0.5) * 4.0;          // signed cells: + outside footprint
+	// Worn ring just OUTSIDE the footprint edge (dist 0 -> apron_width_cells).
+	float ring = (1.0 - smoothstep(0.0, apron_width_cells, dist_cells)) * step(0.0, dist_cells);
+	// Door-threshold pool: reaches a little further than the plain apron.
+	float door_pool = fp.b * (1.0 - smoothstep(0.0, apron_width_cells * 1.6, max(dist_cells, 0.0)));
+	float apron_cov = max(ring * apron_strength, door_pool * door_strength);
+	// Slightly darker, more trampled dirt tone for the apron band only.
+	vec4 apron_dirt = vec4(dirt_rgb * (1.0 - apron_tone), dirt.a);
+	vec4 ground_dirt = mix(dirt_toned, apron_dirt, apron_cov);
+
+	float seam_amount = max(dirt_amount, apron_cov);
+	COLOR = mix(grass, ground_dirt, seam_amount);
 }
