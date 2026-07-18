@@ -56,7 +56,47 @@ repaint; global grade vs per-object tonal match). Scott directed full protocol
 explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
 `tools/art/*`; `src/sim/` is protected and OUT of scope).
 
-=== WHERE WE ARE: DECISION 016 iter4 (D2/D3 base veg), FULL PROTOCOL. **PHASES 1-3 DONE. Decision 017 committed + pushed, ROUND HEAD NOW `fa09235`. IMPLEMENTATION next: codex owns core mechanism.** ===
+=== WHERE WE ARE: DECISION 016 iter4 (D2/D3 base veg), FULL PROTOCOL. **PHASES 1-3 DONE (decision 017 @ round head `fa09235`, pushed). CODEX IMPLEMENTATION DISPATCHED + IN FLIGHT.** ===
+
+=== ITERATION 4 IMPLEMENTATION IN FLIGHT (codex core mechanism) ===
+**Dispatched 2026-07-18 21:18:01 (detached setsid, cap 2400s).** codex ->
+worktree `lw-007-codex`, branch `codex/017-impl` (off round head `fa09235`),
+run_id `baseveg-impl-codex-20260718-211801`. Prompt
+`.pka/round007/composition/iter4/impl-codex-prompt.md`. Log
+`.../logs/impl-codex.log` (buffered; verify liveness via pgrep, not mtime).
+dispatch.sh pid 463774 at launch. Scope: D2 discrete deterministic positional-
+hash placement + derived-instance contract (scaled sprite + scaled seam mask +
+tonal + depth) + door/hard-object rejection + camera-facing bias; D3 new
+`src/render/town/flora_base.gdshader` underlay reusing baked contact mask (NOT the
+on-sprite band); four-invariant tests + export-audit extension; regenerate+commit
+the village-inn-green captures. Runs `tools/run_tests.sh` +
+`tools/art/village_export_gate.sh` itself. Emits its `Signed-off-by:
+codex-worker` line to ratify 017. Does NOT push.
+
+**ON RESPAWN (mid-impl): DO NOT RE-DISPATCH.** Verify end marker
+`lw-007-codex/.team/markers/baseveg-impl-codex-20260718-211801-end.md`
+(branch_sha_before `fa09235` vs after, branch_changed, uncommitted_work,
+cap_expired). `git -C lw-007-codex log --oneline -1` should show the impl commit
+past `fa09235`; inspect `git -C lw-007-codex diff --stat fa09235 HEAD` (expect
+village_render.gd, new flora_base.gdshader, test_village_render.gd,
+village_export_audit.gd, regenerated captures; NO assets/village mutation except
+none). Grep the impl log for `SHADER ERROR`/`Shader compilation failed`. If dead +
+no commit -> inspect log + `.team/blocked/`, re-dispatch. Then:
+1. Independently RUN `tools/run_tests.sh` + `tools/art/village_export_gate.sh`
+   from lw-007-codex; confirm green + no swallowed shader error + assets/village
+   non-mutation. DECODE the new 1x capture vs the spike yourself.
+2. Transcribe codex's Signed-off-by line into decision 017.
+3. NON-AUTHOR peer sign-off of the impl commit: dispatch claude (reviewer !=
+   author) to review the diff in-worktree + write `.team/signoffs/` marker
+   (reviewed_sha = impl SHA, reviewed_by claude, authored_by codex) AND its own
+   1x tuning pass if the reuse gate/decode needs it AND its `Signed-off-by:
+   claude-worker` for 017.
+4. FF-integrate the SIGNED impl SHA onto round/007-village, cherry-pick/commit
+   nothing that rewrites it; run suite+export gate on the integrated round; push
+   round.
+5. agy QA #005 (anti-anchoring, off the integrated round head) + agy 017
+   sign-off; orchestrator decode. If CONFUSABLE + orchestrator agrees -> surface
+   build to Scott (`to: dalinar`). Else decode the tell, iterate.
 
 === ITERATION 4 PHASE 3 DONE: decision 017 at `fa09235` (round head, pushed) ===
 `docs/decisions/017-base-vegetation.md`. Synthesis rulings:
