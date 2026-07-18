@@ -41,5 +41,6 @@ assets/art_src/pilot/candidate_a/reproduce.sh
 ```
 
 The script runs render, treatment, atlas assembly, and all asset validators.
-The production render took 452.363 seconds (7 minutes 32.363 seconds) on the
-Codex worker CPU.
+The full production reproduction took 841 seconds (14 minutes 1 second) on the
+Codex worker CPU with fixed single-thread rendering. An independent second
+reproduction took 832 seconds (13 minutes 52 seconds).
