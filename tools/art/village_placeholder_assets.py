@@ -74,8 +74,50 @@ def _draw(kit_id, w, h, anchor_x, anchor_y, provenance, rgb):
     return img
 
 
+# Continuous-ground stand-ins (decision 010). These are NOT manifest placements;
+# they are the ground paint the shader samples plus the contact-shadow decal.
+# Provisional flat fills / a mid-grey (zero-displacement) warp / a soft ellipse,
+# committed at the contract paths so the scene loads and the suite runs.
+# Integration swaps in codex's real periodic swatches + fixed-seed FastNoiseLite
+# warp bake and re-runs the export gate. Deterministic, no RNG, no time.
+GROUND_TILE_PX = 512
+GRASS_FILL = (92, 138, 74, 255)
+DIRT_FILL = (150, 120, 86, 255)
+# Flat mid-grey = (0.5, 0.5) in the shader's warp decode -> zero displacement, so
+# the placeholder lane edges stay straight rather than wandering randomly.
+WARP_FILL = (128, 128, 128, 255)
+SHADOW_PX = (256, 128)
+
+
+def _write_ground_assets():
+    Image.new("RGBA", (GROUND_TILE_PX, GROUND_TILE_PX), GRASS_FILL).save(
+        os.path.join(OUT_DIR, "ground_grass_tile.png"))
+    Image.new("RGBA", (GROUND_TILE_PX, GROUND_TILE_PX), DIRT_FILL).save(
+        os.path.join(OUT_DIR, "ground_dirt_tile.png"))
+    Image.new("RGBA", (GROUND_TILE_PX, GROUND_TILE_PX), WARP_FILL).save(
+        os.path.join(OUT_DIR, "ground_warp.png"))
+
+    # Soft radial-falloff ellipse. White body (the render tints it black via
+    # modulate); the ALPHA channel carries the soft edge, alpha 255 at center
+    # fading to 0 at the rim.
+    w, h = SHADOW_PX
+    shadow = Image.new("RGBA", (w, h), (255, 255, 255, 0))
+    px = shadow.load()
+    cx, cy = (w - 1) / 2.0, (h - 1) / 2.0
+    rx, ry = w / 2.0, h / 2.0
+    for y in range(h):
+        for x in range(w):
+            nx = (x - cx) / rx
+            ny = (y - cy) / ry
+            d = (nx * nx + ny * ny) ** 0.5
+            a = max(0.0, 1.0 - d)
+            px[x, y] = (255, 255, 255, int(255 * (a ** 1.5)))
+    shadow.save(os.path.join(OUT_DIR, "shadow_decal.png"))
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
+    _write_ground_assets()
     objects = []
     for kit_id, (w, h, ax, ay, kind, provenance, rgb) in OBJECTS.items():
         png = "%s.png" % kit_id

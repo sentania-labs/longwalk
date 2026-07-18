@@ -104,6 +104,9 @@ echo "=== test_player_zoom.gd ==="
 echo "=== test_smoke_grade.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_smoke_grade.gd
 
+echo "=== test_ground_uv_spike.gd ==="
+"${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_ground_uv_spike.gd
+
 echo "=== test_village_render.gd ==="
 "${GODOT}" --headless --path "${REPO_ROOT}" --script res://test/active_path/test_village_render.gd
 
