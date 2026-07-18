@@ -35,14 +35,37 @@ when the team believes a screenshot genuinely passes the confusable bar.
 
 **WHERE WE ARE:** one inn-green district at spike fidelity for BUILDINGS +
 GROUND-TEXTURE (010) + LANE MACRO-GEOMETRY (011) + DIRT FIDELITY (012 fork B +
-the paid-regen re-tune this run). Round head **`2ca6f62`** (pushed to origin).
-The PAID DIRT REGEN + composite re-tune landed + integrated + gated + QA'd this
-run. It **CLOSED all three of agy's pass-4 dirt tells** (flat core, retinted-grass,
-shimmer) but agy QA pass 5 found **three NEW tells** the re-tune introduced (muddy
-high-contrast tone, tiling repetition, grid seams). Verdict still NOT-CONFUSABLE.
-NOT surfaced to Scott (bar not met). The three new tells are ALL ZERO-COST composite
-fixes; the DIRT-TILING/TONE sub-round is teed up below. THE PAID PATH IS DONE: the
-plate is accepted and rich; do NOT spend again on dirt.
+paid-regen re-tune) + **DIRT RE-TUNE method converged (decision 013, this run)**.
+Round head **`ff2a801`** (decision 013 committed on round branch; NOT yet pushed
+-- push happens after integration). Origin still at `2ca6f62`. The PAID PATH IS
+DONE (plate accepted + rich); zero paid spend from here.
+
+**THIS RUN so far:** ran decision-013 FULL PROTOCOL on the three pass-5 tells
+(muddy tone, tiling, seams). Triage flipped to full protocol after the
+orchestrator decoded the spike-dirt crop (std 40.59 > graded plate 19.78),
+overturning "reduce contrast" and revealing a frequency-distribution problem with
+genuine method alternatives. Blind 3-way proposal (claude 531e701, codex 8a5ef44,
+agy 824c456) + adversarial critique (claude 035e9a6, codex a04e79e, agy ab3bb78),
+every dispatch verified from end marker + tree. **Unanimous convergence, every
+author conceded its contested point, NO 2-2 split so NO four-ballot / NO critic**
+(tiebreaker-only). Synthesis = `docs/decisions/013-dirt-retune-fidelity.md`
+(round head ff2a801). **IMPL SLICE DISPATCHED** (claude, run
+`013-impl-claude-20260718-111122`, branch `claude/013-dirt-impl` off ff2a801, cap
+3600s) -- IN FLIGHT as of this writing; verify from its end marker + tree, NOT
+narration.
+
+Converged method (decision 013 is authoritative): (1) replace the affine grade in
+`grade_dirt_plate.py` with a deterministic MULTIBAND luminance reshape (attenuate
+macro+mid = kill mud + rock-blob tiling; handle fine toward spike speckle;
+re-match spike mean). (2) Change `bake_dirt_detail.gd`: R high-pass radius 12->~3
++ winsorize (its `_standardize` renormalizes surviving mid-band rocks, so
+plate-only was retracted). (3) Shader amplitude MEASURED sweep
+(`detail_shoulder_amp`/`tone_contrast`/`detail_core_amp`). (4) LOCALIZE the
+mid-district seams (UV-classify) before fixing. TWO HARD GATES: core center-crop
+lum_std >= 17.97 (flat-core), 0.5x dirt fine-grad <= grass ceiling ~10.75
+(shimmer). RULED OUT (unanimous incl. agy self-concession): `repeat_enable`/`fract`
+on dirt_detail (real wrap seam, not periodic), in-shader stochastic anti-tiling
+(ghosting). `src/render/town/` is NOT protected; `src/sim/` untouched.
 
 === 010 (ground) + 011 (lane) + 012 (dirt fidelity fork B) -- DONE ==============
 `docs/decisions/010/011/012-*.md` (all 4-0). Killed checkerboard, straight-X,
@@ -100,37 +123,49 @@ dominant first (all ZERO-COST composite fixes, no paid spend):
      (the plate is no longer seamless -- the richness-for-seamlessness trade the regen
      prompt deliberately made). Fix: tile-blend / offset-heal across seams.
 
-=== NEXT TURN (FRESH): DIRT TILING + TONE SUB-ROUND (ZERO PAID SPEND) ===========
-The paid path is CLOSED (plate accepted + rich). The three new tells are composite/
-processing fixes on the existing plate. Recommended shape:
-1. **Triage:** tone/contrast (#1) is a MECHANICAL grade re-tune = fast-lane. Anti-
-   tiling (#2) + seams (#3) share a root (rich non-seamless plate sampled per-tile)
-   and have a genuine METHOD CHOICE (per-tile stochastic rotation vs macro low-freq
-   blend vs secondary detail mask vs seam offset-heal) -> **likely FULL PROTOCOL**
-   (2-3 blind proposals on the anti-tiling/seam method, tone folded in as the
-   mechanical part). This would be **decision 013** (branch off round head 2ca6f62).
-   If the next orchestrator judges the method uncontested, fast-lane it instead and
-   record why.
-2. Impl slice (likely claude render again; reuse `lw-007-claude`, branch a fresh
-   `claude/007-dirt-tile` off 2ca6f62): lower grade contrast/lift darks; break tiling;
-   kill seams. Re-capture 0.5x/1x/2x + district; re-decode; cross sign-off (non-author
-   codex); FF-integrate; suite + export gate; push.
-3. **agy QA pass 6.** If CONFUSABLE clears AND the orchestrator's own read agrees ->
-   **SURFACE A BUILD TO SCOTT** (his stated bar; cross-workspace `to: dalinar`). If
-   still failing, decode artifacts (not narration) + tee up the next fix.
-4. After dirt clears: expand from the one inn-green district to the full ~12-16-
-   structure village; open the ONE round PR + external Codex review; address findings;
-   merge; sweep.
+=== RESUME HERE (decision 013 IMPLEMENTATION in flight) =========================
+The impl slice is dispatched and detached. On respawn:
+1. **Verify the impl end marker** at
+   `/home/scott/claude/lw-007-claude/.team/markers/013-impl-claude-20260718-111122-end.md`
+   (branch_sha_before ff2a801 -> after; branch_changed; cap_expired;
+   uncommitted_work). Then INSPECT the tree: `git -C /home/scott/claude/lw-007-claude
+   log --oneline`, decode the committed plate + detail sha + captures, and RE-RUN
+   `tools/run_tests.sh` + `tools/art/village_export_gate.sh` yourself. Confirm BOTH
+   hard gates (core lum_std >= 17.97; 0.5x dirt fine-grad <= ~10.75) from the actual
+   numbers, not the commit body's claim. If a gate fails or work is uncommitted,
+   bounce back to claude with the specific gap; do not integrate a failing slice.
+2. **codex NON-AUTHOR cross sign-off** on the claude impl commit (reviewed_by !=
+   authored_by): dispatch codex into an ephemeral detached review worktree
+   (`git worktree add -b rev/cxc-013 <wt> <claude-sha>`), it writes a
+   `.team/signoffs/` marker naming the EXACT claude commit; cherry-pick the marker;
+   `git worktree remove`. No push by the doer.
+3. **FF-integrate** the signed claude commit into `round/007-village` (round head is
+   ff2a801), cherry-pick the sign-off marker + (later) the QA report. Re-run suite +
+   export gate on the integrated tree. Then **push the round branch**.
+4. **agy QA PASS 6** (reuse `lw-007-agy`, fresh `agy/013-dirt-qa6` off the integrated
+   round head): multimodal confusability read; MUST explicitly re-check the two named
+   mid-district seams + whether the flatten dissolved muddy-tone + tiling.
+5. If agy verdict CONFUSABLE **and the orchestrator's own decoded read agrees** ->
+   **SURFACE A BUILD TO SCOTT** (his stated bar; cross-workspace `to: dalinar`, NOT
+   `to: scott`). If still NOT-CONFUSABLE, decode the actual artifacts (never
+   narration), diagnose the specific remaining gap, tee up the next fix (paid dirt
+   path stays CLOSED).
+6. After dirt clears: expand the one inn-green district to the full ~12-16-structure
+   village; open the ONE round PR + external Codex review; address findings; merge;
+   sweep (delete round + doer branches; leak guard).
 
-**Live worktrees + branches (all LOCAL except `round/007-village` on origin):**
-- `lw-007-round` on `round/007-village` @ `2ca6f62` (integration tree, pushed).
-- `lw-007-claude` on `claude/007-dirt-retune` @ `8cf9306` (integrated; reuse next by
-  branching a `claude/007-dirt-tile` off round head 2ca6f62).
-- `lw-007-codex` on `codex/007-dirt-impl` @ `7672b3a` (earlier bake slice, integrated).
-- `lw-007-agy` on `agy/007-dirt-qa5` @ `79aaaa1` (reuse for QA pass 6).
-- Ephemeral codex review worktree (`lw-007-rev-cxc` / `rev/cxc-retune`) REMOVED this
-  run. Deliberation + prior sub-round doer branches are LOCAL-ONLY (archive
-  `refs/archive/007/*` at round close).
+**Live worktrees + branches (all LOCAL except `round/007-village`):**
+- `lw-007-round` on `round/007-village` @ `ff2a801` (integration tree; decision 013
+  committed; NOT yet pushed -- push after integration; origin at 2ca6f62).
+- `lw-007-claude` on `claude/013-dirt-impl` @ ff2a801+ (impl slice IN FLIGHT; the
+  013 proposal 531e701 + critique 035e9a6 are on the retired `claude/013-dirt-retune`).
+- `lw-007-codex` on `codex/013-dirt-retune` @ 8a5ef44+a04e79e (proposal+critique;
+  reuse for the non-author sign-off).
+- `lw-007-agy` on `agy/013-dirt-retune` @ 824c456+ab3bb78 (proposal+critique; reuse
+  for QA pass 6).
+- Prior integrated slices: claude 8cf9306 (dirt-retune), codex 7672b3a (bake), agy
+  79aaaa1 (qa5) -- all in round head history. Local-only deliberation/doer branches
+  archive to `refs/archive/007/*` at round close.
 
 ## Round 006 -- CLOSED (superseded)
 
@@ -190,10 +225,11 @@ NEVER `save_to`).
 
 001-008 on main. Round-007 decisions **009** (art method), **010** (ground/lane
 shader-quad plate), **011** (lane geometry fork B), **012** (dirt fidelity fork B +
-item-5 paid-regen path) are on the round branch, all signed 4-0. The paid regen +
-re-tune this run ran under 012 item 5 (no new record needed; touched no protected
-path). Round-007's NEXT decision, if the anti-tiling/seam method needs a design fork,
-is **013**. Round-006's own 009/010 are archive-only.
+item-5 paid-regen path) are on the round branch, all signed 4-0. **013** (dirt
+re-tune fidelity: multiband reshape) committed this run on the round branch (round
+head ff2a801); it is a full-protocol converged record but touches NO protected path,
+so it is not gate-required and carries the orchestrator synthesis + cited proposal/
+critique SHAs rather than worker signatures. Round-006's own 009/010 are archive-only.
 
 ## Notes for the next run
 
@@ -209,7 +245,20 @@ is **013**. Round-006's own 009/010 are archive-only.
   `round/007-village` @ 2ca6f62, unrelated `issue-4-world-eras`; leak guard OK (no
   doer/rev branches on origin). Ephemeral codex review worktree removed.
 
-**Last updated:** 2026-07-18 (PAID DIRT REGEN + RE-TUNE, one fresh turn: double-spend
+**Last updated:** 2026-07-18 (DECISION 013 DIRT RE-TUNE, full-protocol converged
+round: triage flipped to full protocol after decoding spike crop std 40.59 > plate
+19.78; blind 3-way proposal [claude 531e701 / codex 8a5ef44 / agy 824c456] +
+adversarial critique [claude 035e9a6 / codex a04e79e / agy ab3bb78], every dispatch
+verified from marker+tree; unanimous convergence on the multiband-reshape method,
+every author conceded its contested point, NO 2-2 so NO four-ballot/critic; decision
+013 committed to round branch [round head ff2a801]; claude impl slice DISPATCHED +
+IN FLIGHT [run 013-impl-claude-20260718-111122, branch claude/013-dirt-impl off
+ff2a801]. RESUME at the "RESUME HERE" section: verify impl marker+tree+both hard
+gates, then codex non-author sign-off -> FF-integrate -> push -> agy QA pass 6 ->
+surface to Scott iff confusable. Sweep still OK: origin at 2ca6f62 + main +
+issue-4-world-eras, no leaked doer branches.)
+
+**PRIOR update:** 2026-07-18 (PAID DIRT REGEN + RE-TUNE, one fresh turn: double-spend
 guard -> paid regen [nano-banana-pro, 9cr, 2946->2937] -> orchestrator accept-decode
 [raw std 19.83, earthy/pebbly, viewed directly; mean_grad 5.60<8 ruled non-blocking]
 -> claude re-tune slice 8cf9306 [affine tone-grade holding std onto spike mean +
