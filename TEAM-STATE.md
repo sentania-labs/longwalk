@@ -183,38 +183,70 @@ Phase 1 + phase 2 complete + verified (SHAs in the sub-round box above). Decisio
 010 written, four-ballot 4-0, signed, integrated `053906a`, pushed,
 check_consensus PASS. Full synthesis detail in the "GROUND/LANE SUB-ROUND" box.
 
-**IMPLEMENTATION DISPATCH (stamp `20260718-065409`, DETACHED via setsid, cap
-2400s). Both off signed round head `053906a`:**
-- codex -> `lw-007-codex`, branch `codex/007-ground-impl` (ASSET seat: tileable
-  swatches + CPU-baked FastNoiseLite warp + shadow_decal + contact-sheet gate).
-  Prompt: `.pka/round007/ground-treatment/impl-codex-prompt.md`. End marker:
-  `lw-007-codex/.team/markers/codex-ground-impl-20260718-065409-end.md`.
-- claude -> `lw-007-claude`, branch `claude/007-ground-impl`, model opus (RENDER
-  seat: shader-quad in village_render.gd + .gdshader + runtime lane mask + lane
-  core + contact-shadow layer + export-gate assertions + coordinate spike; builds
-  against PLACEHOLDER swatches, integration swaps codex real).
-  Prompt: `.pka/round007/ground-treatment/impl-claude-prompt.md`. End marker:
-  `lw-007-claude/.team/markers/claude-ground-impl-20260718-065409-end.md`.
-Logs: `.pka/round007/ground-treatment/<p>-impl-dispatch.log`. Start markers
-confirmed present; adapter procs confirmed alive at dispatch+8s. Shared interface
-contract in the sub-round box (swatch/warp/decal paths + shader uniform names).
+**IMPLEMENTATION (stamp `20260718-065409`) -- BOTH SLICES LANDED + VERIFIED from
+end markers + tree. Off signed round head `053906a`:**
 
-VERIFY from end markers (branch_changed/uncommitted/cap) + tree, NOT narration.
-These are substantial coding jobs; may run 10-30min silent (claude -p buffers).
-"No marker yet" != dead -- check `ps -o etimes` + child procs before ANY
-relaunch; a second launch into the same worktree corrupts + (for codex) risks a
-double-billable if it reaches paid Meshy. If a swatch-gate FAILURE surfaces, codex
-commits a `.team/blocked/` marker (NO doer spend); orchestrator runs supervised
-paid Meshy (balance 2952, verify billing first).
+- **claude RENDER slice DONE + VERIFIED + SUITE GREEN (orchestrator ran it).**
+  `claude/007-ground-impl` @ **`54a7ce2`** (end marker: exit0, branch_changed=yes,
+  no cap, no uncommitted, 623s). Delivered: `src/render/town/ground.gdshader` (90
+  lines), `village_render.gd` shader-quad rewrite (+187: continuous quad,
+  UV=cell-corners, runtime R8 lane mask from sim grid, domain warp, protected lane
+  core, contact-shadow layer), `test/active_path/test_ground_uv_spike.gd` (143-line
+  coordinate spike), export-gate shader/decal assertions, `village.tscn`,
+  provisional PLACEHOLDER swatches/warp/decal. **Suite GREEN on its tree**: UV
+  spike PROVEN (max err ~0, both triangles agree across shared diagonal) + all 19
+  village-render checks. Render code is sound. Placeholders are flat; the REAL
+  look needs codex's periodic swatches (below), so QA waits on the swatch.
 
-**NEXT after both land + verified:** cross peer sign-off (non-author) of each impl
-commit; integrate onto round branch (--no-ff, reviewed SHA preserved); swap codex
-real swatches over claude placeholders; RE-RUN honest export gate (now asserting
-shader + shadow_decal + swatches + warp from isolated PCK) + full suite; then agy
-multimodal QA at 0.5/1/2x vs spike. If agy rules NOT-CONFUSABLE again, iterate the
-method per decision 010 step 10 fallback; if CONFUSABLE, THEN expand toward the
-full ~12-16-structure village and open the ONE round PR. Do NOT surface to Scott
-until the team believes a screenshot passes the confusable bar.
+- **codex ASSET slice DONE + VERIFIED, but SWATCHES FAILED THE GATE (honest).**
+  `codex/007-ground-impl` @ **`d3ba799`** (end marker: exit0, branch_changed=yes,
+  no cap, no uncommitted, 280s). Delivered the deterministic FastNoiseLite warp
+  baker + `ground_warp.png` (GOOD), `shadow_decal.png` (GOOD), manifest entries,
+  tests, contact sheet + acceptance doc. BUT both `ground_grass_tile.png` /
+  `ground_dirt_tile.png` FAILED codex's own 8x8 contact-sheet gate: a recurring
+  DIAGONAL weave, reads as fabric not painterly ground. **Orchestrator verified
+  the contact sheet directly -- the FAIL is correct.** codex filed
+  `.team/blocked/codex-worker-20260718T065655Z.md` requesting resolution. Root
+  cause: frequency-domain phase synthesis randomizes phase over the crop's
+  directional frequencies => manufactures a regular weave + kills painterliness.
+
+- **SWATCH RE-DISPATCH (orchestrator decision, ZERO-CREDIT, NOT paid):** balance
+  re-verified **2952** (meshy_check_balance) -- I did NOT spend; paid Meshy at the
+  tail of a long run is against the durable lesson, and a naive paid img2img won't
+  produce a SEAMLESS tile anyway. The right fix is OFFSET-AND-HEAL seamless
+  synthesis (preserves organic painterliness, heals only the seam cross, no global
+  regular structure). Re-dispatched codex on its SAME branch `codex/007-ground-
+  impl`: stamp **`20260718-070615`**, DETACHED, cap 2400s, label
+  `codex-ground-swatch-v2`. Prompt: `.pka/round007/ground-treatment/impl-codex-
+  swatch-v2-prompt.md`. End marker: `lw-007-codex/.team/markers/codex-ground-
+  swatch-v2-20260718-070615-end.md`. Start marker + proc confirmed alive.
+  If offset-and-heal ALSO fails (spike crops too small/low-detail), codex updates
+  the blocked marker asking for a HIGHER-RES painterly SOURCE; THEN (and only then)
+  orchestrator runs ONE supervised paid image gen (verify billing first) and hands
+  it back for codex to offset-and-heal. Doer never spends.
+
+**NEXT (poll swatch-v2 end marker; verify from marker+tree+the NEW contact sheet,
+not narration):**
+1. If swatch-v2 PASSES (organic, no repeat axis, crisp at 2x) + blocked marker
+   deleted: cross peer sign-off (claude, non-author) of codex's final asset
+   commit AND agy or claude sign-off of claude's render `54a7ce2` (non-author each).
+2. Integrate BOTH slices onto `round/007-village` (--no-ff, reviewed SHAs
+   preserved). Both touch the SAME asset paths (swatch/warp/decal) + claude's
+   placeholders -- codex's REAL swatches must WIN over claude's placeholders in the
+   integrated tree (drop claude's `village_placeholder_assets.py` outputs for the 4
+   ground assets; keep claude's shader/render/test). Decision 010 covers the
+   protected `src/sim/` read coupling (village_render reads `ground`).
+3. RE-RUN the honest export gate on the integrated tree (now asserts shader +
+   shadow_decal + swatches + warp resolve from the isolated PCK) + full suite.
+4. agy multimodal QA at 0.5/1/2x vs spike -- SPECIFICALLY re-adjudicate the ground
+   tell. If NOT-CONFUSABLE again, iterate (decision 010 step 10). If CONFUSABLE,
+   THEN expand toward the full ~12-16-structure village + open the ONE round PR +
+   external Codex review. Do NOT surface to Scott until the team believes a
+   screenshot passes the confusable bar.
+
+**Peer sign-off still owed on decision-010 impl commits before the round PR:**
+claude render `54a7ce2` (needs non-author sign-off), codex final assets (needs
+claude non-author sign-off). Neither signed yet.
 
 Prior execution state (below) is still true: first real-art district COMPLETE +
 QA'd NOT-CONFUSABLE, round branch history preserved. The ground/lane tile-grid is
