@@ -1,0 +1,167 @@
+{
+  "facing_order": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE"
+  ],
+  "frames_per_facing": 6,
+  "cell_size": 160,
+  "contact_anchor": [
+    80,
+    159
+  ],
+  "mirroring": {
+    "enabled": false
+  },
+  "frames": {
+    "E_0": {
+      "source": "finished/player/E_0.png"
+    },
+    "E_1": {
+      "source": "finished/player/E_1.png"
+    },
+    "E_2": {
+      "source": "finished/player/E_2.png"
+    },
+    "E_3": {
+      "source": "finished/player/E_3.png"
+    },
+    "E_4": {
+      "source": "finished/player/E_4.png"
+    },
+    "E_5": {
+      "source": "finished/player/E_5.png"
+    },
+    "SE_0": {
+      "source": "finished/player/SE_0.png"
+    },
+    "SE_1": {
+      "source": "finished/player/SE_1.png"
+    },
+    "SE_2": {
+      "source": "finished/player/SE_2.png"
+    },
+    "SE_3": {
+      "source": "finished/player/SE_3.png"
+    },
+    "SE_4": {
+      "source": "finished/player/SE_4.png"
+    },
+    "SE_5": {
+      "source": "finished/player/SE_5.png"
+    },
+    "S_0": {
+      "source": "finished/player/S_0.png"
+    },
+    "S_1": {
+      "source": "finished/player/S_1.png"
+    },
+    "S_2": {
+      "source": "finished/player/S_2.png"
+    },
+    "S_3": {
+      "source": "finished/player/S_3.png"
+    },
+    "S_4": {
+      "source": "finished/player/S_4.png"
+    },
+    "S_5": {
+      "source": "finished/player/S_5.png"
+    },
+    "SW_0": {
+      "source": "finished/player/SW_0.png"
+    },
+    "SW_1": {
+      "source": "finished/player/SW_1.png"
+    },
+    "SW_2": {
+      "source": "finished/player/SW_2.png"
+    },
+    "SW_3": {
+      "source": "finished/player/SW_3.png"
+    },
+    "SW_4": {
+      "source": "finished/player/SW_4.png"
+    },
+    "SW_5": {
+      "source": "finished/player/SW_5.png"
+    },
+    "W_0": {
+      "source": "finished/player/W_0.png"
+    },
+    "W_1": {
+      "source": "finished/player/W_1.png"
+    },
+    "W_2": {
+      "source": "finished/player/W_2.png"
+    },
+    "W_3": {
+      "source": "finished/player/W_3.png"
+    },
+    "W_4": {
+      "source": "finished/player/W_4.png"
+    },
+    "W_5": {
+      "source": "finished/player/W_5.png"
+    },
+    "NW_0": {
+      "source": "finished/player/NW_0.png"
+    },
+    "NW_1": {
+      "source": "finished/player/NW_1.png"
+    },
+    "NW_2": {
+      "source": "finished/player/NW_2.png"
+    },
+    "NW_3": {
+      "source": "finished/player/NW_3.png"
+    },
+    "NW_4": {
+      "source": "finished/player/NW_4.png"
+    },
+    "NW_5": {
+      "source": "finished/player/NW_5.png"
+    },
+    "N_0": {
+      "source": "finished/player/N_0.png"
+    },
+    "N_1": {
+      "source": "finished/player/N_1.png"
+    },
+    "N_2": {
+      "source": "finished/player/N_2.png"
+    },
+    "N_3": {
+      "source": "finished/player/N_3.png"
+    },
+    "N_4": {
+      "source": "finished/player/N_4.png"
+    },
+    "N_5": {
+      "source": "finished/player/N_5.png"
+    },
+    "NE_0": {
+      "source": "finished/player/NE_0.png"
+    },
+    "NE_1": {
+      "source": "finished/player/NE_1.png"
+    },
+    "NE_2": {
+      "source": "finished/player/NE_2.png"
+    },
+    "NE_3": {
+      "source": "finished/player/NE_3.png"
+    },
+    "NE_4": {
+      "source": "finished/player/NE_4.png"
+    },
+    "NE_5": {
+      "source": "finished/player/NE_5.png"
+    }
+  }
+}

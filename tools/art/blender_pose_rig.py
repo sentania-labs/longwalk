@@ -3,6 +3,9 @@ import math
 import sys
 import os
 
+FACING_ORDER = ("E", "SE", "S", "SW", "W", "NW", "N", "NE")
+PRODUCTION_SAMPLES = 32
+
 # Add the directory containing blender_calibration.py to sys.path so we can import it
 sys.path.append(os.path.dirname(__file__))
 import blender_calibration
@@ -19,12 +22,37 @@ def setup_scene_and_camera():
     
     # We will set up FileOutput node in the render function
     cam_obj = blender_calibration.setup_camera(scene)
+    scene.cycles.use_denoising = True
+
+    world = bpy.data.worlds.new("Two Rivers World")
+    scene.world = world
+    world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.42, 0.48, 0.39, 1.0)
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.65
+
+    sun_data = bpy.data.lights.new("Warm Key", type='SUN')
+    sun_data.energy = 2.2
+    sun_data.angle = math.radians(12.0)
+    sun = bpy.data.objects.new("Warm Key", sun_data)
+    scene.collection.objects.link(sun)
+    sun.rotation_euler = (math.radians(28.0), math.radians(-18.0), math.radians(-38.0))
+
+    area_data = bpy.data.lights.new("Cool Fill", type='AREA')
+    area_data.energy = 260.0
+    area_data.shape = 'DISK'
+    area_data.size = 5.0
+    area = bpy.data.objects.new("Cool Fill", area_data)
+    scene.collection.objects.link(area)
+    area.location = (-4.0, 2.0, 6.0)
+    area.rotation_euler = (0.0, 0.0, math.radians(140.0))
     return scene, cam_obj
 
-def load_character(filepath):
+def load_asset(filepath):
     # clear objects except camera
     for obj in bpy.data.objects:
-        if obj.name != 'Camera':
+        if obj.name == 'Camera' or obj.type == 'LIGHT':
+            continue
+        if obj.name not in {'Warm Key', 'Cool Fill'}:
             bpy.data.objects.remove(obj)
             
     bpy.ops.import_scene.gltf(filepath=filepath)
@@ -35,6 +63,12 @@ def load_character(filepath):
             armature = obj
             break
             
+    roots = [obj for obj in bpy.context.scene.objects if obj.type not in {'CAMERA', 'LIGHT'} and obj.parent is None]
+    return armature, roots
+
+
+def load_character(filepath):
+    armature, _roots = load_asset(filepath)
     return armature
 
 def set_facing(armature, facing_label):
@@ -141,6 +175,8 @@ def render_frame(scene, out_dir, facing, pose_idx):
         tree.links.new(render_layers.outputs['Shadow'], file_output.inputs['shadow'])
     elif 'Shadows' in render_layers.outputs:
         tree.links.new(render_layers.outputs['Shadows'], file_output.inputs['shadow'])
+    else:
+        tree.links.new(render_layers.outputs['Alpha'], file_output.inputs['shadow'])
 
     # Set the naming template for this specific render
     file_output.file_slots['color'].path = f"{facing}_{pose_idx}_color_"
@@ -174,6 +210,43 @@ def render_frame(scene, out_dir, facing, pose_idx):
         if os.path.exists(expected_path):
             os.remove(expected_path)
         os.rename(actual_path, expected_path)
+
+
+def rotate_roots(roots, facing_label):
+    rotation = {
+        "SW": 0.0, "S": 45.0, "SE": 90.0, "E": 135.0,
+        "NE": 180.0, "N": -135.0, "NW": -90.0, "W": -45.0,
+    }[facing_label]
+    for root in roots:
+        root.rotation_mode = 'XYZ'
+        root.rotation_euler[2] = math.radians(rotation)
+    bpy.context.view_layer.update()
+
+
+def run_production():
+    scene, _cam_obj = setup_scene_and_camera()
+    scene.cycles.samples = PRODUCTION_SAMPLES
+    out_root = os.path.abspath("assets/art_src/pilot/candidate_a/render")
+    player_dir = os.path.join(out_root, "player")
+    cottage_dir = os.path.join(out_root, "cottage")
+    os.makedirs(player_dir, exist_ok=True)
+    os.makedirs(cottage_dir, exist_ok=True)
+
+    player_path = os.path.abspath("assets/art_src/pilot/cleaned/player_walk.glb")
+    armature, _roots = load_asset(player_path)
+    if armature is None:
+        sys.exit("Player GLB contains no armature")
+    for facing in FACING_ORDER:
+        set_facing(armature, facing)
+        for pose_idx in range(6):
+            set_pose(armature, pose_idx, 6)
+            render_frame(scene, player_dir, facing, pose_idx)
+
+    cottage_path = os.path.abspath("assets/art_src/pilot/cleaned/cottage.glb")
+    _armature, roots = load_asset(cottage_path)
+    for facing in FACING_ORDER:
+        rotate_roots(roots, facing)
+        render_frame(scene, cottage_dir, facing, 0)
 
 def run_sanity():
     # Setup
@@ -216,5 +289,7 @@ def run_sanity():
         sys.exit(f"Sanity render failed: expected {expected_count} files, found {actual_count}")
 
 if __name__ == "__main__":
-    if "--sanity" in sys.argv:
+    if "--production" in sys.argv:
+        run_production()
+    elif "--sanity" in sys.argv:
         run_sanity()
