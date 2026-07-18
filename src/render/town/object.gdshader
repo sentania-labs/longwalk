@@ -54,6 +54,25 @@ uniform vec3 shadow_lift_tint : source_color = vec3(1.0, 0.86, 0.62);
 uniform float shadow_lift_lo : hint_range(0.0, 1.0) = 0.05;
 uniform float shadow_lift_hi : hint_range(0.0, 1.0) = 0.42;
 
+// Highlight-ceiling / anti-wash (decision 016 D1 iter3). The per-kit tonal
+// MULTIPLY above is a proportional lift, so it necessarily brightens the LIGHT
+// end of a sprite hardest: on the smithy the already-light foreground props
+// (the pale grindstone, the lit workbench top, the light stone footings under
+// the awning) sit in the mid-to-light band, below the manifest highlight_guard,
+// so the warm grade pushed them from ~155 luminance into a glaring pale ~185
+// patch that read as a blown light polygon on the ground under the awning (agy
+// QA #003 D1 tell, orchestrator-confirmed regression from the D4 grade). A lower
+// highlight_guard cannot fix it without also protecting the mid plaster the
+// grade is meant to warm. Instead we soft-compress the GRADED luminance above a
+// ceiling back toward it, preserving hue (scale rgb by the compressed/original
+// luminance ratio). This caps the wash while leaving everything below the
+// ceiling untouched, so the D4 shadow-lift on the dark slate roofs and timbers
+// (luminance well under the ceiling) is fully preserved. grade_ceiling = 1.0 is
+// a no-op, so only the structure buckets that carry the wash opt in from
+// village_render.gd; flora/flowers keep their vivid highlights.
+uniform float grade_ceiling : hint_range(0.5, 1.0) = 1.0;
+uniform float grade_ceiling_soft : hint_range(0.01, 0.5) = 0.12;
+
 void fragment() {
 	vec4 tex = texture(TEXTURE, UV);
 	vec3 c = tex.rgb;
@@ -78,6 +97,27 @@ void fragment() {
 	// untouched. This raises dark roofs/timbers into the shared key.
 	float shade = 1.0 - smoothstep(shadow_lift_lo, shadow_lift_hi, lum);
 	c += shadow_lift * shade * shadow_lift_tint;
+
+	// Highlight ceiling (anti-wash, decision 016 D1 iter3). Soft-compress the graded
+	// luminance above grade_ceiling back toward it, preserving hue by scaling rgb
+	// with the compressed/original luminance ratio. Below the ceiling this is
+	// identity, so the dark-end shadow-lift on roofs/timbers is untouched; only the
+	// over-brightened light band (the washed awning props) is pulled back. Uses a
+	// Reinhard-style shoulder above (ceiling - soft) so the rolloff is smooth, not a
+	// hard clip. grade_ceiling = 1.0 disables it (the smoothstep never engages).
+	if (grade_ceiling < 1.0) {
+		float glum = dot(c, vec3(0.299, 0.587, 0.114));
+		float shoulder_start = grade_ceiling - grade_ceiling_soft;
+		if (glum > shoulder_start && glum > 0.0) {
+			// Saturating shoulder over [shoulder_start, +inf): the excess above the
+			// shoulder start asymptotes to grade_ceiling_soft, so compressed luminance
+			// approaches grade_ceiling and never clips flat. Below shoulder_start this
+			// branch is skipped entirely (identity), so the dark-end shadow-lift stands.
+			float over = glum - shoulder_start;
+			float compressed = shoulder_start + over / (1.0 + over / grade_ceiling_soft);
+			c *= compressed / glum;
+		}
+	}
 
 	// Apply the per-item modulate exactly once (NOT the texture-carrying COLOR).
 	COLOR = vec4(min(c, vec3(1.0)), tex.a) * item_modulate;

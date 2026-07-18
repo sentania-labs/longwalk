@@ -135,6 +135,22 @@ const GUARD_SOFTNESS := 0.12
 const SHADOW_LIFT_BUILDING := 0.13
 const SHADOW_LIFT_WOOD := 0.08
 const SHADOW_LIFT_STONE := 0.06
+# Highlight ceiling / anti-wash (decision 016 D1 iter3). The per-kit tonal grade is
+# a proportional MULTIPLY, so it brightens the light end of a sprite hardest. On
+# the smithy the already-light foreground props under the awning (the pale
+# grindstone, lit workbench top, light stone footings) sit in the mid-to-light
+# band below the manifest highlight_guard, so the warm grade pushed them from ~155
+# luminance into a glaring pale ~185 patch that read as a blown light polygon on
+# the ground (agy QA #003 D1, orchestrator-confirmed regression from the D4 grade).
+# object.gdshader soft-compresses GRADED luminance above this ceiling back toward
+# it (hue preserved), capping the wash while leaving everything below the ceiling,
+# so the D4 shadow-lift on the dark slate roofs and timbers is fully preserved
+# (their luminance is well under the ceiling). Applied to the STRUCTURE buckets
+# that carry the multiply wash (same set as the shadow-lift); flora/flowers pass
+# 1.0 (disabled) so their vivid highlights are untouched. 0.66 * 255 ~= 168 caps
+# the awning props at the surrounding-ground key band instead of 2x above it.
+const GRADE_CEILING_STRUCTURE := 0.66
+const GRADE_CEILING_SOFT := 0.12
 # Ground key-warming (decision 016 D4, second iteration). agy QA: the buildings
 # read dark/contrasty against a flatter, brighter yellow-green ground, so the two
 # do not share one lighting key. Alongside the stronger per-kit object grade
@@ -516,6 +532,11 @@ func _build_tonal_material(texture: Texture2D, kit_id: String, kind: String) -> 
 	# Shadow-lift (decision 016 D4): lift only structures' shadow band toward the
 	# warm key. Flora/flowers pass 0 so their dark floor stays owned by the clamp.
 	mat.set_shader_parameter("shadow_lift", _shadow_lift_for(kind))
+	# Highlight ceiling (decision 016 D1 iter3): cap the graded highlights on the
+	# structure buckets so the multiply grade cannot wash their light props into a
+	# blown pale patch. Flora/flowers pass 1.0 (disabled) to keep vivid highlights.
+	mat.set_shader_parameter("grade_ceiling", _grade_ceiling_for(kind))
+	mat.set_shader_parameter("grade_ceiling_soft", GRADE_CEILING_SOFT)
 	return mat
 
 
@@ -533,6 +554,19 @@ static func _shadow_lift_for(kind: String) -> float:
 			return SHADOW_LIFT_STONE
 		_:
 			return 0.0
+
+
+# Per-bucket highlight ceiling (decision 016 D1 iter3). The structure buckets that
+# carry the proportional tonal-multiply wash (buildings, wood props, stone) cap
+# their graded highlights so the grade cannot blow their light props into a pale
+# patch; flora, flowers, and the crown return 1.0 (disabled) so their vivid
+# highlights are untouched. Mirrors the structure set in _shadow_lift_for.
+static func _grade_ceiling_for(kind: String) -> float:
+	match kind:
+		"building_anchor", "building", "cottage", "fence", "sign", "rock":
+			return GRADE_CEILING_STRUCTURE
+		_:
+			return 1.0
 
 
 # One channel of the tonal multiply: damp the target/src ratio toward 1.0 by
