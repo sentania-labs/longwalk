@@ -123,18 +123,48 @@ dominant first (all ZERO-COST composite fixes, no paid spend):
      (the plate is no longer seamless -- the richness-for-seamlessness trade the regen
      prompt deliberately made). Fix: tile-blend / offset-heal across seams.
 
-=== RESUME HERE (decision 013 IMPLEMENTATION in flight) =========================
-The impl slice is dispatched and detached. On respawn:
-1. **Verify the impl end marker** at
-   `/home/scott/claude/lw-007-claude/.team/markers/013-impl-claude-20260718-111122-end.md`
-   (branch_sha_before ff2a801 -> after; branch_changed; cap_expired;
-   uncommitted_work). Then INSPECT the tree: `git -C /home/scott/claude/lw-007-claude
-   log --oneline`, decode the committed plate + detail sha + captures, and RE-RUN
-   `tools/run_tests.sh` + `tools/art/village_export_gate.sh` yourself. Confirm BOTH
-   hard gates (core lum_std >= 17.97; 0.5x dirt fine-grad <= ~10.75) from the actual
-   numbers, not the commit body's claim. If a gate fails or work is uncommitted,
-   bounce back to claude with the specific gap; do not integrate a failing slice.
-2. **codex NON-AUTHOR cross sign-off** on the claude impl commit (reviewed_by !=
+=== STATUS: decision 013 IMPL landed + QA6 = NOT-CONFUSABLE; DE-PEAK slice in flight =
+Decision 013 multiband reshape (claude `f81db85`) integrated + codex non-author
+signed + FF-integrated + suite/gate GREEN + PUSHED. Round head **`6bb94c6`** on
+origin (impl + signoff marker + agy QA6 report). agy QA PASS 6
+(`docs/art/village/qa-agy-dirt-006.md`, agy `6bb94c6`... report commit): verdict
+**NOT-CONFUSABLE** but CLOSED 2 of 3 pass-5 tells -- **muddy tone CLOSED, grid
+seams CLOSED, no new tells, no pass-4 regressions.** ONE dominant tell remains:
+**tiling / discrete embedded STONES** (IMPROVED-BUT-PRESENT).
+
+**Orchestrator inspected the actual captures (ground-2x + spike):** the dirt path
+is covered in ~15-20 prominent grey lozenge STONES; the spike path is smooth dry
+dusty tan with fine speckle and NO embedded stones. Root cause: the source plate's
+mid-band energy is concentrated in PEAKY high-contrast discrete stone outliers
+(our mid RMS 5.57 is actually BELOW the spike's ~12-15, so it is a DISTRIBUTION
+problem, not magnitude). The stones live in the graded PLATE (core samples it
+directly), NOT the detail bake -- agy's pass-6 remediation named the wrong file.
+Fix = spatial mid-band DE-PEAKING in `grade_dirt_plate.py` (dissolve the stone
+outliers, HOLD mid RMS so flat-core stays, do not touch fine so shimmer stays).
+This is a measured CONTINUATION of decision 013's method, no new fork.
+
+**DE-PEAK SLICE DISPATCHED** (claude, run label `013-depeak-claude`, branch
+`claude/013-dirt-depeak` off round head 6bb94c6, cap 3600s) -- IN FLIGHT.
+Prompt+diagnosis: `.pka/round007/013-depeak-prompt.md`. It carries a HARD FALLBACK:
+if de-peaking enough to dissolve the stones drops core std below the flat-core
+floor, the worker STOPS and reports the "intrinsically pebbly source" WALL rather
+than reopening flat core. If that wall triggers, the next step is an orchestrator
+DESIGN DECISION (accept smoother dirt / commit dirt-plate MIPS [import-policy
+change, possible decision 014 or Scott escalation] / other), NOT more blind tuning.
+
+--- ON RESPAWN (de-peak slice), verify then proceed: ---
+1. **Verify the de-peak end marker** at
+   `/home/scott/claude/lw-007-claude/.team/markers/013-depeak-claude-<ts>-end.md`
+   (branch_sha_before 6bb94c6 -> after; branch_changed; cap_expired; uncommitted).
+   Read whether the HARD FALLBACK triggered (worker reports it in the marker). Then
+   INSPECT the tree: decode the committed plate + detail sha + captures, RE-RUN
+   `tools/run_tests.sh` + `tools/art/village_export_gate.sh`, and confirm BOTH hard
+   gates (core lum_std >= ~17.97; 0.5x dirt fine-grad <= ~10.75) + VIEW the ground-2x
+   capture yourself to judge whether the stones actually dissolved (do not trust the
+   proxy alone). If the fallback triggered (real wall) OR a gate failed: do NOT
+   integrate; make the DESIGN DECISION (accept / commit mips / escalate to Scott).
+   If it cleanly holds both gates and the stones are gone, proceed to sign-off.
+2. **codex NON-AUTHOR cross sign-off** on the claude commit (reviewed_by !=
    authored_by): dispatch codex into an ephemeral detached review worktree
    (`git worktree add -b rev/cxc-013 <wt> <claude-sha>`), it writes a
    `.team/signoffs/` marker naming the EXACT claude commit; cherry-pick the marker;
@@ -155,7 +185,7 @@ The impl slice is dispatched and detached. On respawn:
    sweep (delete round + doer branches; leak guard).
 
 **Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ `ff2a801` (integration tree; decision 013
+- `lw-007-round` on `round/007-village` @ `6bb94c6` (integration tree; decision 013
   committed; NOT yet pushed -- push after integration; origin at 2ca6f62).
 - `lw-007-claude` on `claude/013-dirt-impl` @ ff2a801+ (impl slice IN FLIGHT; the
   013 proposal 531e701 + critique 035e9a6 are on the retired `claude/013-dirt-retune`).
