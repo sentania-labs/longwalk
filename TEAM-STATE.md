@@ -62,6 +62,46 @@ at EVERY phase boundary, not just spawn.
 
 ## Phase
 
+**>>> SCOTT ANSWERED THE VISION-BAR ESCALATION + REDEFINED THE MILESTONE (arrived
+MID-RUN, 2026-07-18T03:30Z, via dalinar relaying request c3ffe894). NOT acted on
+this run per the build dispatch's "report and stop" instruction; a FRESH
+orchestrator dispatch should pick this up deliberately as a new round. <<<**
+Inbox file `.pka/inbound/orchestrator/2026-07-18-0330-dalinar-vision-bar-answer-
+and-village-milestone.md`. Substance:
+- Q1 VISION BAR: **NEITHER candidate. The spike IS the style and the bar.** Scott:
+  "the art style for the game is subject-2/town.png." Stop grading candidates on
+  distance-to-spike; produce the spike, at scale, in the running game.
+- Q2: **GO**, autonomous iteration resumes under the burn-tokens mandate, but with
+  a REDEFINED milestone (below).
+- Q3 MESHY: **subsumed / no method mandate.** Meshy stays available (key live,
+  credits standing); use it, don't, or mix with NPR/hand-authoring, judged purely
+  on whether output is indistinguishable from the spike style. Directive-1515
+  adoption question dissolves.
+- **NEW MILESTONE (Scott's words): "Build me Two Rivers in that style. No NPCs, no
+  PC, just a disincorporated move around the map. Just show me you can build a
+  full-on village in that style."** Deliverable = a PLAYABLE Windows build where a
+  FULL Two Rivers village is rendered at spike fidelity (cottages, inn-anchor
+  building, dirt lanes, hedges, gardens, trees, flora, props, painterly ground, a
+  real village not five assets); NO player character and NO NPCs; navigation is a
+  FREE ("disincorporated") camera (existing drag-pan/zoom rig with no PC to follow,
+  needs a free-cam mode, in scope); this DROPS the walk-cycle/animation problem
+  entirely (pure environment-art proof). Style test: screenshots of the running
+  build should be confusable with the spike. Camera-follow paths assuming a PC may
+  need a free-cam mode (in scope). Standing rules hold (iso 007, art-is-ours,
+  round-branch integration, no doer pushes, one PR per round, inbox at boundaries).
+- **CONSEQUENCE for THIS run's build:** Scott's message explicitly SUPERSEDES the
+  round-006 candidate-flag exe ("don't build it; the next exe Scott touches is this
+  village build"). I had already built + delivered it before this answer arrived
+  (it crossed with the dispatch). It is now MOOT: Scott picked neither candidate, so
+  the A/B in-engine comparison it enables no longer matters. The exe is left at
+  /home/scott/longwalk-playtest/round006/ but Scott can ignore/delete it; it is not
+  the build he wants. The keep-import export finding below is still useful reference
+  for the village build (that build will face the SAME .gdignore/export-packing
+  problem for any authored village art loaded off res://).
+- The old "Current assignment" section above (candidate A/B production fork) is
+  STALE: Scott collapsed it to "produce the spike at village scale." A fresh
+  dispatch should rewrite Current assignment around the new village milestone.
+
 **HOUSEKEEPING RUN (orchestrator-run-20260718-b, WINDOWS PLAYTEST BUILD of round
 006 for Scott). Round 006 iteration NOT resumed (still paused, awaiting Scott).**
 Targeted build dispatch so Scott can play the round-006 build himself and inform
