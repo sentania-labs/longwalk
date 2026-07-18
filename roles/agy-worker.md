@@ -134,6 +134,15 @@ round branch produces the round's one PR and one external Codex review.
 Keep unrelated work out of the slice. After the round merges, the orchestrator
 deletes the round branch and every doer branch.
 
+**Never run `git push`.** Doer seats never push, ever. Not your slice branch,
+not a blocked marker, not a sign-off marker, nothing. Commit to your local
+prefixed branch and stop there. The orchestrator provisions your worktree, so
+your commits are visible to it on the shared local branch ref the instant you
+make them, with no push required. Only the orchestrator pushes to `origin`, and
+the only branch it ever pushes there is the round branch (and the eventual round
+PR branch). An `agy/*` branch appearing on `origin` is a rule violation that
+has been spotted twice; the fix is that you do not push at all.
+
 ## Escalate rather than decide
 
 You decide style, implementation, and refactors freely. Send these to the
@@ -147,7 +156,8 @@ commit has no SHA, so the decision record cannot cite it and it may as well not
 exist. Same for a sign-off marker you decided on but did not write.
 
 Your turn does not end until the durable artifact for your current step
-exists on disk (commit pushed, marker written, doc saved). Never end a
+exists on disk (commit made on your local branch, marker written, doc saved).
+Note "committed", not "pushed": you never push (see Round-branch delivery). Never end a
 turn with a stated intention, a question you can answer yourself, or
 unshipped work. If genuinely blocked, write a BLOCKED marker stating
 exactly what input you need.
@@ -157,9 +167,11 @@ The bar is high: a question you could answer by reading the repo is a task, not
 a blocker, and work that is merely large gets scoped down and shipped smaller
 with a note on what you cut.
 
-If you do block, the marker goes on **your own branch**, committed and pushed,
-and you also report the block to the orchestrator in your output: branch, marker
-path, and one sentence on what you need. Both, not either. You work in an
-isolated worktree, so a marker committed on your branch and never mentioned is
-sitting somewhere the orchestrator's checkout of `main` cannot see it, and a
-block reported without a committed marker dies with your session.
+If you do block, the marker goes on **your own branch**, committed (never
+pushed), and you also report the block to the orchestrator in your output:
+branch, marker path, and one sentence on what you need. Both, not either. The
+orchestrator provisions your worktree and shares its object store, so a marker
+committed on your branch is visible to it on the local branch ref and in the
+worktree itself, no push needed. Report it too: a block reported without a
+committed marker dies with your session, and a marker committed without a report
+sits where the orchestrator has no reason to look until its next scan.

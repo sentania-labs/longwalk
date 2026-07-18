@@ -173,9 +173,25 @@ confirm two things and record what you found:
    stated in its body and named in `TEAM-STATE.md`.
 2. **Zero stale team branches.** The round branch and every doer branch are
    deleted after merge.
+3. **Zero doer-prefixed branches on `origin`.** Doer branches (`claude/*`,
+   `codex/*`, `agy/*`) are local-only and must never reach `origin` at all. This
+   is a hard assertion, not a judgment call, and it must fail loudly if any are
+   found. Run the guard below and act on a nonzero exit before you close the
+   round: for each leaked branch, confirm its work is integrated (or archived
+   under `refs/archive/NNN/*`), delete the stray origin copy with `git push
+   origin --delete <branch>`, and only then finish the sweep.
 
     gh pr list --repo sentania-labs/longwalk --state open
     git branch -r
+    # Guard: nonzero exit + loud message if any doer branch leaked to origin.
+    git fetch --prune --quiet origin
+    leaked=$(git branch -r | sed 's#^ *origin/##' | grep -E '^(claude|codex|agy)/' || true)
+    if [ -n "$leaked" ]; then
+      echo "SWEEP GUARD FAILED: doer branches leaked to origin (local-only rule violated):" >&2
+      echo "$leaked" >&2
+      exit 1
+    fi
+    echo "sweep guard OK: no doer-prefixed branches on origin"
 
 A branch retained on purpose is fine, and the pilot has two of them
 (`claude/town-motion` and `codex/town-motion`, held for an assignment that is
