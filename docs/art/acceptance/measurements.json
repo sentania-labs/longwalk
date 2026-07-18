@@ -1,0 +1,32 @@
+{
+  "a": {
+    "distinct_facing_rows": 8,
+    "contact_anchor_max_deviation_px": 0,
+    "mean_frame_delta": 0.0229,
+    "max_frame_delta": 0.0414,
+    "ground_seam_failures": 0,
+    "player_light_angle_deg": 90.4,
+    "cottage_light_angle_deg": 90.5,
+    "light_vector_difference_deg": 0.1,
+    "player_height_px": 137.17,
+    "door_height_px": 156.77,
+    "eaves_height_px": 188.12,
+    "player_to_door_ratio": 0.875,
+    "eaves_to_door_ratio": 1.2
+  },
+  "b": {
+    "distinct_facing_rows": 8,
+    "contact_anchor_max_deviation_px": 0,
+    "mean_frame_delta": 0.0303,
+    "max_frame_delta": 0.0506,
+    "ground_seam_failures": 0,
+    "player_light_angle_deg": 91.8,
+    "cottage_light_angle_deg": 100.5,
+    "light_vector_difference_deg": 8.7,
+    "player_height_px": 137.17,
+    "door_height_px": 156.77,
+    "eaves_height_px": 188.12,
+    "player_to_door_ratio": 0.875,
+    "eaves_to_door_ratio": 1.2
+  }
+}
