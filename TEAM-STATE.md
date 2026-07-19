@@ -19,297 +19,203 @@ continuity between runs.
 Keep the heading structure stable (orchestrator + Dashboard parse by heading).
 -->
 
-## Current assignment
+## TWO THREADS THIS RUN
 
-**GENERALIZED COMPOSITION: Checkpoint B is BUILT + INTEGRATED + SURFACED TO
-SCOTT. HOLDING for his verdict.** Scott approved Checkpoint A (spike spec)
-pragmatically on 2026-07-19T02:45Z; decision **018** (architecture) is DONE +
-signed + pushed. This run BUILT Checkpoint B: ONE grounded-building demo tile
-(young age-1 vs mature age-40, byte-diff proof), got it peer-reviewed
-(codex changes-requested -> claude fix -> codex signed-off), integrated it into
-the round branch, ran the suite green, pushed, and surfaced it to Scott for his
-eye. Round head now **`de46462`** on origin/round/007-village. Sub-round of round
-007. Working scope: decision 018 section 5 + `.pka/round007/cpb-prompt.md`.
+1. **ADVISORY ROUND (engine/stack) - DONE this run.** Full protocol ran end to
+   end; decision **019** committed + surfaced to Scott; HOLDING for his ruling.
+   Adopted nothing (deliberation-only). See the section just below.
+2. **Checkpoint B - FAILED (Scott verdict landed 0555). Needs a retry with REAL
+   spike-fidelity art.** Not worked this run (advisory round was the assigned
+   scope). This is the TOP next action. See "Checkpoint B - FAILED".
 
-**Lane:** the architecture round was FULL PROTOCOL (done). Checkpoint B was a
-scoped IMPLEMENTATION of the decided design (dispatch owner, peer-sign,
-integrate) - done this run. No new design round was run.
+## ADVISORY ROUND: engine/stack - DONE + SURFACED, HOLDING for Scott's ruling
 
-=== WHERE WE ARE: **CHECKPOINT B DONE + PUSHED + SURFACED TO SCOTT (req
-`68bca91a`). A technical (non-verdict) review came back on that thread and raised
-ONE answerable question - the age-1-vs-age-40 "global warm/cool tint". RESOLVED
-this run (factual, no code change): there is NO global grade; tint = sum of
-localized state responses (56% is the full-width lane-wear band). Follow-up with
-proof + heatmap filed to Scott (req `72b4e7a8`). NOTHING IN FLIGHT. STILL HOLDING
-for Scott's grounding-bar verdict.**
-- If Scott APPROVES the grounding: dispatch codex to build the deterministic
-  generalization district + run the same response on ground never hand-touched
-  (decision 018 section 4), then agy QA on the untouched output. THAT is the last
-  gate before the round PR to main.
-- If Scott says it does NOT read: re-dispatch claude to retune the SAME tile
-  (`claude/018-cpb` worktree `lw-cpb-claude` still live); do NOT re-run the
-  protocol, amend.
-- Do NOT proceed to full-district generation until Scott approves this tile. ===
+**Status: COMPLETE. Recommendation delivered; Scott decides.** Full protocol:
+3 blind proposals (claude, codex, agy) + cursor as Scott's summoned full 4th
+voice -> 4 adversarial critiques -> synthesis + 4 ballots. Deliberation-only:
+no code, no `src/`, nothing adopted. Assignment: `.pka/advisory/0-assignment.md`.
 
-## Decision 018 (generalized composition architecture) - DONE this run
+- **Deliverable:** `docs/decisions/019-engine-and-stack-advisory.md` @ **`9bf81e9`**
+  on LOCAL branch `advisory/engine-stack` (NOT pushed; advisory branch is
+  local-only). Surfaced to Scott: **req `ae56c8b2`** (to: dalinar, 2026-07-19).
+- **The recommendation (Scott rules on all of it):**
+  - **Q1 engine: GODOT 4.x** - unanimous 4-0, agent operability + Unity license
+    activation disqualifier. Do NOT reopen Unity unless Scott prioritizes Netcode
+    zone sharding over unattended runners.
+  - **Q2 characters: layered 2D DEFAULT + MANDATORY time-boxed Godot runtime-3D
+    pilot + 3D-assisted base-body-sheet hybrid candidate; Scott's eye gates.**
+    Ballot **3-1** (claude dissent = prove-3D-first, recorded VERBATIM in 019).
+    All in Godot, not a Unity reason. Round-006 static-bake failure does NOT veto
+    runtime-3D.
+  - **Q3 server: REJECT Unity Netcode; Godot-headless-first around pure src/sim,
+    freeze a language-neutral contract, MEASURED extract trigger.** Ballot 4-0.
+  - **Q4: minimal-infra ladder** (Postgres only when persistence authorized;
+    every other dep - Redis/NATS/PostGIS/Nakama/K8s/Agones/Go/Rust/Python - a
+    new-dependency Scott escalation), shared-proficiency skills, scope honesty.
+  - **Recommended next step IF Scott greenlights:** a Godot-only agent-run
+    character bake-off at shipping zoom (layered-2D vs 3D-assisted-base-body-sheet
+    vs live runtime-3D), same traveller in motion, 2 lighting states, judged on
+    Scott's eye. No src/, no new dep, no Unity.
+- **Constitution-violation flags:** codex/agy/claude raised CONDITIONAL
+  new-dependency + persistence-now violation claims in critique (recorded verbatim
+  in 019). Disposition: NO live violation (advisory adopts nothing) + synthesis
+  UPHOLDS the objected-to position -> objection did not lose -> NO forced Scott
+  escalation. Flags carried forward as a standing constraint.
+- **Phase artifacts (all verified from end markers + tree):**
+  - Proposals: claude `bb3d24842e954a0133f1d6ba43d411bc9fb84c75` (claude/adv-engine),
+    codex `a492fd2fbe8f35dd9bb4fa7ff88f05740087dff8` (codex/adv-engine),
+    agy `88d70a53f90ba7c268f9fbe4d201a9366ee1d874` (agy/adv-engine),
+    cursor `.pka/advisory/cursor-p1-output.md` (advisory, read-only).
+  - Critiques: claude `8bc2b62060407b5d7e1e09b875d4b1bbc3e74e97`,
+    codex `04c99971253cdcbe9f3815505ff413d38ad8fa89`,
+    agy `cf3654a29dd6c528132f944cf8a528c8b675e55c`,
+    cursor `.pka/advisory/cursor-p2-output.md` (advisory).
+  - Full phase-1 map + convergence notes: `.pka/advisory/phase1-shas.md`.
+- **NOTE (dead-dispatch pattern, paid again):** the prior run's phase-1 dispatches
+  for claude/codex/cursor DIED (claude harness "Execution error", codex
+  narrated-but-uncommitted, cursor empty capture) - only agy's first dispatch was
+  real. Caught by verifying branch heads at base ef2cfac + no live procs, NOT the
+  markers/narration. Re-dispatched (labels adv-p1b-*), all four landed. Every
+  phase this run was detached + polled for the end marker within the same turn.
+- **ON RESPAWN:** if Scott RULES on the engine/stack, record his verdict as a
+  follow-up (update 019's status or a new record) and act on it. If he greenlights
+  the bake-off, dispatch it as its own scoped round. Until he rules, the advisory
+  round is CLOSED and nothing is pending on it.
 
-Full protocol ran end to end: 3 blind proposals -> (codex re-dispatch after a
-provisioning-gap block) -> 3 adversarial critiques -> synthesis -> 3 sign-offs.
-Record: `docs/decisions/018-generalized-composition-architecture.md` on round
-head **`5ea3aef`** (== origin). All verified from end markers + tree.
+## Checkpoint B - FAILED (Scott verdict). TOP NEXT ACTION: retry with REAL assets
 
-- **Proposals (blind, local doer branches):** claude `ba233c6479f14866d131d5b6dba3589a74e34fd5`
-  (claude/018-arch), codex `7368784e30a05b9c2bce98664dfcf2ffe0a77580`
-  (codex/018-arch; first dispatch correctly BLOCKED on a missing assignment file,
-  an orchestrator provisioning gap, resolved + re-dispatched same run), agy
-  `474c9012dbda234084537b8aaef074d110353dcd` (agy/018-arch).
-- **Critiques (adversarial, genuine):** claude `792520adb6c08a62425c1edb7f8ec039194c09eb`,
-  codex `25ae1fe74ed2804488300798702f4a1587fc172e`, agy
-  `c269ef5458fd0df35e2fbe716b799df70ff4f613`.
-- **Sign-offs (all accepted, no withholds):** claude 16bf494, codex f086c83,
-  agy 4df3d86 (files on local branches; lines transcribed into the record).
+**Scott's Checkpoint B verdict landed: FAIL** (inbox
+`2026-07-19-0555-dalinar-scott-checkpoint-b-verdict-fail.md`). Verbatim: "none of
+those pass ... they resemble nothing like our inspiration/concept art." NOT worked
+this run (advisory round was the assigned scope); recorded here so the next run
+acts on it.
 
-**Converged architecture (codex spine + grafts):** sim owns coarse zone
-(yard/field/wild) + evolving history (age/traffic/disturbance ticks) as
-texture-free `src/sim/composition/*` data; render DERIVES the 3-band terrain
-response per chunk as a pure function of (seed, position, sim-state snapshot,
-rule version); foundation response is a wall-local per-texel modifier (NOT a
-stored tag); chunks are a disposable, re-derivable, view-window-bounded cache
-(32x32 cells, halo = max response reach, byte-level border test mandatory);
-texel density is a MEASURED knob (8 vs 16 tpc benchmarked, not frozen);
-per-sample precedence over independent fields (not a single edge enum);
-adjacency classified at t=0 from sim-side semantic door/service edges, traffic
-MODULATES over time. Passes all three addendum constraints + the disqualification
-gate; Checkpoint B is the falsifiable proof (young vs old, byte-diff).
+- **Why it failed (dalinar's working interpretation, relayed as the team's unless
+  Scott corrects):** the checkpoint used stylized-procedural STAND-IN art, burying
+  the grounding/aging signal Scott grades by under art noise. A grounding cue
+  cannot be validated on pixels that themselves read as wrong.
+- **NEW STANDING RULE (not a one-round correction):** NOTHING is surfaced to
+  Scott's eye again, at any checkpoint, unless rendered in the REAL approved
+  spike-fidelity art. The stand-in-art shortcut is retired permanently.
+- **What CP B retry must be:** (1) re-render the demo tile using the REAL
+  spike-fidelity assets the team already owns (the inn-green district: actual
+  cottages/inn/smithy/well/flora on the approved ground plate) with the decision-018
+  age/state derivation on top; same young-vs-old comparison, same sim-state-only
+  discipline. (2) If the terrain-response bands/aging rules were tuned against
+  procedural art, RE-VERIFY them against the spike spec's measured values on the
+  real assets before re-surfacing. (3) Gate question unchanged: does the building
+  read BUILT-ON, and does age-40 vs age-1 read as organic history? Scott's eye.
+  Full-district generation stays gated behind a passing retry.
+- **HOW to dispatch (implementation lane, not a new design round):** re-dispatch
+  claude-worker (owner per decision 018; worktree `lw-cpb-claude` on `claude/018-cpb`
+  @ `7ac754a` still live) to re-render the SAME tile with real assets. Amend, do
+  NOT re-run the protocol. codex-worker peer-reviews (non-author). Integrate the
+  signed commit into `round/007-village` locally, run suite + CP B harness, then
+  re-surface to Scott. This is the last gate before the round PR to main.
+- Prior CP B build (58aabce + fix 7ac754a, codex-signed at 7ac754a, integrated at
+  round head `de46462`) is what Scott rejected as stand-in art. The determinism
+  work in it is sound and carries; the ART is what must change.
 
-**Contested ruling (recorded verbatim in the record):** agy's traffic-PRIMARY
-adjacency ruled **3-1** (claude+codex+orchestrator vs agy) - refuted by the
-cold-start case (a young building has no traffic to derive a door from, but the
-gate needs young-vs-old). agy's idea grafted as the time-evolution modulator.
-NOT a 2-2 split, so NO critic seat. agy's determinism gap (random generator /
-order-dependent traffic accumulator) was a critique finding against a LOSING
-proposal, NOT a live objection against the winning (deterministic) synthesis, so
-NOT a Scott escalation; recorded verbatim for audit. agy SIGNED anyway (protocol).
+## Decision 018 (generalized composition architecture) - DONE (lineage)
 
-**Division of labor (capability-based, in the record):**
-- **codex** = derivation kernel + chunk/scale harness + the deterministic
-  generalization-district generator (byte-stability / determinism rigor; owns
-  016/017 bakers). NOT agy for the generator (its own proposal defaulted to
-  "random").
-- **claude** = Checkpoint B demo tile + authored field-zone grammar + render-side
-  consumption + capture-inspect perceptual tuning (the "does it read to Scott's
-  eye" loop from 016/017).
-- **agy** = QA / acceptance on the never-hand-touched generated district +
-  adversarial byte-stability audit (independent third eye for the gate).
+Full protocol done end to end (3 blind proposals -> 3 adversarial critiques ->
+synthesis -> 3 sign-offs). Record on round head **`5ea3aef`** (== origin
+round/007-village base). Converged: sim owns coarse zone + evolving history as
+texture-free `src/sim/composition/*`; render DERIVES the 3-band terrain response
+per chunk as a pure function of (seed, position, sim snapshot, rule version);
+chunks are a disposable re-derivable cache; adjacency classified at t=0 from
+sim-side semantic edges, traffic MODULATES over time. agy's traffic-PRIMARY
+adjacency ruled 3-1 (refuted by cold-start), grafted as the modulator. Division
+of labor: codex = derivation kernel + generalization-district generator; claude =
+CP B demo tile + field grammar + perceptual tuning; agy = QA on the untouched
+generated district. Two 018 items escalated to Scott (req `decbf284`,
+routing-confirmed, no ruling yet): ARCHITECTURE.md clarification + early
+persistence-(b) slice - gate the FULL milestone, not CP B.
 
-## Checkpoint B - BUILT + PEER-REVIEWED + INTEGRATED + SURFACED (this run)
+## Live worktrees + branches
 
-Implementation-lane (not a design round). Dispatched claude-worker as owner per
-decision 018; codex-worker as the non-author peer reviewer. All verified from end
-markers + tree + re-running the suites myself.
+**Advisory round (all LOCAL, retained on purpose until Scott rules on 019):**
+- `lw-adv-round` on `advisory/engine-stack` @ **`9bf81e9`** (holds decision 019).
+- `lw-adv-claude` on `claude/adv-engine` @ `8bc2b62` (proposal bb3d248 + critique).
+- `lw-adv-codex` on `codex/adv-engine` @ `04c9997` (proposal a492fd2 + critique).
+- `lw-adv-agy` on `agy/adv-engine` @ `cf3654a` (proposal 88d70a5 + critique).
+- `lw-adv-cursor` detached @ `ef2cfac` (read-only; cursor artifacts captured to
+  `.pka/advisory/cursor-p{1,2}-output.md`).
 
-- **claude build:** commit `58aabce` (claude/018-cpb), dispatch `018-cpb`
-  (elapsed 2158s, branch_changed=yes, exit 0). New files ONLY in
-  `src/render/town/*` (composition_kernel.gd, composition_tile_renderer.gd),
-  `tools/art/*` (bake_checkpoint_b.gd, checkpoint_b.sh, out/checkpoint_b/*.png),
-  `docs/art/village/checkpoint-b.md`. NO src/sim, NO protected path.
-- **codex review #1 -> changes-requested:** marker
-  `.team/signoffs/claude-018-cpb-58aabcef983f.md` (commit `d7b465d` on
-  codex/018-cpb-signoff). Real determinism defect: `derive_flora()` claimed
-  canonical-tuple conflict resolution but only concatenated+sorted; SW-corner
-  candidate duplicated (exact-position dup in output); harness asserted
-  repeatability not input-order invariance. The review gate working as designed.
-- **claude fix:** commit `7ac754a` (dispatch `018-cpb-fix`, 384s). Split
-  derive_flora into collect + resolve; real per-cell canonical-tuple winner
-  selection over the complete candidate set; removed the duplicate SW-corner at
-  source; added a genuine order-invariance assertion (reverse candidates,
-  re-resolve, assert byte-identical, vacuity guard). Only the 2 source files +
-  regenerated (byte-stable) captures. flora count 701 -> 700 (the removed dup).
-- **codex re-review -> signed-off:** marker
-  `.team/signoffs/claude-018-cpb-7ac754a15cd3.md` (commit `99c7c2f` on
-  codex/018-cpb-rereview). reviewed_by=codex-worker, authored_by=claude-worker
-  (distinct), reviewed_sha=7ac754a.
-- **Integration:** merged codex/018-cpb-rereview (--no-ff, brings claude 58aabce
-  +7ac754a and the signed marker) then cherry-picked the changes-requested audit
-  marker (d7b465d) into `round/007-village`. Round head **`de46462`**, pushed to
-  origin. Full active suite (`tools/run_tests.sh`) + CP B harness
-  (`tools/art/checkpoint_b.sh`) BOTH exit 0 on the integrated round; worktree
-  byte-stable after runs (determinism confirmed end-to-end). young_vs_mature diff
-  = 51310/262144 px, RESULT=PASS.
-- **Documented contract divergence (accepted by codex for the offline slice):**
-  claude's one-tile kernel derives FINAL ground RGBA in ground space instead of
-  emitting codex's two response textures for `ground.gdshader` (no shader/viewport
-  offline; the screen-space 1-2px seam floor does not apply). Does NOT waive the
-  two-texture + screen-space seam contract for codex's full-milestone kernel.
-- **Surfaced to Scott:** req `68bca91a` (to: dalinar, 2026-07-19T04:32Z).
-  Artifacts: `tools/art/out/checkpoint_b/{compare_young_vs_mature,tile_young_age1,
-  tile_mature_age40,field_zone_legend}.png` on origin/round/007-village. STOPPED
-  per instruction; did NOT proceed to full-district generation.
-
-## Checkpoint B tint question - RESOLVED this run (factual, NO code change)
-
-Cross-workspace tech review on the `68bca91a` thread asked whether the age-1 vs
-age-40 "global warm/cool tint" is an intentional age/season parameter or an
-unpinned variable. Answered DEFINITIVELY from the render code AND a pixel diff of
-the two capture states (not narration):
-- **No global lighting/color-grade parameter exists.** Base ground per zone
-  (`COL_GRASS`/`COL_WILD`/`COL_FIELD_SOIL` + mottle) is a pure function of
-  `(seed, texel coord)` with NO age/traffic/disturbance term
-  (`composition_kernel.gd:343-366`). Two large pure-yard control patches
-  (23,340 px) are **byte-identical** young-vs-mature. A scene-wide grade would
-  move them; it does not.
-- The 51,310-px (19.6%) diff decomposes as: **lane full-width wear band 56.3%**
-  (authored lane spans the whole tile width -> reads as a global shift in a
-  thumbnail, but it IS the traffic-wear grounding cue), field crop growth ~30%,
-  building+apron ~12%, wild edges ~6%.
-- Thumbnail-only priming: `compare_young_vs_mature.png` carries deliberate 22px
-  legend header tags (cool teal / warm brown) - `bake_checkpoint_b.gd:213-215`.
-  The single-tile PNGs have none.
-- **Disposition: no defect, no code change, captures NOT regenerated** (correct
-  as committed). Did NOT proceed past CP B. Write-up + heatmap:
-  `.pka/round007/cpb-tint-analysis/{FINDING.md,diff_heatmap_young_vs_mature.png}`
-  (untracked analysis artifacts in the round worktree, not committed to the round).
-- Follow-up filed to Scott: **req `72b4e7a8`** (to: dalinar, 2026-07-19T04:41Z),
-  offering (only if he asks) to report the diff with lane-wear excluded or drop
-  the legend tags via a doer. Otherwise the tint question is CLOSED and CP B
-  stands as surfaced.
-
-## ON NEXT RESPAWN
-
-- **Check `.pka/inbound/` FIRST** for Scott's Checkpoint B verdict (req
-  `68bca91a`), any reply to the tint follow-up (req `72b4e7a8`), AND the
-  still-pending architecture escalation reply (req `decbf284`
-  routed, no ruling yet: ARCHITECTURE.md clarification + early persistence-(b)
-  slice; gates the FULL-milestone src/sim work, NOT anything immediate).
-- **If Scott APPROVES the grounding bar:** dispatch codex-worker to build the
-  deterministic generalization-district generator + run the production chunk
-  baker over ground never hand-touched (decision 018 section 4), then agy-worker
-  QA on that untouched output. Only after that passes does the round PR to main
-  open. (codex owns the kernel; the CP B divergence above must be reconciled into
-  the two-texture contract there.)
-- **If Scott says it does NOT read:** re-dispatch claude-worker to retune the
-  SAME tile on `claude/018-cpb` (worktree `lw-cpb-claude` still live). Amend, do
-  NOT re-run the protocol. Likely levers if he asks: real building/flora art
-  (currently stylized-procedural, the honest caveat surfaced to him), or band
-  shape / apron strength tuning.
-- **Meshy:** not needed unless Scott wants real flora art. Guard any paid spend
-  (balance 2892; meshy_list_tasks no PENDING; check_balance before/after;
-  cost-confirm; NEVER save_to).
-
-## Live worktrees + branches (all LOCAL except round/007-village)
-
-- `lw-007-round` on `round/007-village` @ **`de46462`** (== origin; integration).
-- **`lw-cpb-claude` on `claude/018-cpb` @ `7ac754a`** (CP B build + fix; RETAINED
-  ON PURPOSE for a possible Scott-driven retune of the same tile; integrated into
-  round already).
-- **`lw-cpb-codex` on `codex/018-cpb-signoff` @ `d7b465d`** (changes-requested
-  marker; retained until round close for audit).
-- **`lw-cpb-codex2` on `codex/018-cpb-rereview` @ `99c7c2f`** (signed-off marker;
-  integrated into round; retained until round close).
-- `lw-016-render` on `claude/018-arch` @ `16bf494`, `lw-007-codex` on
-  `codex/018-arch` @ `f086c83`, `lw-007-agy` on `agy/018-arch` @ `4df3d86`
-  (decision-018 proposal/critique/signoff branches; keep by ref).
-- Older 018-spikespec branches (claude @ 7a737ff, codex @ 82358ce, agy @ f1f29f9)
-  local, cited by the spike spec; keep by ref.
-- ALL doer branches (018-cpb*, 018-arch, spikespec) are LOCAL-ONLY. Sweep guard
-  passed this run: none leaked to origin; no open team PRs.
-
-## Prior round-007 state (decisions 009-017, DONE, kept for lineage)
-
-Decisions 016 (composition/seams) + 017 (foundation base-vegetation) INTEGRATED +
-SIGNED + QA'd. Decisions 009-015 (dirt fidelity) DONE + locked (do NOT reopen).
-The spike spec (`docs/art/village/spike-spec.md`, Checkpoint A, now APPROVED) and
-the 016/017 substrate are what decision 018 builds ON, not throws away. Full
-lineage in `docs/decisions/` + git history.
-
-## Round 006 -- CLOSED (superseded)
-
-Recoverable under `refs/archive/006/*` (pushed).
+**Checkpoint B / round 007 (round branch pushed; doer branches LOCAL):**
+- `lw-007-round` on `round/007-village` @ `de46462` (== origin; integration).
+- `lw-cpb-claude` on `claude/018-cpb` @ `7ac754a` (RETAINED for the CP B retune).
+- `lw-cpb-codex` on `codex/018-cpb-signoff` @ `d7b465d`, `lw-cpb-codex2` on
+  `codex/018-cpb-rereview` @ `99c7c2f` (CP B review markers; keep until round close).
+- 018-arch + spikespec branches local, kept by ref for lineage.
+- ALL doer branches LOCAL-ONLY. Sweep this run: guard PASSED (no claude/*|codex/*|
+  agy/* on origin), no advisory branch on origin, no open team PRs.
 
 ## Durable lessons (paid for repeatedly; honor them)
 
 - **A dispatch is synchronous; nothing external re-invokes you when a detached
-  proc finishes.** Only supervisor respawn re-invokes you. Own tool calls cap
-  ~600s. EITHER block in one call OR detach (`setsid bash -c "..." &`) + poll the
-  end marker across calls (pass a long `timeout` on the poll loop). This run:
-  proposals ~80-330s, critiques ~90-270s, sign-offs ~40-50s; ran 3-in-parallel
-  into separate worktrees each phase. `setsid` prints "[Done]" immediately (setsid
-  exits after forking) while dispatch.sh keeps running detached - verify via start
-  markers + `ps`, NOT the "[Done]" line.
-- **Verify from the end marker + tree, NEVER exit code or narration.** branch_sha
-  before/after + branch_changed + uncommitted_work; then confirm the committed
-  artifact past the base SHA. uncommitted_work=yes is usually harmless scratch.
-- **Provision required-reading files INTO each doer worktree.** This run's codex
-  block was because `.pka/round007/.../assignment.md` is untracked in main and so
-  absent from the 7aec340-based worktrees. Copy any referenced doc into each
-  worktree before dispatch, or inline it in the prompt. (Inlining the addendum
-  constraints let claude/agy proceed; codex correctly refused to fabricate.)
-- **agy adapter needs `--add-dir WORKDIR`** (hardcoded now); still verify
+  proc finishes.** EITHER block in one call OR detach (`setsid bash -c "..." &`) +
+  poll the end marker across calls (long `timeout` on the poll loop). This run:
+  proposals ~210-320s, critiques ~80-235s, ran 3-4 in parallel into separate
+  worktrees each phase.
+- **Verify from the end marker + tree, NEVER exit code or narration.** This run
+  caught 3 dead phase-1 dispatches (branches at base + no live procs) that a
+  clean exit / plausible transcript would have hidden.
+- **Provision required-reading files INTO each worktree.** Advisory specs went to
+  `advisory-inputs/`, peer proposals to `advisory-peers/` (both gitignored via
+  `.git/info/exclude`; doers told not to commit them).
+- **cursor adapter** = read-only critic seat (`cursor-agent -p --mode ask --model
+  auto`); its STDOUT is the artifact (branch_changed=NO is correct). Free plan
+  forces `--model auto` (Composer routing); record the model line it self-reports.
+- **agy adapter needs `--add-dir WORKDIR`** (hardcoded); still verify
   branch_changed=yes so it did not no-op into a scratch project.
-- **Doer seats NEVER push to origin.** Only the orchestrator, only the round
-  branch. Proposals/critiques/sign-offs stay on LOCAL doer branches, cited by SHA.
-- **Cross-workspace asks to Scott: address `to: dalinar`.** Use the
-  request-crossworkspace skill / `/home/scott/tools/agent-bus/bin/request-crossworkspace`.
+- **Doer seats NEVER push to origin.** Only the orchestrator, only a round branch.
+- **Cross-workspace asks to Scott: `request-crossworkspace --from longwalk --to
+  dalinar --summary "..." --body "..."`** (`--from`/`--body` are required).
 
 ## Meshy
 
-Key live at `~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in `.mcp.json`.
-Balance **2892**. NOT needed for Checkpoint B (authored field uses existing
-crops). Any paid spend needs its own guard (meshy_list_tasks no PENDING,
-check_balance before/after, cost-confirm, NEVER save_to).
+Key at `~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in `.mcp.json`.
+Balance 2892. Guard any paid spend (meshy_list_tasks no PENDING, check_balance
+before/after, cost-confirm, NEVER save_to). May be needed for the CP B retry ONLY
+if real character/flora art must be generated - but CP B retry should first use
+the REAL assets the team ALREADY owns (the inn-green district), per Scott's rule.
 
 ## Active decision records
 
-001-008 on main. Round-007 decisions **009-018** on the round branch. 018
-(generalized composition architecture) DONE + SIGNED; its Checkpoint B slice
-BUILT + integrated this run (round head de46462). Two items in 018 escalated to
-Scott (request_id decbf284, routing-confirmed this run, no ruling yet):
-ARCHITECTURE.md clarification + early persistence-(b) slice - gate the full
-milestone, not CP B.
+001-008 on main. Round-007 decisions **009-018** on the round branch (unmerged).
+**019 (engine/stack advisory) on `advisory/engine-stack` @ 9bf81e9 (local),
+awaiting Scott's ruling.** Numbering: advisory branch's docs/decisions only shows
+001-008 (009-018 live on the round branch); 019 allocated globally to avoid
+collision, per assignment.
 
 ## Notes for the next run
 
 - **Dashboard `/team` tab is KILLED by Scott** (inbox `2026-07-18-0445`): do NOT
-  POST to `dashboard.int.sentania.net/api/team`. A missing POST is compliance.
+  POST to `dashboard.int.sentania.net/api/team`. Missing POST is compliance.
 - `gh pr edit` is broken (GraphQL projectCards). Use REST `gh api -X PATCH
-  repos/sentania-labs/longwalk/pulls/N ...` if ever needed.
-- No round PR is open (correct; the round PR to main opens only for the
-  full-village milestone once Scott confirms the art bar on a GENERATED district,
-  i.e. after the generalization test). Round is mid-milestone.
-- Inbox: `decbf284` reply LANDED this run (routing confirmation only, no Scott
-  ruling yet; confirms CP B unblocked, which it was). CP B verdict req `68bca91a`
-  filed to Scott this run; reply pending. Older UUID partials
-  (6110faed/c3ffe894/d03ff384/fac1635d) superseded/resolved.
-- **CP B captures regenerate `.import` sidecars** in the round worktree when the
-  bake runs; they are gitignored (worktree stayed clean). The committed PNGs are
-  byte-stable across re-bakes.
-- Sweep this run: no leaked doer branches on origin (guard passed); no open team
-  PRs. Two blocked markers on codex/018-arch history (173735Z resolved-flagged;
-  030642Z is the same prior-run provisioning gap that was resolved + re-dispatched
-  -> proposal 7368784 landed) - both stale, NOT live, no action.
+  repos/sentania-labs/longwalk/pulls/N ...` if needed.
+- No round PR is open (correct). The round PR to main opens only for the
+  full-village milestone once Scott confirms the art bar on a GENERATED district.
+- **Inbox status:** CP B FAIL verdict (0555) = ACTED-ON-BY-RECORDING (retry is the
+  top next action). Advisory assignment (0510/0530) = DONE (019). CP B tint
+  follow-up (req 72b4e7a8) + 018 escalation (req decbf284) = pending Scott, no new
+  reply. CP B verdict req 68bca91a = ANSWERED by the 0555 FAIL. Older UUID
+  partials superseded.
+- Sweep this run: clean. No leaked doer branches on origin, no advisory branch on
+  origin, no open team PRs, nothing in flight.
 
-**Last updated:** 2026-07-19 (CP B TINT QUESTION RESOLVED. A cross-workspace tech
-review on the 68bca91a thread asked whether the age-1-vs-age-40 global warm/cool
-tint is an intentional age/season parameter or an unpinned variable. Answered
-factually from the render code + a pixel diff of the two capture states: there is
-NO global grade - base ground is a pure function of (seed, coord) with no
-age/traffic/disturbance term, PROVEN by two pure-yard control patches [23,340 px]
-being byte-identical young-vs-mature. The 51,310-px diff is 56% full-width
-lane-wear band + 30% field crop growth + 12% building apron + 6% wild edges, all
-intended localized state responses; the thumbnail's "global tint" read is the
-full-width lane plus deliberate cool/warm legend header tags. NO defect, NO code
-change, captures NOT regenerated. Filed proof + heatmap follow-up to Scott [req
-72b4e7a8]. Did NOT proceed past Checkpoint B. STILL HOLDING for Scott's
-grounding verdict. Nothing in flight. -- prior run:  Checkpoint B BUILT +
-peer-reviewed + integrated +
-surfaced to Scott. Dispatched claude-worker [owner] -> commit 58aabce; codex peer
-review returned changes-requested on a real determinism defect [flora conflict
-resolution claimed but not implemented + exact-position dup + order-invariance
-untested] -> claude fixed at 7ac754a [genuine canonical-tuple resolution + order-
-invariance assertion] -> codex signed-off at 7ac754a. Integrated both markers +
-claude work into round/007-village [head de46462, pushed]; full suite + CP B
-harness green, byte-stable [determinism confirmed]. Surfaced the young-vs-mature
-demo tile + field-zone artifacts to Scott [req 68bca91a, to: dalinar]; STOPPED at
-Checkpoint B per instruction, did NOT proceed to full-district generation.
-HOLDING for Scott's grounding-bar verdict. Sweep clean, nothing in flight. All
-verified from end markers + tree + re-running the suites myself.)
+**Last updated:** 2026-07-19 (ADVISORY ROUND engine/stack DONE. Re-dispatched the
+3 dead phase-1 dispatches [claude/codex/cursor - verified dead from branch heads
+at base + no live procs, not narration], all 4 proposals landed + verified;
+dispatched + verified 4 adversarial critiques [genuine round, real attacks +
+concessions + conditional constitution-violation claims recorded verbatim];
+synthesized + wrote decision 019 with 4-ballot arithmetic [Q1 4-0 Godot, Q2 3-1
+2D-default+mandatory-Godot-3D-pilot w/ claude dissent verbatim, Q3 4-0
+reject-Unity-Netcode + Godot-headless-first, Q4 4-0 minimal-infra]; no 2-2 tie so
+critic seat NOT invoked [cursor stayed advisory]; committed 019 @ 9bf81e9 on LOCAL
+advisory/engine-stack; surfaced to Scott req ae56c8b2. HOLDING for his ruling,
+nothing pending on the advisory thread. SEPARATELY recorded Scott's Checkpoint B
+FAIL verdict [0555] + the new STANDING RULE (never surface stand-in art; retry CP
+B with real spike-fidelity assets) as the TOP next action for the next run. Sweep
+clean, nothing in flight.)
