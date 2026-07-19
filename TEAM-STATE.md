@@ -47,8 +47,13 @@ floaters are a zoning problem (sunflowers -> field zone, lanes stay clean).
 "built on the ground" is genuinely interpretive). Protected paths: NONE this
 sub-round (spec is analysis + a doc). `src/sim/` protected + untouched.
 
-=== WHERE WE ARE: **CHECKPOINT A SURFACED TO SCOTT. AWAITING HIS APPROVAL. NOTHING
-IN FLIGHT. DO NOT START IMPLEMENTATION until he approves/corrects the spec.** ===
+=== WHERE WE ARE: **CHECKPOINT A STILL AWAITING SCOTT'S VERDICT. NOTHING IN FLIGHT.
+DO NOT START IMPLEMENTATION until he approves/corrects the spec.** The `d03ff384`
+reply LANDED but is **routing-only**: dalinar confirmed delivery of the spec to
+Scott's queue (`scott/reports/2026-07-19-longwalk-checkpoint-a-village-spike-spec.md`)
+and states verbatim "No response from him yet." It is NOT Scott's verdict. Continue
+holding. **ADDENDUM (2255, Scott's own) received + folded into the 018 scope** (see
+below); it does NOT unblock Checkpoint A and does NOT change the spec. ===
 
 **The Checkpoint-A deliverable is DONE, committed, pushed:**
 `docs/art/village/spike-spec.md` on **origin/round/007-village @ `7aec340`**
@@ -104,6 +109,15 @@ match his eye (cheap to correct now); (3) adjacency vs a fixed-sun lighting term
   contested synthesis question (critic only on 2-2). NOTE: 018 will touch protected
   paths (`src/render/town/*`; possibly `src/sim/` for zone tags) -> needs a signed
   decision record.
+  **ADDENDUM CONSTRAINTS ON 018 (Scott, 2255 - HARD, build in from the start, do NOT
+  bolt on after):** (1) terrain response must be a FUNCTION of sim state + time
+  (structure age, traffic/usage, zone designations), not a one-time static bake -
+  sim owns what happened, render/bake derives appearance; (2) incremental chunk
+  RE-bake is a first-class scale-contract requirement (same machinery as 10k-scale;
+  evolution and scale are ONE problem); (3) **any design producing static output
+  from static input is DISQUALIFIED at the 018 architecture gate.** Full text folded
+  into `.pka/round007/composition/rules/assignment.md` (ADDENDUM section) and the
+  inbox file `2026-07-18-2255-...`. The 018 proposal dispatches MUST carry these.
 - **If he answers the field fork specifically:** fold it into the decision-018 scope.
 - **If he wants a fresh Windows build:** he said no fresh build yet in the 22:40
   message, so only build if he changes that. Prior pattern: export gate + xvfb boot
@@ -188,16 +202,25 @@ record.
 - No round PR is open (correct; opens only for the full-village milestone once Scott
   confirms the art bar on a generated district). Round is mid-milestone, NOT closing;
   leaked-branch sweep guard deferred to round close (verified no leak this run anyway).
-- Inbox processed through `2026-07-18-2240` (this assignment) + the fac1635d/0330
-  replies (subsumed). UUID partials 6110faed/c3ffe894 superseded. Stale codex-worktree
-  inbound (308f0465/a1c32de4) noted in prior state, no action.
+- Inbox processed through `2026-07-18-2255` (the world-scale/organic-evolution
+  ADDENDUM, folded into 018 scope this run) + the `d03ff384` reply (routing-only, no
+  Scott verdict yet - Checkpoint A still gated). fac1635d/0330 subsumed. UUID
+  partials 6110faed/c3ffe894 superseded. Stale codex-worktree inbound
+  (308f0465/a1c32de4) noted prior, no action.
+- Sweep this run: no leaked doer branches on origin (guard passed); no open team PRs;
+  no LIVE blocked markers (the `codex-worker-20260718T173735Z` marker on all three
+  018 branches is the RESOLVED decision-016 flora-regen block, resolved 18:07:45Z,
+  carried on the round head - historical, no action).
 
-**Last updated:** 2026-07-19 (CHECKPOINT A DELIVERED. Full protocol ran clean: 3
-blind spike-spec proposals -> 3 adversarial critiques -> orchestrator synthesis. The
-annotated spike spec `docs/art/village/spike-spec.md` is committed + pushed at round
-head `7aec340` and surfaced to Scott [req d03ff384] for approval. Key converged
-finding: "built on the ground" = a 3-band adjacency-driven ground-response stack with
-clamped-ratio darkening + a precedence-based zone grammar + a hybrid scale contract;
-the FIELD zone is NOT in the spike [surfaced as a gating question]. Scale-tag question
-ruled 3-1, agy dissent verbatim, no critic. HOLDING at Checkpoint A - implementation
-is gated on Scott's approval. Nothing in flight at turn end.)
+**Last updated:** 2026-07-19 (STILL HOLDING AT CHECKPOINT A. Verified the `d03ff384`
+reply is routing-only - dalinar delivered the spec to Scott's queue but "No response
+from him yet"; it is NOT Scott's verdict, so implementation stays gated. This run's
+work: Scott's own world-scale/organic-evolution ADDENDUM [2255] arrived and was folded
+durably into the decision-018 scope as three HARD constraints [terrain response =
+function of sim state + time; incremental chunk re-bake as first-class scale
+requirement; static-in/static-out designs DISQUALIFIED at the 018 gate] - recorded in
+`.pka/round007/composition/rules/assignment.md` ADDENDUM section and mirrored into the
+ON RESPAWN block above so the 018 proposal dispatches carry them from the start. Spec
+unchanged, not re-run, not re-surfaced [addendum is architecture-level, Scott-authored,
+does not correct the spec]. Sweep clean: no leaked branches, no open PRs, only a
+resolved historical blocked marker. Nothing in flight at turn end.)
