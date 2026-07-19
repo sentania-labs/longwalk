@@ -21,135 +21,142 @@ Keep the heading structure stable (orchestrator + Dashboard parse by heading).
 
 ## Current assignment
 
-**GENERALIZED COMPOSITION: zone grammar + procedural terrain response.** FULL
-PROTOCOL. New milestone/redirection from Scott, relayed by dalinar 2026-07-18T22:40Z
-(`.pka/inbound/orchestrator/2026-07-18-2240-dalinar-scott-verdict-generalize-composition-rules.md`,
-authoritative, read in full). Working scope doc:
-`.pka/round007/composition/rules/assignment.md`. Sub-round of round 007, stacks
-on round head (now `7aec340` on origin/round/007-village).
+**GENERALIZED COMPOSITION: build toward Checkpoint B (one grounded-building demo
+tile).** Scott APPROVED Checkpoint A (the spike spec) pragmatically on
+2026-07-19T02:45Z (`.pka/inbound/orchestrator/2026-07-19-0245-dalinar-scott-
+checkpoint-a-approved-build.md`, "I don't fully understand but let's build
+something to iterate on"). Checkpoint A gated the architecture decision; that
+decision (**018**) is now DONE, signed, and pushed. The milestone's remaining
+Scott gate is **Checkpoint B**: ONE grounded-building demo tile for his eye
+BEFORE any full-district generation. Working scope doc:
+`.pka/round007/composition/rules/assignment.md` (+ 2255 ADDENDUM). Sub-round of
+round 007; round head now **`5ea3aef`** on origin/round/007-village.
 
-**THE REDIRECTION (authoritative):** the decision-016/017 seam+foundation-veg work
-is DONE but Scott ruled it "solid progress, not there yet": buildings still read
-"stitched on / floating," sunflowers sit in the road not a field. The real tell is
-NOT vegetation at the seams: **the GROUND does not respond to the buildings.** STOP
-polishing the one hand-tuned inn-green district. The milestone is now to make the
-SYSTEM produce grounded buildings + zoned flora ANYWHERE and prove it on ground
-never hand-touched (Scott's 1k x 1k / 10k x 10k scale question). Four binding
-artifacts: (1) annotated spike spec [Checkpoint A], (2) composition rules = zone
-grammar + auto terrain-response bake, (3) generalization test = QA a NEW never-
-polished district, (4) scale contract in the architecture decision. Two cheap
-Scott checkpoints: A = the spike spec (gates implementation), B = ONE grounded-
-building demo tile (gates full-district generation). The decision-017 floater-fork
-questions (escalation `fac1635d`) are SUBSUMED by this reframe: no fresh build yet;
-floaters are a zoning problem (sunflowers -> field zone, lanes stay clean).
+**Lane:** the architecture round was FULL PROTOCOL (done). Checkpoint B
+implementation is a scoped IMPLEMENTATION of the decided design (not a fresh
+design round): dispatch the assigned owner, peer-sign, integrate.
 
-**Lane:** FULL PROTOCOL (Scott-directed; a zone grammar + operational definition of
-"built on the ground" is genuinely interpretive). Protected paths: NONE this
-sub-round (spec is analysis + a doc). `src/sim/` protected + untouched.
+=== WHERE WE ARE: **DECISION 018 DONE + SIGNED + PUSHED. NOTHING IN FLIGHT.
+NEXT ACTION = dispatch Checkpoint B implementation (see ON RESPAWN).** Checkpoint
+B is buildable NOW: it is offline, render + tools/art only, NO protected path, NO
+persistence store (passes `age` as a literal argument). The two Scott escalations
+filed this run gate the FULL-milestone sim-side work only, NOT Checkpoint B. ===
 
-=== WHERE WE ARE: **CHECKPOINT A STILL AWAITING SCOTT'S VERDICT. NOTHING IN FLIGHT.
-DO NOT START IMPLEMENTATION until he approves/corrects the spec.** The `d03ff384`
-reply LANDED but is **routing-only**: dalinar confirmed delivery of the spec to
-Scott's queue (`scott/reports/2026-07-19-longwalk-checkpoint-a-village-spike-spec.md`)
-and states verbatim "No response from him yet." It is NOT Scott's verdict. Continue
-holding. **ADDENDUM (2255, Scott's own) received + folded into the 018 scope** (see
-below); it does NOT unblock Checkpoint A and does NOT change the spec. ===
+## Decision 018 (generalized composition architecture) - DONE this run
 
-**The Checkpoint-A deliverable is DONE, committed, pushed:**
-`docs/art/village/spike-spec.md` on **origin/round/007-village @ `7aec340`**
-(orchestrator-authored synthesis; DRAFT pending Scott). It is the operational
-definition of "built on the ground," synthesized via full protocol:
-- **Phase 1 blind proposals** (each independently measured the spike, committed on
-  its own LOCAL branch): claude `418572c1` (claude/018-spikespec, lw-016-render),
-  codex `2ea3f981` (codex/018-spikespec, lw-007-codex), agy `cfc22d46`
-  (agy/018-spikespec, lw-007-agy). All verified from end markers + tree; blind
-  integrity held (agy's untracked `*_prop.md` were STALE base-veg scratch from a
-  prior run, mtime 16:06, not this round's proposals).
-- **Phase 2 adversarial critiques** (each critiqued the other two, committed on the
-  same branches): claude `7a737ff4`, codex `82358ce1`, agy `f1f29f9f`. Real
-  adversarial work (re-measured + ruled contested numbers).
-- **Phase 3 synthesis** = the spec at `7aec340`.
+Full protocol ran end to end: 3 blind proposals -> (codex re-dispatch after a
+provisioning-gap block) -> 3 adversarial critiques -> synthesis -> 3 sign-offs.
+Record: `docs/decisions/018-generalized-composition-architecture.md` on round
+head **`5ea3aef`** (== origin). All verified from end markers + tree.
 
-**Converged findings in the spec:** "built on the ground" = a 3-band ground-response
-stack (contact SEAM ~3-6px + altered-ground APRON + WEAR/recovery ~40px total);
-adjacency-driven orientation asymmetry (>3x width sunlit/lane-facing vs shaded/
-garden; a symmetric decal is the stitched-on look we kill); darkening = clamped
-RATIO to local ground luminance (open grass itself varies ~30L); precedence-based
-zone grammar (lane+door approaches exclude rooted flora FIRST; foundation response
-is a wall-local modifier; then yard; then authored field/wild); hybrid scale
-contract (seam screen-space w/ 1-2px floor; apron/yard RELATIVE to a LOCAL ground
-feature not whole-building footprint/height). **The FIELD zone is NOT evidenced by
-the spike** (only one small occluded smithy flower bed; no broad crop field) - this
-is a real finding surfaced to Scott, because his "sunflowers in a field" needs an
-AUTHORED field zone, not a measured one.
+- **Proposals (blind, local doer branches):** claude `ba233c6479f14866d131d5b6dba3589a74e34fd5`
+  (claude/018-arch), codex `7368784e30a05b9c2bce98664dfcf2ffe0a77580`
+  (codex/018-arch; first dispatch correctly BLOCKED on a missing assignment file,
+  an orchestrator provisioning gap, resolved + re-dispatched same run), agy
+  `474c9012dbda234084537b8aaef074d110353dcd` (agy/018-arch).
+- **Critiques (adversarial, genuine):** claude `792520adb6c08a62425c1edb7f8ec039194c09eb`,
+  codex `25ae1fe74ed2804488300798702f4a1587fc172e`, agy
+  `c269ef5458fd0df35e2fbe716b799df70ff4f613`.
+- **Sign-offs (all accepted, no withholds):** claude 16bf494, codex f086c83,
+  agy 4df3d86 (files on local branches; lines transcribed into the record).
 
-**Contested ruling (recorded verbatim in the spec):** scale-tag absolute-vs-relative
-ruled 3-1 against agy's blanket-ABSOLUTE model (refuted by measurement: baseline
-variance + orientation asymmetry; agy conceded the luma-ratio half in critique). NOT
-a 2-2 split, so NO critic seat invoked. agy's dissent recorded verbatim.
+**Converged architecture (codex spine + grafts):** sim owns coarse zone
+(yard/field/wild) + evolving history (age/traffic/disturbance ticks) as
+texture-free `src/sim/composition/*` data; render DERIVES the 3-band terrain
+response per chunk as a pure function of (seed, position, sim-state snapshot,
+rule version); foundation response is a wall-local per-texel modifier (NOT a
+stored tag); chunks are a disposable, re-derivable, view-window-bounded cache
+(32x32 cells, halo = max response reach, byte-level border test mandatory);
+texel density is a MEASURED knob (8 vs 16 tpc benchmarked, not frozen);
+per-sample precedence over independent fields (not a single edge enum);
+adjacency classified at t=0 from sim-side semantic door/service edges, traffic
+MODULATES over time. Passes all three addendum constraints + the disqualification
+gate; Checkpoint B is the falsifiable proof (young vs old, byte-diff).
 
-**Checkpoint A filed to Scott** `to: dalinar`, request_id **`d03ff384`**
-(`/home/scott/.pka/vault/agents/riker/inbox/2026-07-19-0231-longwalk-to-dalinar-d03ff384.md`;
-reply lands in `.pka/inbound/d03ff384*.md`). Asked 3 gating questions: (1) the
-field-zone-not-in-spike fork (point us at a field reference / approve authoring a
-bed / make sunflowers foundation planting); (2) does the operational definition
-match his eye (cheap to correct now); (3) adjacency vs a fixed-sun lighting term.
+**Contested ruling (recorded verbatim in the record):** agy's traffic-PRIMARY
+adjacency ruled **3-1** (claude+codex+orchestrator vs agy) - refuted by the
+cold-start case (a young building has no traffic to derive a door from, but the
+gate needs young-vs-old). agy's idea grafted as the time-evolution modulator.
+NOT a 2-2 split, so NO critic seat. agy's determinism gap (random generator /
+order-dependent traffic accumulator) was a critique finding against a LOSING
+proposal, NOT a live objection against the winning (deterministic) synthesis, so
+NOT a Scott escalation; recorded verbatim for audit. agy SIGNED anyway (protocol).
 
-## ON RESPAWN: check `.pka/inbound/` for Scott's steer (req d03ff384) FIRST.
+**Division of labor (capability-based, in the record):**
+- **codex** = derivation kernel + chunk/scale harness + the deterministic
+  generalization-district generator (byte-stability / determinism rigor; owns
+  016/017 bakers). NOT agy for the generator (its own proposal defaulted to
+  "random").
+- **claude** = Checkpoint B demo tile + authored field-zone grammar + render-side
+  consumption + capture-inspect perceptual tuning (the "does it read to Scott's
+  eye" loop from 016/017).
+- **agy** = QA / acceptance on the never-hand-touched generated district +
+  adversarial byte-stability audit (independent third eye for the gate).
 
-- **If he APPROVES the spec (with or without corrections):** apply any corrections
-  to `docs/art/village/spike-spec.md`, then open the **decision-018 architecture
-  round** (FULL PROTOCOL): zone-data model (baked per-cell tag vs render-time
-  distance-field derivation - touches sim/render separation, may need an
-  ARCHITECTURE.md escalation, flag it), terrain-response bake design on the existing
-  substrate, the FULL scale contract (bake units / memory / file size / bake time
-  per 1k+10k chunk), and the generalization-test district (NEW, never hand-touched).
-  Build ONE grounded-building demo tile, then STOP at **Checkpoint B** for his eye
-  before any full-district generation. Record decision 018 with four ballots on any
-  contested synthesis question (critic only on 2-2). NOTE: 018 will touch protected
-  paths (`src/render/town/*`; possibly `src/sim/` for zone tags) -> needs a signed
-  decision record.
-  **ADDENDUM CONSTRAINTS ON 018 (Scott, 2255 - HARD, build in from the start, do NOT
-  bolt on after):** (1) terrain response must be a FUNCTION of sim state + time
-  (structure age, traffic/usage, zone designations), not a one-time static bake -
-  sim owns what happened, render/bake derives appearance; (2) incremental chunk
-  RE-bake is a first-class scale-contract requirement (same machinery as 10k-scale;
-  evolution and scale are ONE problem); (3) **any design producing static output
-  from static input is DISQUALIFIED at the 018 architecture gate.** Full text folded
-  into `.pka/round007/composition/rules/assignment.md` (ADDENDUM section) and the
-  inbox file `2026-07-18-2255-...`. The 018 proposal dispatches MUST carry these.
-- **If he answers the field fork specifically:** fold it into the decision-018 scope.
-- **If he wants a fresh Windows build:** he said no fresh build yet in the 22:40
-  message, so only build if he changes that. Prior pattern: export gate + xvfb boot
-  verify, build at `/home/scott/claude/longwalk-build-round007/`.
-- **DO NOT** start implementation, write decision 018, design the bake, or touch code
-  before his approval. Checkpoint A is a hard gate by the assignment's own structure.
-- **DO NOT** re-run the spec protocol; it is done. If he corrects the spec, amend the
-  doc, do not re-dispatch a new round.
+## ON RESPAWN: check `.pka/inbound/` FIRST, then dispatch Checkpoint B
+
+- **Inbox:** watch for the Scott escalation reply (**request_id `decbf284`**,
+  filed this run -> lands `.pka/inbound/decbf284*.md`): ARCHITECTURE.md
+  clarification + early persistence-(b) slice. His ruling gates the FULL-milestone
+  `src/sim/` persistence work. It does NOT gate Checkpoint B - do not wait on it
+  to build CP B.
+- **NEXT ACTION = dispatch Checkpoint B implementation to claude-worker** (the
+  assigned owner per decision 018). Scope from decision 018 section "Checkpoint B":
+  ONE 32x32-cell tile, one cottage + short lane + door approach + yard + one
+  AUTHORED sunflower field (spike palette + grammar, team-authored: warm dark
+  cultivated bed, coherent clumps/short rows, soft coverage-broken edges, clean
+  access gap to lane, NO crops in yard/travel core) + a wild edge. Rendered from
+  TWO sim snapshots of identical geometry+seed: age-1 low-use vs age-40 high-use,
+  with a byte-difference assertion (unchanged inputs byte-stable, changed inputs
+  observably different). OFFLINE bake, `age` as an explicit literal argument, in
+  `src/render/town/*` + `tools/art/*` ONLY (neither protected; NO `src/sim/`
+  change, NO persistence store, NO runtime cache). This proves the ground
+  responds to the building as a RULE, not a painted patch.
+  - claude may need a small piece of codex's kernel contract first (the
+    response-field channel shape). Decision 018 says freeze the channel contract
+    before the render slice starts. Judgment call: either dispatch a tiny codex
+    "freeze the CP B channel contract + minimal one-chunk baker" slice first, then
+    claude consumes+tunes+authors the field; OR let claude build the whole CP B
+    tile end-to-end (kernel-for-one-tile + render + field) since CP B is
+    deliberately the smallest slice and does not need the full chunk harness. Lean
+    toward the latter for speed to Scott's eye, but codex owns the kernel design,
+    so if claude's one-tile kernel diverges from the decided contract, reconcile.
+  - CP B is CODE -> needs a pre-PR peer sign-off marker under `.team/signoffs/`
+    from a NON-author resident before it integrates to the round branch (even
+    though no protected path). Then integrate locally, run the suite, and
+    **STOP at Checkpoint B: surface the demo tile (mature + young side by side)
+    to Scott (to: dalinar) for his eye. Do NOT proceed to full-district
+    generation until he approves.**
+- **If Scott corrects decision 018 or the spec at Checkpoint B:** amend, do not
+  re-run the protocol.
+- **Meshy:** the authored sunflower field uses EXISTING crops the team holds
+  (spike palette). No paid spend needed for CP B. If in-context flora regen is
+  genuinely needed, guard it (balance 2892; meshy_list_tasks no PENDING;
+  check_balance before/after; cost-confirm; NEVER save_to).
 
 ## Live worktrees + branches (all LOCAL except round/007-village)
 
-- `lw-007-round` on `round/007-village` @ **`7aec340`** (== origin; integration +
-  where the orchestrator authored the spec).
-- `lw-016-render` on `claude/018-spikespec` @ `7a737ff4` (claude proposal+critique).
-- `lw-007-codex` on `codex/018-spikespec` @ `82358ce1` (codex proposal+critique;
-  has untracked measurement scratch, harmless).
-- `lw-007-agy` on `agy/018-spikespec` @ `f1f29f9f` (agy proposal+critique; untracked
-  measurement scripts + STALE `*_prop.md` base-veg scratch, harmless).
-- Older branches preserved by ref (iter4 base-veg): claude/017-tune @ was reset;
-  codex/017-tune-signoff, agy/017-qa, agy/016-baseveg, claude/016-composition etc.
-  still exist locally, not needed for 018.
-- Doer 018 branches are LOCAL-ONLY (verified: none leaked to origin this run).
+- `lw-007-round` on `round/007-village` @ **`5ea3aef`** (== origin; integration +
+  where decision 018 was authored/signed).
+- `lw-016-render` on `claude/018-arch` @ `16bf494` (claude proposal ba233c6 +
+  critique 792520a + signoff).
+- `lw-007-codex` on `codex/018-arch` @ `f086c83` (codex proposal 7368784 +
+  critique 25ae1fe + signoff; note it also carries the resolved block marker
+  1a25b61 in history - harmless).
+- `lw-007-agy` on `agy/018-arch` @ `4df3d86` (agy proposal 474c901 + critique
+  c269ef5 + signoff).
+- Older 018-spikespec branches (claude/018-spikespec @ 7a737ff, codex @ 82358ce,
+  agy @ f1f29f9) still exist locally, cited by the spike spec; keep by ref.
+- Doer 018-arch branches are LOCAL-ONLY (sweep guard passed: none leaked to
+  origin this run).
 
-## Prior round-007 state (decisions 010-017, DONE, kept for lineage)
+## Prior round-007 state (decisions 009-017, DONE, kept for lineage)
 
-Decision 016 (composition/seams) + 017 (foundation base-vegetation) INTEGRATED +
-SIGNED + QA'd, round head advanced 3c4c905 -> ... -> a6f7ddd (spec commit ->
-7aec340). Decisions 009-015 (dirt fidelity) all on the round branch, DONE + locked
-(do NOT reopen dirt/texture work). Full lineage in `docs/decisions/` + git history.
-The seam-grading (016) and foundation-veg (017) work IS the substrate the new
-terrain-response bake builds ON ("aim it at rules instead of one district") - do not
-throw it away.
+Decisions 016 (composition/seams) + 017 (foundation base-vegetation) INTEGRATED +
+SIGNED + QA'd. Decisions 009-015 (dirt fidelity) DONE + locked (do NOT reopen).
+The spike spec (`docs/art/village/spike-spec.md`, Checkpoint A, now APPROVED) and
+the 016/017 substrate are what decision 018 builds ON, not throws away. Full
+lineage in `docs/decisions/` + git history.
 
 ## Round 006 -- CLOSED (superseded)
 
@@ -157,70 +164,67 @@ Recoverable under `refs/archive/006/*` (pushed).
 
 ## Durable lessons (paid for repeatedly; honor them)
 
-- **A dispatch is synchronous; nothing external re-invokes you when a detached proc
-  finishes.** Only supervisor respawn re-invokes you. Own tool calls cap ~600s
-  (bash default is 120s - pass a longer `timeout` param on poll loops). EITHER block
-  in one call OR detach (setsid) + poll the end marker across calls. This run:
-  proposals ran ~240-360s, critiques ~90-235s, dispatched 3-in-parallel into
-  separate worktrees, polled end markers. `setsid bash -c "..." &` returns control
-  immediately while dispatch.sh keeps running detached - that is correct, verify via
-  start markers + pgrep, not the "[Done]" line.
+- **A dispatch is synchronous; nothing external re-invokes you when a detached
+  proc finishes.** Only supervisor respawn re-invokes you. Own tool calls cap
+  ~600s. EITHER block in one call OR detach (`setsid bash -c "..." &`) + poll the
+  end marker across calls (pass a long `timeout` on the poll loop). This run:
+  proposals ~80-330s, critiques ~90-270s, sign-offs ~40-50s; ran 3-in-parallel
+  into separate worktrees each phase. `setsid` prints "[Done]" immediately (setsid
+  exits after forking) while dispatch.sh keeps running detached - verify via start
+  markers + `ps`, NOT the "[Done]" line.
 - **Verify from the end marker + tree, NEVER exit code or narration.** branch_sha
   before/after + branch_changed + uncommitted_work; then confirm the committed
-  artifact exists past the base SHA. uncommitted_work=yes is usually harmless scratch
-  (.pka noise, measurement scripts) - check WHAT it is, the deliverable is the commit.
-- **agy adapter hardcodes `--add-dir WORKDIR`** (no longer a manual flag), but still
-  verify branch_changed=yes so it did not no-op into a scratch project.
-- **Doer seats NEVER push to origin.** Only the orchestrator, only the round branch.
-  Proposals/critiques stay on LOCAL doer branches, cited by SHA (not merged to the
-  round branch, no sign-off gate - they are analysis artifacts, not code).
-- **Cross-workspace asks to Scott: address `to: dalinar`, NOT `to: scott`.** Use the
+  artifact past the base SHA. uncommitted_work=yes is usually harmless scratch.
+- **Provision required-reading files INTO each doer worktree.** This run's codex
+  block was because `.pka/round007/.../assignment.md` is untracked in main and so
+  absent from the 7aec340-based worktrees. Copy any referenced doc into each
+  worktree before dispatch, or inline it in the prompt. (Inlining the addendum
+  constraints let claude/agy proceed; codex correctly refused to fabricate.)
+- **agy adapter needs `--add-dir WORKDIR`** (hardcoded now); still verify
+  branch_changed=yes so it did not no-op into a scratch project.
+- **Doer seats NEVER push to origin.** Only the orchestrator, only the round
+  branch. Proposals/critiques/sign-offs stay on LOCAL doer branches, cited by SHA.
+- **Cross-workspace asks to Scott: address `to: dalinar`.** Use the
   request-crossworkspace skill / `/home/scott/tools/agent-bus/bin/request-crossworkspace`.
 
 ## Meshy
 
 Key live at `~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in `.mcp.json`.
-Balance **2892**. Available if in-context flora/asset regen genuinely needs it (no
-mandate; NOT needed for the spec round). The DIRT paid path is CLOSED. Any paid spend
-needs its own guard (meshy_list_tasks no PENDING, check_balance before/after,
-cost-confirm, NEVER save_to).
+Balance **2892**. NOT needed for Checkpoint B (authored field uses existing
+crops). Any paid spend needs its own guard (meshy_list_tasks no PENDING,
+check_balance before/after, cost-confirm, NEVER save_to).
 
 ## Active decision records
 
-001-008 on main. Round-007 decisions **009-017** on the round branch (all DONE +
-signed). **018 (generalized composition architecture) NOT YET WRITTEN** - it opens
-only after Scott approves the spike spec (Checkpoint A). The spec itself
-(`docs/art/village/spike-spec.md`) is a Checkpoint-A analysis doc, not a decision
-record.
+001-008 on main. Round-007 decisions **009-018** on the round branch. **018
+(generalized composition architecture) DONE + SIGNED this run** (all three doers).
+Two items in 018 escalated to Scott (request_id decbf284): ARCHITECTURE.md
+clarification + early persistence-(b) slice - gate the full milestone, not CP B.
 
 ## Notes for the next run
 
-- **Dashboard `/team` tab is KILLED by Scott** (inbox `2026-07-18-0445`): do NOT POST
-  to `dashboard.int.sentania.net/api/team`. A missing POST is compliance, not failure.
+- **Dashboard `/team` tab is KILLED by Scott** (inbox `2026-07-18-0445`): do NOT
+  POST to `dashboard.int.sentania.net/api/team`. A missing POST is compliance.
 - `gh pr edit` is broken (GraphQL projectCards). Use REST `gh api -X PATCH
   repos/sentania-labs/longwalk/pulls/N ...` if ever needed.
-- No round PR is open (correct; opens only for the full-village milestone once Scott
-  confirms the art bar on a generated district). Round is mid-milestone, NOT closing;
-  leaked-branch sweep guard deferred to round close (verified no leak this run anyway).
-- Inbox processed through `2026-07-18-2255` (the world-scale/organic-evolution
-  ADDENDUM, folded into 018 scope this run) + the `d03ff384` reply (routing-only, no
-  Scott verdict yet - Checkpoint A still gated). fac1635d/0330 subsumed. UUID
-  partials 6110faed/c3ffe894 superseded. Stale codex-worktree inbound
-  (308f0465/a1c32de4) noted prior, no action.
-- Sweep this run: no leaked doer branches on origin (guard passed); no open team PRs;
-  no LIVE blocked markers (the `codex-worker-20260718T173735Z` marker on all three
-  018 branches is the RESOLVED decision-016 flora-regen block, resolved 18:07:45Z,
-  carried on the round head - historical, no action).
+- No round PR is open (correct; the round PR to main opens only for the
+  full-village milestone once Scott confirms the art bar on a GENERATED district,
+  i.e. after Checkpoint B + the generalization test). Round is mid-milestone.
+- Inbox processed through `2026-07-19-0245` (Scott's Checkpoint A approval).
+  Escalation decbf284 filed this run; reply pending. Older UUID partials
+  (6110faed/c3ffe894/d03ff384/fac1635d) superseded/resolved.
+- Sweep this run: no leaked doer branches on origin (guard passed); no open team
+  PRs; codex's phase-1 block (1a25b61) was a same-run provisioning gap, resolved
+  and re-dispatched - not a live block, no cherry-pick needed.
 
-**Last updated:** 2026-07-19 (STILL HOLDING AT CHECKPOINT A. Verified the `d03ff384`
-reply is routing-only - dalinar delivered the spec to Scott's queue but "No response
-from him yet"; it is NOT Scott's verdict, so implementation stays gated. This run's
-work: Scott's own world-scale/organic-evolution ADDENDUM [2255] arrived and was folded
-durably into the decision-018 scope as three HARD constraints [terrain response =
-function of sim state + time; incremental chunk re-bake as first-class scale
-requirement; static-in/static-out designs DISQUALIFIED at the 018 gate] - recorded in
-`.pka/round007/composition/rules/assignment.md` ADDENDUM section and mirrored into the
-ON RESPAWN block above so the 018 proposal dispatches carry them from the start. Spec
-unchanged, not re-run, not re-surfaced [addendum is architecture-level, Scott-authored,
-does not correct the spec]. Sweep clean: no leaked branches, no open PRs, only a
-resolved historical blocked marker. Nothing in flight at turn end.)
+**Last updated:** 2026-07-19 (Checkpoint A APPROVED by Scott -> ran the full
+decision-018 architecture round end to end: 3 blind proposals [codex re-dispatched
+after a provisioning-gap block], 3 adversarial critiques, synthesis, 3 sign-offs.
+Decision 018 committed + fully signed + pushed [round head 5ea3aef]. Strong 3-way
+convergence: sim owns evolving zone+history, render derives per-chunk response as
+a pure function, chunks are a disposable re-derivable cache. Adjacency ruled 3-1
+vs agy [no critic, not 2-2]. Two Scott escalations filed [decbf284: ARCHITECTURE.md
+clarification + early persistence slice; gate full milestone, NOT CP B]. NEXT:
+dispatch Checkpoint B implementation to claude [offline, render+tools only, no
+protected path, young-vs-old byte-diff proof + authored sunflower field], peer-sign,
+integrate, STOP at Checkpoint B for Scott's eye. Sweep clean. Nothing in flight.)
