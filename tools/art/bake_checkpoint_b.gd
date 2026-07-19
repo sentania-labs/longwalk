@@ -57,11 +57,33 @@ func _init() -> void:
 	if diff_px < 2000:
 		failures.append("evolution: young vs mature differ in only %d pixels (expected a broad ground response)" % diff_px)
 
-	# --- Flora determinism: the canonical-tuple order is input-invariant.
+	# --- Flora determinism AND input-order invariance.
+	# (a) Repeatability: two derivations of identical input match.
 	var flora_a := Kernel.derive_flora(snap, MATURE.age, MATURE.traffic, MATURE.disturbance)
 	var flora_b := Kernel.derive_flora(snap, MATURE.age, MATURE.traffic, MATURE.disturbance)
 	if not _flora_equal(flora_a, flora_b):
 		failures.append("determinism: two flora derivations differ")
+	# (b) Input-order invariance: reorder the COMPLETE candidate set (reverse it)
+	# and re-resolve. Canonical conflict resolution must pick the same winners in
+	# the same canonical order, byte-identical to the natural order. This is the
+	# actual determinism contract (decision 018 section 2); re-running the same
+	# traversal would only prove repeatability, not order invariance.
+	var cand := Kernel.collect_flora_candidates(snap, MATURE.age, MATURE.traffic, MATURE.disturbance)
+	var cand_perturbed := cand.duplicate()
+	cand_perturbed.reverse()
+	# Guard against a vacuous test: the perturbation must actually change order.
+	if cand.size() > 1 and _candidate_order_equal(cand, cand_perturbed):
+		failures.append("input-order invariance: reversed candidate set is unchanged (assertion would be vacuous)")
+	var resolved_natural := Kernel.resolve_flora(cand)
+	var resolved_perturbed := Kernel.resolve_flora(cand_perturbed)
+	if not _flora_equal(resolved_natural, resolved_perturbed):
+		failures.append("input-order invariance: resolving the reversed candidate set differs from natural order")
+	# The public derive path must equal resolve_flora(collect()).
+	if not _flora_equal(flora_a, resolved_natural):
+		failures.append("input-order invariance: derive_flora disagrees with resolve_flora(collect())")
+	# The resolved set must contain no exact-position duplicates.
+	if _has_position_duplicate(flora_a):
+		failures.append("conflict resolution: resolved flora still contains an exact-position duplicate")
 
 	# --- Field grammar: the field stays a field, the door/lane stay clean.
 	failures.append_array(_check_field_grammar(snap, flora_a))
@@ -251,9 +273,30 @@ func _flora_equal(a: Array, b: Array) -> bool:
 	if a.size() != b.size():
 		return false
 	for i in range(a.size()):
-		if a[i].sort_key != b[i].sort_key or a[i].size != b[i].size:
+		if a[i].sort_key != b[i].sort_key or a[i].size != b[i].size or a[i].hash != b[i].hash:
 			return false
 	return true
+
+
+# Two raw candidate lists in the same order (sort_key sequence identical).
+func _candidate_order_equal(a: Array, b: Array) -> bool:
+	if a.size() != b.size():
+		return false
+	for i in range(a.size()):
+		if a[i].sort_key != b[i].sort_key:
+			return false
+	return true
+
+
+# True if any two records share the same quantized (y, x) position.
+func _has_position_duplicate(flora: Array) -> bool:
+	var seen := {}
+	for f in flora:
+		var key := "%08d:%08d" % [int(round(f.pos.y * 1000.0)), int(round(f.pos.x * 1000.0))]
+		if seen.has(key):
+			return true
+		seen[key] = true
+	return false
 
 
 func _ensure_dir() -> void:

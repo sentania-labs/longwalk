@@ -426,14 +426,58 @@ static func derive_ground_canvas(snap: TileSnapshot, age: int, traffic: float, d
 # Returns Array[Dictionary]: {kind, pos (cell units), size, hash, sort_key}.
 # ---------------------------------------------------------------------------
 static func derive_flora(snap: TileSnapshot, age: int, traffic: float, disturbance: float) -> Array:
-	var out: Array = []
-	_derive_field_crops(snap, age, out)
-	_derive_foundation(snap, age, out)
-	_derive_wild(snap, age, out)
-	# Canonical order: (y, x, kind). Independent of the order candidates were
-	# generated, so re-deriving after any input reordering is byte-identical.
+	return resolve_flora(collect_flora_candidates(snap, age, traffic, disturbance))
+
+
+# Gather every flora candidate the three grammars propose, in generation order.
+# That order is deliberately NOT canonical: resolve_flora() imposes the canonical
+# order and the conflict resolution, so the collection order here can never
+# affect the derived tile. Split out from derive_flora() so the determinism
+# harness can re-resolve a reordered candidate set and prove input-order
+# invariance directly.
+static func collect_flora_candidates(snap: TileSnapshot, age: int, traffic: float, disturbance: float) -> Array:
+	var candidates: Array = []
+	_derive_field_crops(snap, age, candidates)
+	_derive_foundation(snap, age, candidates)
+	_derive_wild(snap, age, candidates)
+	return candidates
+
+
+# Conflict resolution over the COMPLETE candidate set (decision 018 section 2;
+# CLAUDE.md determinism rule: conflicts resolved by the minimum canonical tuple
+# over the complete local candidate set, input-order invariant). Candidates that
+# resolve to the same quantized cell/position collide; we keep exactly one, the
+# minimum by the canonical tuple (y, x, kind, hash). Because the winner for each
+# cell is chosen purely by strict canonical-tuple comparison, the resolved set is
+# a pure function of the SET of candidates: presenting them in any other order
+# yields byte-identical records. The final sort by sort_key is both the painter
+# back-to-front order and the canonical output order.
+static func resolve_flora(candidates: Array) -> Array:
+	var winners := {}
+	for c in candidates:
+		var key := _collision_key(c.pos)
+		if not winners.has(key) or _flora_less(c, winners[key]):
+			winners[key] = c
+	var out: Array = winners.values()
 	out.sort_custom(func(a, b): return a.sort_key < b.sort_key)
 	return out
+
+
+# Collision identity: two candidates conflict when they resolve to the same
+# quantized cell/position. Same quantization as _sort_key so a collision key and
+# a sort key agree on the (y, x) prefix.
+static func _collision_key(pos: Vector2) -> String:
+	return "%08d:%08d" % [int(round(pos.y * 1000.0)), int(round(pos.x * 1000.0))]
+
+
+# Canonical minimum tuple for a collision: (y, x, kind) via sort_key, then hash
+# as the final deterministic tie-break so the winner is unique and never
+# order-dependent. Exact duplicates (identical sort_key AND hash) collapse to a
+# single instance regardless of which copy is seen first.
+static func _flora_less(a: Dictionary, b: Dictionary) -> bool:
+	if a.sort_key != b.sort_key:
+		return a.sort_key < b.sort_key
+	return int(a.hash) < int(b.hash)
 
 
 static func _sort_key(pos: Vector2, kind: String) -> String:
@@ -520,7 +564,12 @@ static func _derive_foundation(snap: TileSnapshot, age: int, out: Array) -> void
 		# Walk the garden (west) flank plus the two facing corners at quarter-cell
 		# resolution; keep by positional hash, keep-limit rises with age.
 		var candidates: Array = []
-		for qy in range(y0 * 4, y1 * 4 + 1):
+		# West flank stops one row short of the SW corner (y1*4); the corner is
+		# added once, explicitly, below. Ending the flank at y1*4+1 previously
+		# emitted the SW corner twice (flank endpoint + explicit corner), an exact
+		# duplicate candidate. resolve_flora() would now dedup it anyway, but not
+		# generating it keeps the candidate set clean at the source.
+		for qy in range(y0 * 4, y1 * 4):
 			candidates.append(Vector2i(x0 * 4, qy))       # west flank
 		candidates.append(Vector2i(x0 * 4, y1 * 4))         # SW facing corner
 		candidates.append(Vector2i(x1 * 4, y1 * 4))         # SE facing corner
