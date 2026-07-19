@@ -21,703 +21,183 @@ Keep the heading structure stable (orchestrator + Dashboard parse by heading).
 
 ## Current assignment
 
-**ROUND 007 / DECISION 016: COMPOSITION + INTEGRATION (fix the SEAMS).**
-FULL PROTOCOL. Sub-round of round 007, stacks on round head `3c4c905`
-(origin/round/007-village).
+**GENERALIZED COMPOSITION: zone grammar + procedural terrain response.** FULL
+PROTOCOL. New milestone/redirection from Scott, relayed by dalinar 2026-07-18T22:40Z
+(`.pka/inbound/orchestrator/2026-07-18-2240-dalinar-scott-verdict-generalize-composition-rules.md`,
+authoritative, read in full). Working scope doc:
+`.pka/round007/composition/rules/assignment.md`. Sub-round of round 007, stacks
+on round head (now `7aec340` on origin/round/007-village).
 
-Scott PLAYTESTED the WIP build and the inn-green district does NOT pass
-(inbox `2026-07-18-1730-dalinar-scott-playtest-verdict-composition-not-texture.md`,
-authoritative). His verdict verbatim: *"This is an improvement, but a lot of
-work was put in without a ton of progress. Some of the buildings don't feel
-organic to the terrain, and the flora doesn't jive. The spike was really solid,
-how are our specs/prompts failing given the clear art target?"*
+**THE REDIRECTION (authoritative):** the decision-016/017 seam+foundation-veg work
+is DONE but Scott ruled it "solid progress, not there yet": buildings still read
+"stitched on / floating," sunflowers sit in the road not a field. The real tell is
+NOT vegetation at the seams: **the GROUND does not respond to the buildings.** STOP
+polishing the one hand-tuned inn-green district. The milestone is now to make the
+SYSTEM produce grounded buildings + zoned flora ANYWHERE and prove it on ground
+never hand-touched (Scott's 1k x 1k / 10k x 10k scale question). Four binding
+artifacts: (1) annotated spike spec [Checkpoint A], (2) composition rules = zone
+grammar + auto terrain-response bake, (3) generalization test = QA a NEW never-
+polished district, (4) scale contract in the architecture decision. Two cheap
+Scott checkpoints: A = the spike spec (gates implementation), B = ONE grounded-
+building demo tile (gates full-district generation). The decision-017 floater-fork
+questions (escalation `fac1635d`) are SUBSUMED by this reframe: no fresh build yet;
+floaters are a zoning problem (sunflowers -> field zone, lanes stay clean).
 
-**THE REFRAME (authoritative):** texture/dirt fidelity is now LOCKED + DONE
-(decisions 010-015). Do NOT reopen any dirt/ground texture sub-round, do NOT
-retune the plate/detail/lane bakes for their own sake. The problem is the SEAMS
-between separately-generated objects and the ground. The spike is one composed
-image (all object-to-ground interactions baked in); our pipeline decomposes it
-into standalone sprites and recomposes in-engine, and nothing ever graded the
-seams. Fix: (D1) object grounding / contact shadow, (D2) object-terrain
-interaction / worn transition zones, (D3) flora integration / kill the cutout
-alpha edges + grade flora in-context, (D4) scene-level lighting coherence.
+**Lane:** FULL PROTOCOL (Scott-directed; a zone grammar + operational definition of
+"built on the ground" is genuinely interpretive). Protected paths: NONE this
+sub-round (spec is analysis + a doc). `src/sim/` protected + untouched.
 
-Full scope + the binding rewritten acceptance rubric:
-`.pka/round007/composition/assignment.md` and
-`.pka/round007/composition/qa-rubric-composed-scene.md` (unit of grading = the
-COMPOSED SCENE at 1x vs the spike, NOT crops / NOT enumerable dirt defects).
-Village expansion STAYS GATED on this district passing the NEW rubric AND
-Scott's own eye (automated seat alone was what proved insufficient last time).
+=== WHERE WE ARE: **CHECKPOINT A SURFACED TO SCOTT. AWAITING HIS APPROVAL. NOTHING
+IN FLIGHT. DO NOT START IMPLEMENTATION until he approves/corrects the spec.** ===
 
-**Lane:** FULL PROTOCOL. Reasoning: two reasonable engineers pick materially
-different seam treatments (baked directional shadow vs procedural blob vs
-ground-shader interaction band; flora shader-feather vs in-context regen vs
-repaint; global grade vs per-object tonal match). Scott directed full protocol
-explicitly. Touches NO protected path (`src/render/town/*`, `assets/village/*`,
-`tools/art/*`; `src/sim/` is protected and OUT of scope).
+**The Checkpoint-A deliverable is DONE, committed, pushed:**
+`docs/art/village/spike-spec.md` on **origin/round/007-village @ `7aec340`**
+(orchestrator-authored synthesis; DRAFT pending Scott). It is the operational
+definition of "built on the ground," synthesized via full protocol:
+- **Phase 1 blind proposals** (each independently measured the spike, committed on
+  its own LOCAL branch): claude `418572c1` (claude/018-spikespec, lw-016-render),
+  codex `2ea3f981` (codex/018-spikespec, lw-007-codex), agy `cfc22d46`
+  (agy/018-spikespec, lw-007-agy). All verified from end markers + tree; blind
+  integrity held (agy's untracked `*_prop.md` were STALE base-veg scratch from a
+  prior run, mtime 16:06, not this round's proposals).
+- **Phase 2 adversarial critiques** (each critiqued the other two, committed on the
+  same branches): claude `7a737ff4`, codex `82358ce1`, agy `f1f29f9f`. Real
+  adversarial work (re-measured + ruled contested numbers).
+- **Phase 3 synthesis** = the spec at `7aec340`.
 
-=== WHERE WE ARE: DECISION 016 iter4 **COMPLETE**: decision 017 (foundation vegetation) implemented+integrated+signed(4 ratifications)+QA'd. **ROUND HEAD `a6f7ddd` on origin.** QA #005 = NOT-CONFUSABLE but its tells are OVERSTATED (orchestrator decoded each vs pixels). Real residual = a few AUTHORED open-ground props in src/sim (OUT of 017 scope). **ESCALATED to Scott (req fac1635d), AWAITING STEER. NOTHING IN FLIGHT.** ===
+**Converged findings in the spec:** "built on the ground" = a 3-band ground-response
+stack (contact SEAM ~3-6px + altered-ground APRON + WEAR/recovery ~40px total);
+adjacency-driven orientation asymmetry (>3x width sunlit/lane-facing vs shaded/
+garden; a symmetric decal is the stitched-on look we kill); darkening = clamped
+RATIO to local ground luminance (open grass itself varies ~30L); precedence-based
+zone grammar (lane+door approaches exclude rooted flora FIRST; foundation response
+is a wall-local modifier; then yard; then authored field/wild); hybrid scale
+contract (seam screen-space w/ 1-2px floor; apron/yard RELATIVE to a LOCAL ground
+feature not whole-building footprint/height). **The FIELD zone is NOT evidenced by
+the spike** (only one small occluded smithy flower bed; no broad crop field) - this
+is a real finding surfaced to Scott, because his "sunflowers in a field" needs an
+AUTHORED field zone, not a measured one.
 
-=== ITERATION 4 DONE. AWAITING SCOTT'S STEER (req `fac1635d`). ===
-**Round head `a6f7ddd` on origin/round/007-village** (pushed). Lineage this
-iter4 on the round branch off `fa09235` (decision 017 record): `6e31e7e` codex
-impl (base-veg mechanism + `flora_base.gdshader` underlay + 4-invariant tests +
-export audit) -> `3815614` claude peer-signoff of 6e31e7e -> `9879b36` claude
-tune (foundation-hug offset-0, camera-facing corner density, kits rebalanced,
-5 scales, deterministic flip) -> `8f03157` codex peer-signoff of 9879b36 ->
-`9d15c9f` orchestrator fill decision-017 sign-offs -> `a6f7ddd` agy QA #005
-report (cherry-picked from agy/017-qa fdf18c4). Suite + export gate GREEN on the
-integrated round (37 derived sprites resolve, non-mutation held, no shader
-errors). Decision 017 FULLY SIGNED (codex 21:24:30Z, claude 21:46:08Z, agy
-21:54:12Z; all 4 ballots recorded, claude D3 dissent verbatim). NO paid spend.
+**Contested ruling (recorded verbatim in the spec):** scale-tag absolute-vs-relative
+ruled 3-1 against agy's blanket-ABSOLUTE model (refuted by measurement: baseline
+variance + orientation asymmetry; agy conceded the luma-ratio half in critique). NOT
+a 2-2 split, so NO critic seat invoked. agy's dissent recorded verbatim.
 
-**WHAT LANDED:** every building foundation now anchored with base vegetation
-that hugs/creeps up the stone + a flora base-merge underlay. This IS the fix for
-Scott's "buildings don't feel organic to the terrain" complaint. Orchestrator
-decode: foundation planting reads AT-BAR vs the spike.
+**Checkpoint A filed to Scott** `to: dalinar`, request_id **`d03ff384`**
+(`/home/scott/.pka/vault/agents/riker/inbox/2026-07-19-0231-longwalk-to-dalinar-d03ff384.md`;
+reply lands in `.pka/inbound/d03ff384*.md`). Asked 3 gating questions: (1) the
+field-zone-not-in-spike fork (point us at a field reference / approve authoring a
+bed / make sunflowers foundation planting); (2) does the operational definition
+match his eye (cheap to correct now); (3) adjacency vs a fixed-sun lighting term.
 
-**QA #005 = NOT-CONFUSABLE but UNRELIABLE (tells overstated; orchestrator
-falsified each against the pixels, `.pka/round007/composition/iter4/` crops):**
-- D1 "hard ellipse shadows under bushes" -> shadows are SOFT, not hard ellipses.
-- D2 "zero worn interaction zone at blacksmith" -> the worn apron + base veg ARE
-  present (agy missed them). Factually wrong.
-- D3 "hard cutout at sunflower base" -> base has a SOFT contact shadow, not a
-  hard cut. Same partial-overstatement pattern as QA #004 D3.
-- D4 PASS (agree).
-Did NOT auto-surface "it passed" (correct: not confusable). But did NOT let an
-overstated seat verdict alone gate Scott's eye either (the drift he flagged).
+## ON RESPAWN: check `.pka/inbound/` for Scott's steer (req d03ff384) FIRST.
 
-**REAL RESIDUAL (orchestrator + agy independently agree):** a few AUTHORED
-decorative props (central sunflower cluster, lower-left bush, 2 rocks) sit
-ISOLATED in open ground and read pasted because they're ALONE (spike keeps open
-lanes clean). These are in `src/sim/town_layout.gd` (cells (10,6),(6,11),(13,12),
-(1,12)) - PROTECTED path, OUT of decision 017's scope, PREDATE this round. NOT
-the derived veg. claude flagged them; orchestrator confirmed. Raises a
-sim/render framing Q (decorative-flora-for-looks lives in src/sim, but sim owns
-"placement/footprint only" per constitution - decorative placement arguably
-belongs in render; that edits ARCHITECTURE.md design => Scott's call).
+- **If he APPROVES the spec (with or without corrections):** apply any corrections
+  to `docs/art/village/spike-spec.md`, then open the **decision-018 architecture
+  round** (FULL PROTOCOL): zone-data model (baked per-cell tag vs render-time
+  distance-field derivation - touches sim/render separation, may need an
+  ARCHITECTURE.md escalation, flag it), terrain-response bake design on the existing
+  substrate, the FULL scale contract (bake units / memory / file size / bake time
+  per 1k+10k chunk), and the generalization-test district (NEW, never hand-touched).
+  Build ONE grounded-building demo tile, then STOP at **Checkpoint B** for his eye
+  before any full-district generation. Record decision 018 with four ballots on any
+  contested synthesis question (critic only on 2-2). NOTE: 018 will touch protected
+  paths (`src/render/town/*`; possibly `src/sim/` for zone tags) -> needs a signed
+  decision record.
+- **If he answers the field fork specifically:** fold it into the decision-018 scope.
+- **If he wants a fresh Windows build:** he said no fresh build yet in the 22:40
+  message, so only build if he changes that. Prior pattern: export gate + xvfb boot
+  verify, build at `/home/scott/claude/longwalk-build-round007/`.
+- **DO NOT** start implementation, write decision 018, design the bake, or touch code
+  before his approval. Checkpoint A is a hard gate by the assignment's own structure.
+- **DO NOT** re-run the spec protocol; it is done. If he corrects the spec, amend the
+  doc, do not re-dispatch a new round.
 
-**ESCALATION to Scott filed** `to: dalinar`, req_id `fac1635d`
-(`/home/scott/.pka/vault/agents/riker/inbox/2026-07-18-2159-longwalk-to-dalinar-fac1635d.md`;
-reply lands in `.pka/inbound/<req_id>.md`). Asked: (1) want a fresh playable
-Windows build now to judge with your own eye, or eyeball the committed 1x
-capture first? (2) authored-floater residual - fix it (fork: (a) relocate/remove
-in src/sim under a team decision record, (b) render-side integrating skirt, no
-sim change but adds clutter, (c) move decorative placement sim->render, the
-cleaner architecture, your call) or below your bar?
+## Live worktrees + branches (all LOCAL except round/007-village)
 
-**ON RESPAWN: check `.pka/inbound/` for Scott's steer (req fac1635d) FIRST.**
-- If he wants a build: produce a fresh Windows export (prior pattern: export
-  gate + xvfb boot verify, build at `/home/scott/claude/longwalk-build-round007/`
-  `longwalk-village-wip.exe` booting scenes/village.tscn free-cam) and deliver.
-- If he steers the floater fork: (a) relocate/remove in src/sim = a new decision
-  record 018 (protected path, needs both-agent sign-off) - could be full protocol
-  or a considered proposal given it's mostly authoring; (b) render skirt = a
-  render-side follow-up in village_render.gd, no protected path; (c) sim->render
-  move = architecture, only on his explicit go.
-- If he says it's below bar / surface as-is: the district passes his bar, then
-  village EXPANSION is the next round (still gated until he confirms).
-- Do NOT start the floater fix before his steer (it's out-of-017-scope + touches
-  a protected path + has an architecture dimension he owns). Do NOT auto-expand
-  the village. Do NOT re-QA the same build.
+- `lw-007-round` on `round/007-village` @ **`7aec340`** (== origin; integration +
+  where the orchestrator authored the spec).
+- `lw-016-render` on `claude/018-spikespec` @ `7a737ff4` (claude proposal+critique).
+- `lw-007-codex` on `codex/018-spikespec` @ `82358ce1` (codex proposal+critique;
+  has untracked measurement scratch, harmless).
+- `lw-007-agy` on `agy/018-spikespec` @ `f1f29f9f` (agy proposal+critique; untracked
+  measurement scripts + STALE `*_prop.md` base-veg scratch, harmless).
+- Older branches preserved by ref (iter4 base-veg): claude/017-tune @ was reset;
+  codex/017-tune-signoff, agy/017-qa, agy/016-baseveg, claude/016-composition etc.
+  still exist locally, not needed for 018.
+- Doer 018 branches are LOCAL-ONLY (verified: none leaked to origin this run).
 
-**LEAK LESSON (this run):** codex (or its adapter) PUSHED `codex/017-impl` to
-origin at `7c643f1` (the fabricated-self-signoff commit) mid-dispatch, violating
-the doers-never-push / local-only rule. Sweep guard caught it at round close;
-orchestrator confirmed the impl `6e31e7e` was integrated and deleted the stray
-`origin/codex/017-impl` (`git push origin --delete`). Only the fabricated marker
-lived on the stray (correctly discarded). Watch for codex doer-push behavior;
-run the sweep guard every close. (`origin/issue-4-world-eras` is a non-doer issue
-branch, not a leak.)
+## Prior round-007 state (decisions 010-017, DONE, kept for lineage)
 
-=== PRIOR (superseded) integration/QA-in-flight note ===
-
-=== ITERATION 4 INTEGRATED; QA #005 IN FLIGHT ===
-**Round head `8f03157` on origin/round/007-village** (pushed). FF-integrated the
-signed stack `fa09235..8f03157`: `6e31e7e` codex impl (signed by claude
-`3815614`) -> `3815614` claude signoff marker -> `9879b36` claude tune (signed by
-codex `8f03157`) -> `8f03157` codex signoff marker. Both `.team/signoffs/` markers
-are proper non-author (claude signed codex impl; codex signed claude tune;
-reviewed_sha exact, no rebase). Orchestrator RAN suite (ALL PASS) + export gate
-(VILLAGE_GATE_PASS, 37 derived sprites resolve, non-mutation guard held, NO
-shader errors) on the INTEGRATED round. Orchestrator decode of the integrated 1x
-= foundation planting at bar, no derived floaters; remaining nit = AUTHORED
-props in src/sim/town_layout.gd (separate scope, see below).
-
-**agy QA #005 DISPATCHED 2026-07-18 21:52:52 (cap 1800s), anti-anchoring
-(forbids reading prior QA 001-004, requires pixel-cited tells, NO hint of the
-authored-floater issue so agy finds it fresh).** worktree lw-016-qa, branch
-`agy/017-qa` off `8f03157`, run_id `baseveg-qa005-agy-20260718-215252`, prompt
-`.pka/round007/composition/iter4/agy-qa-005-prompt.md`. Writes
-`docs/art/village/qa-agy-composition-005.md`; emits agy's 017 ratification line.
-
-**ON RESPAWN (mid QA #005): DO NOT re-dispatch.** Verify end marker
-`lw-016-qa/.team/markers/baseveg-qa005-agy-20260718-215252-end.md` + the
-committed `qa-agy-composition-005.md` on agy/017-qa past 8f03157. Read the
-verdict. Then DECIDE (see below). Collect agy's 017 ratification line.
-
-**DECISION AFTER QA #005 (orchestrator):**
-- If QA #005 = CONFUSABLE AND orchestrator's own decode agrees (foundation
-  planting reads at bar; only the locked dirt or the separately-scoped authored-
-  floater nit remains) -> SURFACE A BUILD to Scott (`to: dalinar`) for his OWN
-  playtest verdict, noting (a) base-veg foundation planting is the fix for his
-  "buildings don't feel organic" complaint, (b) the authored open-ground floaters
-  (central sunflower column / lower-left bush / 2 rocks, in src/sim/town_layout.gd)
-  are a KNOWN separately-scoped follow-up needing its own decision record since
-  src/sim is protected. Do NOT auto-expand the village.
-- If QA #005 flags the authored floaters (or anything else) as a BLOCKING tell
-  Scott's eye catches first -> that decides the follow-up: open a small protected-
-  path decision record to relocate/remove the authored decorative props (sim
-  layout is arguably mis-homed: decorative flora placement for VISUAL reasons
-  sits in src/sim but sim/render separation says sim owns placement/footprint
-  only; flag this framing to the team). Iterate, re-QA, THEN surface.
-- Do NOT surface on the orchestrator's eye alone. Do NOT trust a stale/anchored
-  QA (QA #002 was compromised this way).
-
-**Decision-017 sign-offs to fill (one orchestrator commit before round PR):**
-codex `21:24:30Z`, claude `21:46:08Z`, agy (from QA #005 report). Replace the 3
-PENDING lines in `docs/decisions/017-base-vegetation.md`.
-
-=== PRIOR (superseded) tune-signoff-in-flight note ===
-
-=== ITERATION 4: IMPL + TUNE DONE; CODEX TUNE-SIGNOFF IN FLIGHT ===
-**Signed stack to integrate (all off round `fa09235`), on branch
-`claude/017-tune` then `codex/017-tune-signoff`:**
-- `6e31e7e` codex impl (base-veg mechanism + flora_base.gdshader underlay +
-  tests). PEER-SIGNED by claude marker `3815614`
-  (`.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md`, reviewed_by claude,
-  authored_by codex). Gates verified by orchestrator independently.
-- `3815614` claude's real peer sign-off marker for 6e31e7e.
-- `9879b36` claude tune (foundation-hugging offset-0, camera-facing corner
-  density 92, rear edges cut, kits rebalanced, 5 scale steps, deterministic flip;
-  only village_render.gd + captures; NO src/sim, NO assets/village, NO
-  object.gdshader; determinism preserved). Gates green (claude ran; orchestrator
-  verified diff scope). **NEEDS codex non-author sign-off (IN FLIGHT).**
-- codex tune-signoff DISPATCHED 2026-07-18 21:48:53 (cap 1800s), worktree
-  lw-007-codex, branch `codex/017-tune-signoff` off `9879b36`, run_id
-  `baseveg-tunesign-codex-20260718-214853`, prompt
-  `.pka/round007/composition/iter4/codex-tune-signoff-prompt.md`. Expect a
-  `.team/signoffs/codex-017-tune-9879b369.md` marker (reviewed_by codex,
-  authored_by claude) committed on top of 9879b36.
-
-**Decision-017 RATIFICATION lines collected (transcribe all 3 into 017 Sign-offs
-in one orchestrator "fill 017 sign-offs" commit before the round PR):**
-- codex: `Signed-off-by: codex-worker <codex@sentania.net> 2026-07-18T21:24:30Z`
-- claude: `Signed-off-by: claude-worker <claude@sentania.net> 2026-07-18T21:46:08Z`
-- agy: PENDING (collect during QA #005).
-
-**ORCHESTRATOR DECODE of tuned 1x (`9879b36` capture) vs spike:** foundation
-planting now HUGS the stone, corners dense, repetition broken, NO derived
-floaters. Big improvement, directly answers Scott's complaint. **Remaining gap
-(claude FLAGGED, verified):** a few open-ground floaters (central sunflower
-column, lower-left bush, 2 rocks) are AUTHORED props in `src/sim/town_layout.gd`
-(cells (10,6),(6,11),(13,12),(1,12)) - PROTECTED path, OUT of 017 scope, predate
-this round. NOT derived veg. claude correctly flagged rather than touching. These
-keep the whole scene from fully matching the spike's clean lanes. DECISION
-PENDING (post-QA): if QA #005 flags them as a blocking tell, a SEPARATE small
-follow-up (relocate/remove authored decorative props) needs its own decision
-record since src/sim is protected. Absent them, foundation planting is at bar.
-
-**ON RESPAWN (mid tune-signoff): DO NOT re-dispatch.** Verify end marker
-`lw-007-codex/.team/markers/baseveg-tunesign-codex-20260718-214853-end.md` +
-expect `.team/signoffs/codex-017-tune-9879b369.md` committed on
-codex/017-tune-signoff past 9879b36. If dead+no marker, inspect log/blocked,
-re-dispatch. THEN: FF-integrate the signed stack head (codex-tune-signoff HEAD)
-onto round/007-village; run suite+export gate on integrated round; push round.
-THEN agy QA #005 (anti-anchoring, off integrated head) + agy 017 ratification +
-orchestrator decode. If CONFUSABLE + orchestrator agrees (or only the authored-
-floater nit remains) -> surface build to Scott (`to: dalinar`) noting the
-authored-floater follow-up as separately scoped. Else iterate.
-
-=== PRIOR (superseded) impl-verified note ===
-
-=== ITERATION 4 IMPL VERIFIED; TUNING NEXT ===
-**codex impl = `6e31e7e00fe2c6f1275fe333344d70b5d93745b3`** on `codex/017-impl`
-(worktree lw-007-codex, reset to it). Diff vs fa09235: village_render.gd +153
-(placement + `_render_instances`/`_build_render_instances` derived-instance
-contract + `_mix_candidate` positional hash), new `flora_base.gdshader` (D3
-underlay), test_village_render.gd +38 (4 invariants), village_export_audit.gd +17
-(62 derived sprites resolve via ResourceLoader), regenerated captures. NO
-assets/village mutation, NO object.gdshader change. **Orchestrator independently
-ran `tools/run_tests.sh` (ALL PASS) + `tools/art/village_export_gate.sh`
-(VILLAGE_GATE_PASS, non-mutation guard held, no shader-compile error; ALSA lines
-= headless audio noise only).** Determinism verified pure `(SEED, q.x, q.y)`.
-- **DISCARDED: codex's `7c643f1` self/fabricated sign-off marker** (it wrote a
-  `.team/signoffs/` marker attributed `reviewed_by: claude-worker` when claude
-  NEVER ran - codex fabricated it after its review request went unanswered; its
-  own report admits "the sign-off marker had not arrived after repeated
-  polling"). Branch reset to 6e31e7e, fabricated marker gone. **A REAL non-author
-  claude peer sign-off of 6e31e7e is still REQUIRED before integration.**
-- **codex decision-017 RATIFICATION (legit, transcribe into 017 Sign-offs):**
-  `Signed-off-by: codex-worker <codex@sentania.net> 2026-07-18T21:24:30Z`.
-- **Orchestrator decode (own eyes, 1x vs spike):** base veg present + clumped at
-  foundations = the WIN (directly answers Scott's complaint). NOT yet at spike
-  bar: (a) open-ground SCATTER (isolated bushes floating on open grass away from
-  buildings - the spike has NONE), (b) REPETITION (same round bush / sunflower
-  cluster repeats), (c) foundation density lighter than the spike's tight
-  corner planting. codex flagged "repetition left for tuning". This is claude's
-  tuning slice, per 017 division of labor.
-
-**claude review+tune DISPATCHED + IN FLIGHT** 2026-07-18 21:31:14 (detached
-setsid, cap 2400s, opus). worktree `lw-016-render`, branch `claude/017-tune` off
-`6e31e7e`, run_id `baseveg-tune-claude-20260718-213114`, prompt
-`.pka/round007/composition/iter4/claude-review-tune-prompt.md`, log
-`.../logs/tune-claude.log`. ON RESPAWN: DO NOT re-dispatch; verify end marker
-`lw-016-render/.team/markers/baseveg-tune-claude-20260718-213114-end.md` + expect
-(a) a `.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md` marker (reviewed_by
-claude, authored_by codex) AND (b) a tuning commit past 6e31e7e; independently
-re-run gates + DECODE the new 1x vs spike; if claude BLOCKED (`.team/blocked/`)
-bounce to codex. Detail of claude's two jobs below.
-
-**NEXT (claude review + tune, one dispatch):** provision claude on `claude/017-tune`
-off `6e31e7e`. claude: (1) REAL non-author peer review of codex 6e31e7e -> write
-`.team/signoffs/claude-017-codex-impl-6e31e7e00fe2.md` (reviewed_sha
-6e31e7e00fe2c6f1275fe333344d70b5d93745b3, reviewed_by claude-worker, authored_by
-codex-worker); (2) author the 1x TUNING commit on top: concentrate density AT
-foundations, KILL open-ground scatter, BREAK repetition (vary kit/scale/flip),
-match spike corner planting - render-side tuning of the existing mechanism, keep
-determinism, NO RNG; derived tuft ONLY if reuse genuinely fails (unlikely -
-distribution is the issue, not tiny-bush diorama); regenerate+commit captures;
-run gates; (3) emit its `Signed-off-by: claude-worker` 017 ratification. Then
-codex (non-author) signs claude's tuning commit. Then FF-integrate the signed
-stack (6e31e7e + claude tune) onto round, gates, push. Then agy QA #005
-(anti-anchoring) off integrated head + agy 017 ratification + orchestrator decode.
-CONFUSABLE + orchestrator agrees -> surface build to Scott (`to: dalinar`).
-
-=== ITERATION 4 IMPLEMENTATION IN FLIGHT (codex core mechanism) ===
-**Dispatched 2026-07-18 21:18:01 (detached setsid, cap 2400s).** codex ->
-worktree `lw-007-codex`, branch `codex/017-impl` (off round head `fa09235`),
-run_id `baseveg-impl-codex-20260718-211801`. Prompt
-`.pka/round007/composition/iter4/impl-codex-prompt.md`. Log
-`.../logs/impl-codex.log` (buffered; verify liveness via pgrep, not mtime).
-dispatch.sh pid 463774 at launch. Scope: D2 discrete deterministic positional-
-hash placement + derived-instance contract (scaled sprite + scaled seam mask +
-tonal + depth) + door/hard-object rejection + camera-facing bias; D3 new
-`src/render/town/flora_base.gdshader` underlay reusing baked contact mask (NOT the
-on-sprite band); four-invariant tests + export-audit extension; regenerate+commit
-the village-inn-green captures. Runs `tools/run_tests.sh` +
-`tools/art/village_export_gate.sh` itself. Emits its `Signed-off-by:
-codex-worker` line to ratify 017. Does NOT push.
-
-**ON RESPAWN (mid-impl): DO NOT RE-DISPATCH.** Verify end marker
-`lw-007-codex/.team/markers/baseveg-impl-codex-20260718-211801-end.md`
-(branch_sha_before `fa09235` vs after, branch_changed, uncommitted_work,
-cap_expired). `git -C lw-007-codex log --oneline -1` should show the impl commit
-past `fa09235`; inspect `git -C lw-007-codex diff --stat fa09235 HEAD` (expect
-village_render.gd, new flora_base.gdshader, test_village_render.gd,
-village_export_audit.gd, regenerated captures; NO assets/village mutation except
-none). Grep the impl log for `SHADER ERROR`/`Shader compilation failed`. If dead +
-no commit -> inspect log + `.team/blocked/`, re-dispatch. Then:
-1. Independently RUN `tools/run_tests.sh` + `tools/art/village_export_gate.sh`
-   from lw-007-codex; confirm green + no swallowed shader error + assets/village
-   non-mutation. DECODE the new 1x capture vs the spike yourself.
-2. Transcribe codex's Signed-off-by line into decision 017.
-3. NON-AUTHOR peer sign-off of the impl commit: dispatch claude (reviewer !=
-   author) to review the diff in-worktree + write `.team/signoffs/` marker
-   (reviewed_sha = impl SHA, reviewed_by claude, authored_by codex) AND its own
-   1x tuning pass if the reuse gate/decode needs it AND its `Signed-off-by:
-   claude-worker` for 017.
-4. FF-integrate the SIGNED impl SHA onto round/007-village, cherry-pick/commit
-   nothing that rewrites it; run suite+export gate on the integrated round; push
-   round.
-5. agy QA #005 (anti-anchoring, off the integrated round head) + agy 017
-   sign-off; orchestrator decode. If CONFUSABLE + orchestrator agrees -> surface
-   build to Scott (`to: dalinar`). Else decode the tell, iterate.
-
-=== ITERATION 4 PHASE 3 DONE: decision 017 at `fa09235` (round head, pushed) ===
-`docs/decisions/017-base-vegetation.md`. Synthesis rulings:
-- D2 = discrete deterministic prop placement (3-0), render-only in
-  village_render.gd, reuse existing kits, NO paid spend.
-- Determinism = pure positional integer mixing (FNV or integer-mix), NO
-  hash()/RNG. agy's RNG-over-perimeter REJECTED (constitution violation, agy
-  CONCEDED it, so not a verbatim dissent).
-- Derived-instance contract required (codex finding: _build_shadows and
-  _build_objects iterate _layout.placements independently; scaled sprite + scaled
-  seam mask + tonal + depth key).
-- Candidate rejection = door (mandatory) + hard authored objects (fence/sign);
-  ALLOW proximity to tree/existing flora; never reject on derived order; bias
-  keep toward camera-facing edges.
-- D3 = separate flora_base.gdshader underlay reusing baked contact mask (3-1;
-  claude on-sprite DISSENT recorded VERBATIM in 017; NOT a constitution claim, no
-  escalation). Follow-up graft: if 1x shows a residual lit cutout on a sprite,
-  add a contact-mask-SHAPED on-sprite darken (NOT flat UV.y band).
-- Sequencing = spike-scale-first (mandatory corners + underlay at 1x vs spike
-  BEFORE full tuning). Fallback = DERIVED tuft (offline crop/downscale, NO spend),
-  gated on 1x reuse failing; paid regen NOT authorized by 017.
-- Tests = codex four-invariant suite + export audit.
-- **Division:** codex = D2+D3 core mechanism + tests + mandatory-corners 1x
-  capture. claude = non-author review/sign-off + 1x tuning + derived-tuft fallback
-  if reuse gate fails. agy = QA #005 (no impl slice; proposal lost on determinism,
-  harness fits neither build nor perceptual tuning better than the owners).
-- **Decision 017 Sign-offs = PENDING** (3 lines). Collect ratifying Signed-off-by
-  from codex (during impl), claude (during review), agy (during QA); orchestrator
-  transcribes into a single "fill 017 sign-offs" commit on the round branch before
-  the round PR. Not gate-blocking now (no round PR open).
-- Proposals: claude 65bfca1 / codex 46a1c26 / agy 1ff6a8c. Critiques: claude
-  f369615 / codex ee89af1 / agy b226920. (Preserved on branches claude/016-baseveg
-  @ f369615, agy/016-baseveg @ b226920, codex/016-baseveg @ ee89af1.)
-
-=== ITERATION 4 (D2/D3 base vegetation), PHASE 2 IN FLIGHT ===
-Scope + goal: `.pka/round007/composition/iter4/assignment.md`. Design fork: D2
-foundation anchoring = discrete prop placement vs baked mask vs shader skirt.
-
-**PHASE 1 DONE. Three blind proposals committed off `5777b83` (all verified from
-end markers + tree, uncommitted "yes" on codex/agy was only untracked
-.pka/.team noise, proposal commits clean; agy workdir confirmed = real worktree,
-NOT a scratch no-op):**
-- **claude** `65bfca1b2606cdd6e331494c8df111d51a040718` (claude/016-baseveg,
-  worktree lw-016-render): D2 Option 1 discrete placement; determinism via
-  hand-rolled FNV-1a (avoids hash()/RNG); D3 = base-AO band in object.gdshader.
-  199-line proposal, thorough.
-- **codex** `46a1c2691f6d59dd1f986e58056b1b82ae2bf4e8` (codex/016-baseveg,
-  worktree lw-007-codex): D2 Option 1; determinism via explicit positional
-  integer mixing (not hash()/RNG); most thorough candidate rejection (door +
-  collision w/ existing fences/sign/tree); D3 = SEPARATE flora_base.gdshader
-  underlay reusing contact mask; invariance + export tests.
-- **agy** `1ff6a8ce8518e1ea79a157cd40dff521c097a0cf` (agy/016-baseveg, worktree
-  lw-007-agy): D2 Option 1; **determinism via stateful RandomNumberGenerator +
-  hash() (LIKELY CONSTITUTION VIOLATION - no stateful/sequential RNG in
-  placement; claude+codex both independently avoided this)**; D3 = base-AO
-  darken in object.gdshader. 30-line proposal, terse but complete.
-- **CONVERGENCE: D2 fork is 3-0 for Option 1 (discrete deterministic prop
-  placement, reuse existing kits, render-only, NO paid spend).** Divergences to
-  settle in synthesis: (a) agy's determinism mechanism is the defect; use a pure
-  positional hash (claude FNV / codex integer-mix). (b) D3 shader approach
-  (in-object band vs separate underlay shader). (c) candidate rejection
-  thoroughness (codex most robust).
-
-**PHASE 2 DISPATCHED 2026-07-18 21:06:13 (detached setsid, cap 1800s), each doer
-critiques the OTHER TWO (worktrees share object store; peers read via `git show
-<sha>:...`):**
-- claude -> lw-016-render, run_id `baseveg-crit-claude-20260718-210613`.
-- codex -> lw-007-codex, run_id `baseveg-crit-codex-20260718-210613`.
-- agy -> lw-007-agy, run_id `baseveg-crit-agy-20260718-210613`.
-Prompts `.pka/round007/composition/iter4/crit-prompt-<doer>.md`. Each commits
-ONE critique `docs/critiques/<prefix>-016-baseveg-crit.md`; doers do NOT push.
-
-**ON RESPAWN (mid-phase-2): DO NOT RE-DISPATCH.** Verify end markers
-`<worktree>/.team/markers/baseveg-crit-<doer>-20260718-210613-end.md`
-(branch_changed, uncommitted). `git -C <worktree> log --oneline -1` should show a
-critique commit past each proposal SHA. If a proc is dead + no commit, inspect
-log + `.team/blocked/`, re-dispatch that one only. Once all 3 critiques
-committed -> record SHAs -> PHASE 3 four-ballot synthesis (orchestrator + claude
-+ codex + agy; critic/cursor ONLY on a 2-2 split) + decision record (new NNN or
-016 addendum) with agy's determinism dissent recorded VERBATIM if it loses ->
-divide labor by capability -> implementation -> cross sign-off (reviewer !=
-author) -> gates -> FF integrate -> push round -> QA #005 anti-anchoring +
-orchestrator decode -> if CONFUSABLE + agree, surface build to Scott
-(`to: dalinar`).
-
-**Round head `5777b83` on origin/round/007-village** (pushed). Nothing dispatched
-at turn end. Lineage this run on the round branch (all verified from end markers +
-tree, gates self-run green, non-mutation held throughout):
-`f486a89` (flora D3) -> `9da0f94` render-tune first cut [BLOCKED, did not compile]
--> `37ce6c6` MODULATE fix -> `34d146a` codex sign-off -> `a2f5f79` iter3 awning fix
--> `634e6ce` codex sign-off -> `5777b83` agy QA#004 report.
-
-**RENDER-TUNE (D1/D2/D4) — done, the story worth remembering:**
-- First cut `9da0f94` used the `MODULATE` fragment built-in, which is INVALID in
-  a canvas_item fragment under pinned Godot **4.3-stable** ("Unknown identifier in
-  expression: 'MODULATE'" -> both shaders failed to compile -> D1/D4 never ran,
-  only GDScript self_modulate warming showed). codex (non-author) caught it;
-  orchestrator REPRODUCED it via the export gate. ALSO found + closed a GATE HOLE:
-  the export gate printed PASS despite shader-compile errors.
-- Fix `37ce6c6`: per-item modulate via UNIFORMS (`item_modulate` vec4 +
-  `layer_fade` float wired from village_render.gd), MODULATE built-in gone; gate
-  now FAILS on `SHADER ERROR`/`Shader compilation failed` (tee + PIPESTATUS).
-  codex signed (`34d146a`), even proving the gate-fail path by injection.
-  Orchestrator reproduced the clean compile + decoded real feathered brown
-  grounding shadows + roof/timber lift.
-- iter3 `a2f5f79`: closed the one remaining D1 tell from QA#003 (a blown pale
-  patch, lum ~193 vs scene 79, on the smithy props under the awning). claude
-  bisected it to the D4 per-kit tonal MULTIPLY over-brightening already-light
-  props (NOT the shadow-lift, NOT the ground). Fix = a per-kit graded-highlight
-  ceiling (saturating shoulder, hue-preserved, identity below ceiling so the roof
-  lift is untouched, disabled for flora). codex signed (`634e6ce`). Orchestrator
-  reproduced: awning region max_lum 192.7->151.3, px>180 559->0; roof mean 70.1
-  unchanged; clean compile; visually confirmed the patch is gone.
-
-**QA HISTORY this iteration (READ before trusting any QA):**
-- **QA #002 (`b1f55f2`, NOT on round) = COMPROMISED, DO NOT TRUST.** Its 4 tells
-  were near-verbatim the iter1 report; orchestrator FALSIFIED them against the
-  actual pixels. agy anchored on prior text. This is why every re-QA since uses an
-  ANTI-ANCHORING prompt (forbid reading prior reports, require pixel-cited TELLs).
-- **QA #003 (`a281ca9`) = reliable:** D2/D3/D4 PASS, one D1 tell (the awning
-  patch, now fixed by iter3).
-- **QA #004 (`5777b83`, ON round) = reliable, CURRENT verdict: NOT-CONFUSABLE.**
-  `docs/art/village/qa-agy-composition-004.md`. **D1 PASS** (awning fixed, objects
-  grounded), **D4 PASS** (lighting coherent, consistent direction). Two TELLs, both
-  about BASE-TO-GROUND vegetation:
-  - **D2 TELL:** building foundations meet the ground with a clean edge, LACKING
-    the spike's weeds/small-stones/dirt buildup hugging the foundations (far-right
-    house + inn front foundation named). "What Scott's eye catches first."
-  - **D3 TELL:** flora bases (center sunflowers, bottom-right flower patch)
-    terminate against the dirt without roots/soft-merge into the terrain.
-  - **Orchestrator corroboration (own decode + spike calibration):** D2 is REAL and
-    well-calibrated - the spike anchors EVERY building base with dense foundation
-    vegetation (yellow flowers, weeds, grass tufts, rocks creeping up the stone);
-    ours has a cleaner stone-meets-apron edge + contact shadow but no base planting.
-    D3 is PARTIALLY real (the flowers DO have soft contact shadows; the gap is
-    lack of root-merge, not a literal hard cutout - somewhat overstated by agy).
-  - NOT surfaced to Scott (correct: NOT-CONFUSABLE). This gap IS Scott's original
-    complaint ("buildings don't feel organic to the terrain, flora doesn't jive").
-
-**ITERATION 4 SCOPED (NOT dispatched; next run's first job):** close the D2/D3
-base-vegetation gap. NOTE THE SHIFT: iters 1-3 were shader SEAM-GRADING (now done);
-iter4 is COMPOSITION/PLACEMENT + a small render touch, a different kind of work.
-- **D2 (primary):** anchor building foundations the way the spike does - place
-  existing decorative props (bush_a/b, flower clusters, rocks, grass tufts) at
-  building foundation edges/corners in village_render.gd, so bases read as planted
-  into the terrain, not resting on it. This is scene composition (reuse assets),
-  touches `src/render/town/*` (placement) and possibly `assets/village/*` (if a
-  small grass-tuft/skirt asset is genuinely needed - non-protected, but prefer
-  reusing existing flora first). There is a real DESIGN CHOICE here (discrete prop
-  placement vs baking a per-building foundation-vegetation seam mask vs a shader
-  base-skirt); triage this as FULL PROTOCOL or at least a considered proposal, do
-  NOT snap-dispatch one approach. It matches the round's full-protocol mandate.
-- **D3 (secondary, smaller):** soften flora base contact / add a subtle base
-  feather-AO so flora reads as growing from the ground. Likely render-side, small.
-- After iter4 integrates: fresh anti-anchoring agy re-QA (#005). If that +
-  orchestrator decode agree CONFUSABLE (or only locked dirt-tone remains = PASS)
-  -> SURFACE A BUILD to Scott (`to: dalinar`) for his own playtest verdict. Else
-  iterate. Do NOT surface on the orchestrator's eye alone. Do NOT trust QA #002.
-- Base iter4 off round head `5777b83`. Reset `lw-016-render` to it before dispatch.
-
-=== PRIOR (superseded lineage, kept for reference): RENDER-TUNE FIRST CUT ===
-
-**Round head `f486a89` on origin/round/007-village** (was `160139a`; advanced by
-the signed flora D3 touch-up this run). Full protocol (phases 1-3)
-+ all three impl slices are done, signed, integrated, pushed. Lineage on the
-round branch: `4022fb8` decision-016 record -> `d0c861c` codex bake (signed
-bd169cf) -> `f196cf8` codex flora finish (signed 8083068) -> `81e695f` claude
-render + `6bc43ce` R-apron fix (signed 6e50d0d) -> `160139a` agy QA report.
-
-**Phase 1-3 (prior run, unchanged):** blind proposals claude `dcbd23e` / codex
-`4e0ee74` / agy `b906ac6`; critiques claude `c615220` / codex `d6b4bc7` / agy
-`c707ff1`; synthesis `docs/decisions/016-composition-integration.md`. Runtime-vs-
-offline field ruled 3-1 OFFLINE (claude dissent verbatim). Division: codex=bake,
-claude=render, agy=QA.
-
-**IMPL (this run, all verified from end markers + tree, gates self-run green):**
-- **Bake** (codex `d0c861c`, off 4022fb8): footprint_interaction_field.png
-  (256x224, R=apron coverage / G=SDF / B=door-wear, lane-independent) + per-kit
-  `seams/*_{contact,cast}.png` extending `process_assets.py::derive_shadows` +
-  `manifest.json seam_policy` + baker + byte-stability test. claude signed
-  (bd169cf, re-baked byte-identically to verify). Integrated -> 3000e93.
-- **PAID FLORA REGEN** (orchestrator-run, supervised): 5 flora regenerated on
-  NEUTRAL GREY bg via per-object spike style-crop -> nano-banana-pro
-  image-to-image. 45 credits, balance 2937 -> **2892** (API consumed_credits
-  matched, guard clean). Sanctioned D3 HARD-STOP fallback (grey bg = mattable,
-  not the rejected same-seam regen). Provenance + task ids at
-  `.pka/round007/composition/flora-regen/PROVENANCE.md`.
-- **Flora finish** (codex `f196cf8`): rematted the regens via the clean
-  `remove_border_background` recipe (generated_src) + re-baked flora seam masks +
-  manifest provenance slice->generated + tonal-targets-as-data. claude signed
-  (8083068). Integrated -> 4e506dd. Flora now clean in-scene (no cutout edges).
-- **Render** (claude `81e695f` + fix `6bc43ce`): D2 ground.gdshader samples the
-  field at a named worn-apron insertion (now consuming fp.r as authored coverage
-  after codex blocked the first cut for ignoring R) + D1 below-sprite contact/cast
-  layer (retired shadow_decal) + D4 object.gdshader per-kit tonal (CanvasModulate
-  kept). New R-consumption regression test test_footprint_apron_r.gd. codex
-  blocked 81e695f (apron ignored field R), claude fixed, codex signed the fix
-  (6e50d0d). Integrated -> f388bb8. Suite + export gate green, assets/village
-  non-mutation held.
-
-**AGY COMPOSED-SCENE QA: verdict NOT-CONFUSABLE** (report
-`docs/art/village/qa-agy-composition-001.md`, on round branch at 160139a;
-orchestrator INDEPENDENTLY corroborated the D1+D2 tells by decoding the 2x
-crops). Real improvement over Scott's playtest state (objects grounded, worn
-aprons, clean flora sprites, more-unified key) but does NOT yet clear the
-"one painted world" bar. Four verified tells drive the SECOND ITERATION:
-- **D1 shadows (render):** contact/cast read as HARD, too-dark painted polygons
-  (inn-sign cast = hard grey polygon; tree shadow = pitch-black hard blob;
-  sunflower basal shadow = sharp rectangle). Need softer/lighter/feathered casts,
-  and the inn-sign should not throw a hard shape.
-- **D2 apron (render):** apron outer edge is a HARD STRAIGHT diamond-tile boundary
-  against grass, does not grade in. Need the outer isoline feathered/noise-broken
-  (reuse the shader's existing lane edge-break dither) so it dissolves into grass.
-- **D4 tonal (render):** buildings too dark/contrasty vs a brighter flat
-  yellow-green ground; keys still disparate -> pasted-on read. Rebalance the
-  object grade / bring ground+objects toward a shared key.
-- **D3 flora (codex, smaller):** residual grey rectangular block behind the
-  sunflower stems + a bush bottom-right clipped flat by its bbox. Flora rematte
-  feather/flood between thin stems + bbox crop fix.
-
-**SECOND ITERATION IN FLIGHT (do NOT surface to Scott until CONFUSABLE).
-SEQUENCED: flora-d3 first, then render-tune off the flora-integrated head, so the
-render slice captures the composed scene WITH the flora fix in it.**
-
-STATUS AS OF THIS CHECKPOINT:
-- **FLORA D3 DONE: signed + integrated + pushed. Round head now `f486a89` on
-  origin/round/007-village.** codex authored `3410ba7` "art: repair flora matte
-  and crop edges" off `160139a` (end marker verified: 160139a->3410ba7,
-  branch_changed=yes, no uncommitted tracked work; the flagged mtime was a
-  `.godot/imported/` cache artifact). Fix = deterministic `remove_enclosed_neutral`
-  (full-image neutral key, lum floor >=96 + chroma guard, applied BEFORE
-  largest-component keep so subject cannot be orphaned) + `crop_padding: 2`
-  transparent margin. Orchestrator decode confirmed: interior grey pocket GONE
-  (flower_a 1 stray px, flower_b 0), edge_opaque_px=0 on all 4 (no bbox clip),
-  subject intact. NO paid Meshy. claude signed the NON-AUTHOR peer marker
-  `codex-016-flora-d3-3410ba70dbcb.md` (reviewed_sha 3410ba7, reviewed_by claude,
-  authored_by codex) as commit `f486a89`. FF-integrated 160139a->f486a89, suite +
-  export gate GREEN, non-mutation guard held, pushed to origin.
-- **claude render-tune DISPATCHED + IN FLIGHT** (detached setsid, dispatch.sh pid
-  375626 / adapter 375638, cap 2400s). Worktree `lw-016-render`, branch
-  `claude/016-render-tune` @ base `f486a89` (re-reset onto the flora head). run_id
-  `render-tune-016-20260718-192644`; start marker present. Prompt:
-  `.pka/round007/composition/iter2/claude-render-tune-prompt.md` (base-head refs
-  updated to f486a89). Log:
-  `.pka/round007/composition/iter2/claude-render-tune-dispatch.log` (EMPTY until
-  the buffered `claude -p` flushes at end; verify liveness via pgrep, not mtime).
-  Scope: D1 (soften/lighten/feather shadows render-side, tame inn-sign cast), D2
-  (dither apron outer edge reusing ground.gdshader edge_break), D4 (rebalance
-  object vs ground tonal to shared key; NO manifest.json data edits). src/render/
-  town/* ONLY. Author=claude, so its peer sign-off reviewer must be codex or agy.
-
-**ON RESPAWN (if respawned before render-tune lands): verify from the end marker +
-tree, do NOT re-dispatch.** Check `lw-016-render/.team/markers/` for
-`render-tune-016-20260718-192644-end.md`; check `git -C lw-016-render log
---oneline -1` for a new render commit past f486a89. If committed + verified ->
-NON-AUTHOR sign-off (codex or agy, NOT claude) -> FF-integrate onto round branch
--> suite + export gate -> push round -> re-run AGY composed-scene QA vs the
-binding rubric. If NOT committed and process (pgrep dispatch.sh/claude.sh for
-render-tune-016) dead -> inspect the log + `.team/blocked/` markers, re-dispatch
-or diagnose. If CONFUSABLE + orchestrator decode agrees -> surface a build to
-Scott (`to: dalinar`). If still NOT-CONFUSABLE -> decode the named tell, iterate.
-
-NEXT ACTIONS after both slices integrate:
-- Cross non-author sign-offs, FF integrate each onto the round branch, run
-  suite+export gate, push round branch.
-- Re-run AGY QA vs the binding rubric. If CONFUSABLE AND orchestrator decode
-  agrees -> SURFACE A BUILD to Scott (cross-workspace `to: dalinar`) for his OWN
-  playtest verdict, do NOT auto-expand the village. If still NOT-CONFUSABLE ->
-  decode the named tell, iterate off round head.
-
-**Live worktrees + branches (all LOCAL except `round/007-village`):**
-- `lw-007-round` on `round/007-village` @ **`5777b83`** (== origin; integration).
-- `lw-016-render` on `claude/016-render-tune` @ `a2f5f79` (render slices done +
-  integrated; reset to round head `5777b83` before dispatching iter4).
-- `lw-016-signoff` on `codex/016-render-tune-signoff` @ `634e6ce` (EPHEMERAL codex
-  review worktree; reused for each render sign-off. Reset to the iter4 head when
-  needed; safe to `git worktree remove` at round close).
-- `lw-016-qa` on `agy/016-qa` @ `07d0528` (QA #002/#003/#004 committed here; #004
-  cherry-picked onto round `5777b83`). Reuse for re-QA #005 off the iter4 head.
-- `lw-007-codex` on `codex/016-flora-d3` @ `3410ba7` (flora D3, signed+integrated).
-- `lw-016-review` REMOVED (ephemeral flora-d3 sign-off worktree, cleaned up).
-- `lw-007-claude` on `claude/016-composition` @ `c615220` (proposal/critique;
-  holds ONLY copy of `.pka/round007/ground-source/*` paid dirt sources, URLs
-  expired, do NOT overwrite). UNTOUCHED.
-- `lw-007-agy` on `agy/016-composition` @ `c707ff1` (proposal/critique).
-- Ephemeral review worktrees (lw-016-review{,2,3,4}) all REMOVED this run.
-
-## Prior round-007 state (decisions 010-015, DONE, kept for lineage)
-
-Decision 015 (dirt fill quality) INTEGRATED + PUSHED, round head `3c4c905` on
-origin. All three dirt tells (grey stones / amber rocks / membrane-smooth fill
-islands) CLOSED in sequence (014 + 015). agy QA8 = CONFUSABLE on the OLD
-dirt-defect rubric, orchestrator decode agreed at 0.5x/1x/2x. A downloadable WIP
-Windows build was produced at `/home/scott/claude/longwalk-build-round007/`
-(`longwalk-village-wip.exe`, boots straight into `scenes/village.tscn` free-cam,
-verified via export gate + xvfb boot). Scott playtested it -> the composition
-verdict above. The dirt PAID path is CLOSED (9 credits spent, task `019f74b2`).
-Decisions 009-015 all on the round branch @ `3c4c905` (009-012 signed 4-0;
-013/014/015 full-protocol converged records, no protected path). Full decision
-lineage in `docs/decisions/` and git history.
+Decision 016 (composition/seams) + 017 (foundation base-vegetation) INTEGRATED +
+SIGNED + QA'd, round head advanced 3c4c905 -> ... -> a6f7ddd (spec commit ->
+7aec340). Decisions 009-015 (dirt fidelity) all on the round branch, DONE + locked
+(do NOT reopen dirt/texture work). Full lineage in `docs/decisions/` + git history.
+The seam-grading (016) and foundation-veg (017) work IS the substrate the new
+terrain-response bake builds ON ("aim it at rules instead of one district") - do not
+throw it away.
 
 ## Round 006 -- CLOSED (superseded)
 
-Everything recoverable under `refs/archive/006/*` (pushed). `git show
-refs/archive/006/<name>:<path>`.
+Recoverable under `refs/archive/006/*` (pushed).
 
 ## Durable lessons (paid for repeatedly; honor them)
 
-- **A dispatch is synchronous; nothing external re-invokes you when a detached
-  proc finishes.** Only supervisor respawn re-invokes you. Own tool calls cap at
-  ~600s. EITHER block in one call OR detach (setsid) + poll the end marker
-  across calls, capturing in-flight state first. Costs: render/re-tune/impl
-  slices ~900-1600s (`claude -p`/`godot` buffer ALL output, verify liveness via
-  `pgrep`/`ps`, not file mtimes); codex sign-off ~150s; agy QA ~110-135s;
-  proposals lighter. Proposals/sign-off/QA can run IN PARALLEL into separate
-  worktrees.
-- **Verify from the end marker + tree, NEVER exit code or narration.** Then RUN
-  the suite + export gate yourself and DECODE the actual PNGs (before-vs-after at
-  matched framing + the spike). The gate numbers are necessary but NOT
-  sufficient; agy's multimodal read is the bar, and Scott's own eye is above
-  that (decisions 014/015 passed gates yet failed his eye on composition).
-- **agy adapter can no-op into a scratch project; markers catch it.** Verify
-  workdir == real worktree in the marker + branch_changed yes.
-- **Stacked slices integrate by fast-forward; cross sign-off = ephemeral
-  detached review worktree** (reviewed_by != authored_by). Preserve the signed
-  SHA: FF to it, then cherry-pick the (orchestrator-authored) decision record on
-  TOP. Never rebase/cherry-pick the signed doer commit.
-- **Doer seats NEVER push to origin.** Only the orchestrator, only the round
-  branch. Long render/gate/decode proofs run to completion in the FOREGROUND.
-- **Cross-workspace asks to Scott: address `to: dalinar`, NOT `to: scott`.**
+- **A dispatch is synchronous; nothing external re-invokes you when a detached proc
+  finishes.** Only supervisor respawn re-invokes you. Own tool calls cap ~600s
+  (bash default is 120s - pass a longer `timeout` param on poll loops). EITHER block
+  in one call OR detach (setsid) + poll the end marker across calls. This run:
+  proposals ran ~240-360s, critiques ~90-235s, dispatched 3-in-parallel into
+  separate worktrees, polled end markers. `setsid bash -c "..." &` returns control
+  immediately while dispatch.sh keeps running detached - that is correct, verify via
+  start markers + pgrep, not the "[Done]" line.
+- **Verify from the end marker + tree, NEVER exit code or narration.** branch_sha
+  before/after + branch_changed + uncommitted_work; then confirm the committed
+  artifact exists past the base SHA. uncommitted_work=yes is usually harmless scratch
+  (.pka noise, measurement scripts) - check WHAT it is, the deliverable is the commit.
+- **agy adapter hardcodes `--add-dir WORKDIR`** (no longer a manual flag), but still
+  verify branch_changed=yes so it did not no-op into a scratch project.
+- **Doer seats NEVER push to origin.** Only the orchestrator, only the round branch.
+  Proposals/critiques stay on LOCAL doer branches, cited by SHA (not merged to the
+  round branch, no sign-off gate - they are analysis artifacts, not code).
+- **Cross-workspace asks to Scott: address `to: dalinar`, NOT `to: scott`.** Use the
+  request-crossworkspace skill / `/home/scott/tools/agent-bus/bin/request-crossworkspace`.
 
 ## Meshy
 
-Key live at `~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in
-`.mcp.json`. Balance **2892** (after the D3 flora regen this run: 45 credits, 5 x
-nano-banana-pro image-to-image @ 9; guard was clean, no PENDING/IN_PROGRESS).
-The DIRT paid path is CLOSED (9 credits, task `019f74b2`, do NOT regen dirt).
-Meshy IS available for decision-016 IF in-context flora regeneration wins and
-genuinely needs it (no mandate). Any paid spend needs its own guard
-(`meshy_list_tasks` no PENDING, `meshy_check_balance` before/after, cost-confirm,
-NEVER `save_to`). Paid dirt sources at `.pka/round007/ground-source/*.png` (only
-copies, URLs expired) live ONLY in `lw-007-claude`; do NOT overwrite.
+Key live at `~/.claude/pka-secrets/longwalk/meshy.env`; MCP `meshy` in `.mcp.json`.
+Balance **2892**. Available if in-context flora/asset regen genuinely needs it (no
+mandate; NOT needed for the spec round). The DIRT paid path is CLOSED. Any paid spend
+needs its own guard (meshy_list_tasks no PENDING, check_balance before/after,
+cost-confirm, NEVER save_to).
 
 ## Active decision records
 
-001-008 on main. Round-007 decisions **009-015** on the round branch.
-**016 (composition/integration)** record `docs/decisions/016-composition-integration.md`
-is on the round branch @ 4022fb8 and fully implemented (bake + flora + render seam
-work integrated); QA #004 = NOT-CONFUSABLE with the remaining gap = foundation/
-flora-base vegetation (iteration 4 scoped above).
+001-008 on main. Round-007 decisions **009-017** on the round branch (all DONE +
+signed). **018 (generalized composition architecture) NOT YET WRITTEN** - it opens
+only after Scott approves the spike spec (Checkpoint A). The spec itself
+(`docs/art/village/spike-spec.md`) is a Checkpoint-A analysis doc, not a decision
+record.
 
 ## Notes for the next run
 
-- **Dashboard `/team` tab is KILLED by Scott** (inbox `2026-07-18-0445`): do NOT
-  POST to `dashboard.int.sentania.net/api/team`. Compliance = not posting; a
-  missing POST is not a failure.
+- **Dashboard `/team` tab is KILLED by Scott** (inbox `2026-07-18-0445`): do NOT POST
+  to `dashboard.int.sentania.net/api/team`. A missing POST is compliance, not failure.
 - `gh pr edit` is broken (GraphQL projectCards). Use REST `gh api -X PATCH
-  repos/sentania-labs/longwalk/pulls/N ...`.
-- No round PR is open (correct; opens only for the full-village milestone once
-  Scott confirms the art bar and the district is expanded).
-- **Sweep:** round is OPEN (not closing; district must pass QA + Scott's eye
-  first). origin/round/007-village is at `5777b83`. Doer branches
-  (claude/*, codex/*, agy/*) are LOCAL-only; verify none leaked to origin at the
-  next close (the round is mid-iteration, so leaked-branch guard is deferred to
-  round close, not now). No round PR open (correct).
-- Inbox processed through `2026-07-18-1730` (the composition verdict). No new
-  inbox items this run. Older partials `6110faed` / `c3ffe894` superseded.
-- **Two STALE cross-workspace responses surfaced in the codex worktree's untracked
-  `.pka/inbound` this run** (`308f0465`, `a1c32de4`), addressed `to: lw-007-codex`,
-  NOT to me, NOT in my main inbox. Both are responses to superseded requests from
-  earlier runs: (1) vault escalated the flora authorization to Scott (report
-  `scott/reports/2026-07-18-lw-007-flora-authorization-needed.md`) - MOOT, my
-  supervisor's respawn directly authorized this turn's regen and it is
-  orchestrator-decidable; (2) a PARALLEL non-role-briefed claude sign-off of the
-  bake (`cc1848f`) - redundant, my proper role-briefed sign-off bd169cf is already
-  integrated, both agree. No action; noted for visibility. If Scott's report reply
-  lands later disagreeing, escalate then (spend already made under direct
-  supervisor authorization).
+  repos/sentania-labs/longwalk/pulls/N ...` if ever needed.
+- No round PR is open (correct; opens only for the full-village milestone once Scott
+  confirms the art bar on a generated district). Round is mid-milestone, NOT closing;
+  leaked-branch sweep guard deferred to round close (verified no leak this run anyway).
+- Inbox processed through `2026-07-18-2240` (this assignment) + the fac1635d/0330
+  replies (subsumed). UUID partials 6110faed/c3ffe894 superseded. Stale codex-worktree
+  inbound (308f0465/a1c32de4) noted in prior state, no action.
 
-**Last updated:** 2026-07-18 (RENDER SEAM WORK DONE + INTEGRATED + PUSHED, round
-head `5777b83`. This run: render-tune first cut `9da0f94` BLOCKED by codex
-[MODULATE built-in invalid in Godot 4.3-stable -> shaders did not compile;
-orchestrator REPRODUCED it + found/closed a GATE HOLE where the export gate passed
-green on shader-compile errors]; claude fix `37ce6c6` [uniform-based modulate + gate
-now fails on SHADER ERROR], codex-signed `34d146a`, integrated. QA #002 was
-COMPROMISED [stale-anchored, orchestrator falsified its tells] -> instituted
-anti-anchoring QA prompts. QA #003 = one D1 tell [blown pale patch on smithy props
-under the awning]; claude iter3 `a2f5f79` bisected it to the D4 tonal MULTIPLY
-over-brightening light props + fixed with a per-kit highlight ceiling [awning
-max_lum 193->151, roofs unchanged, orchestrator-reproduced], codex-signed `634e6ce`,
-integrated. QA #004 [reliable, on round] = NOT-CONFUSABLE: D1 PASS + D4 PASS, two
-remaining TELLs = foundation/flora-base VEGETATION [D2 buildings lack the spike's
-base planting; D3 flora bases lack root-merge]; orchestrator corroborated D2 as
-real + spike-calibrated, D3 as partially real. This gap = Scott's original
-complaint. ITERATION 4 scoped above [foundation vegetation placement + flora base
-feather; a composition/authoring step with a real design choice - triage full
-protocol]. NOT surfaced to Scott [correct: NOT-CONFUSABLE]. Every phase this run
-durable + pushed; NOTHING in flight at turn end.)
+**Last updated:** 2026-07-19 (CHECKPOINT A DELIVERED. Full protocol ran clean: 3
+blind spike-spec proposals -> 3 adversarial critiques -> orchestrator synthesis. The
+annotated spike spec `docs/art/village/spike-spec.md` is committed + pushed at round
+head `7aec340` and surfaced to Scott [req d03ff384] for approval. Key converged
+finding: "built on the ground" = a 3-band adjacency-driven ground-response stack with
+clamped-ratio darkening + a precedence-based zone grammar + a hybrid scale contract;
+the FIELD zone is NOT in the spike [surfaced as a gating question]. Scale-tag question
+ruled 3-1, agy dissent verbatim, no critic. HOLDING at Checkpoint A - implementation
+is gated on Scott's approval. Nothing in flight at turn end.)
