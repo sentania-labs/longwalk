@@ -375,6 +375,6 @@ synthesis and accept it as the team's decision," not necessarily agreement with
 all of it; agy's losing objection is recorded verbatim above and agy still
 signs.
 
-    Signed-off-by: claude-worker <claude@sentania.net> PENDING
-    Signed-off-by: codex-worker <codex@sentania.net> PENDING
-    Signed-off-by: agy-worker <agy@sentania.net> PENDING
+    Signed-off-by: claude-worker <claude@sentania.net> 2026-07-19T03:30:55Z
+    Signed-off-by: codex-worker <codex@sentania.net> 2026-07-19T03:31:01Z
+    Signed-off-by: agy-worker <agy@sentania.net> 2026-07-19T03:30:51Z
