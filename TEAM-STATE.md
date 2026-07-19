@@ -36,8 +36,12 @@ scoped IMPLEMENTATION of the decided design (dispatch owner, peer-sign,
 integrate) - done this run. No new design round was run.
 
 === WHERE WE ARE: **CHECKPOINT B DONE + PUSHED + SURFACED TO SCOTT (req
-`68bca91a`, to: dalinar, filed 2026-07-19T04:32Z). NOTHING IN FLIGHT. HOLDING
-for Scott's verdict on the grounding bar.**
+`68bca91a`). A technical (non-verdict) review came back on that thread and raised
+ONE answerable question - the age-1-vs-age-40 "global warm/cool tint". RESOLVED
+this run (factual, no code change): there is NO global grade; tint = sum of
+localized state responses (56% is the full-width lane-wear band). Follow-up with
+proof + heatmap filed to Scott (req `72b4e7a8`). NOTHING IN FLIGHT. STILL HOLDING
+for Scott's grounding-bar verdict.**
 - If Scott APPROVES the grounding: dispatch codex to build the deterministic
   generalization district + run the same response on ground never hand-touched
   (decision 018 section 4), then agy QA on the untouched output. THAT is the last
@@ -142,10 +146,39 @@ markers + tree + re-running the suites myself.
   tile_mature_age40,field_zone_legend}.png` on origin/round/007-village. STOPPED
   per instruction; did NOT proceed to full-district generation.
 
+## Checkpoint B tint question - RESOLVED this run (factual, NO code change)
+
+Cross-workspace tech review on the `68bca91a` thread asked whether the age-1 vs
+age-40 "global warm/cool tint" is an intentional age/season parameter or an
+unpinned variable. Answered DEFINITIVELY from the render code AND a pixel diff of
+the two capture states (not narration):
+- **No global lighting/color-grade parameter exists.** Base ground per zone
+  (`COL_GRASS`/`COL_WILD`/`COL_FIELD_SOIL` + mottle) is a pure function of
+  `(seed, texel coord)` with NO age/traffic/disturbance term
+  (`composition_kernel.gd:343-366`). Two large pure-yard control patches
+  (23,340 px) are **byte-identical** young-vs-mature. A scene-wide grade would
+  move them; it does not.
+- The 51,310-px (19.6%) diff decomposes as: **lane full-width wear band 56.3%**
+  (authored lane spans the whole tile width -> reads as a global shift in a
+  thumbnail, but it IS the traffic-wear grounding cue), field crop growth ~30%,
+  building+apron ~12%, wild edges ~6%.
+- Thumbnail-only priming: `compare_young_vs_mature.png` carries deliberate 22px
+  legend header tags (cool teal / warm brown) - `bake_checkpoint_b.gd:213-215`.
+  The single-tile PNGs have none.
+- **Disposition: no defect, no code change, captures NOT regenerated** (correct
+  as committed). Did NOT proceed past CP B. Write-up + heatmap:
+  `.pka/round007/cpb-tint-analysis/{FINDING.md,diff_heatmap_young_vs_mature.png}`
+  (untracked analysis artifacts in the round worktree, not committed to the round).
+- Follow-up filed to Scott: **req `72b4e7a8`** (to: dalinar, 2026-07-19T04:41Z),
+  offering (only if he asks) to report the diff with lane-wear excluded or drop
+  the legend tags via a doer. Otherwise the tint question is CLOSED and CP B
+  stands as surfaced.
+
 ## ON NEXT RESPAWN
 
 - **Check `.pka/inbound/` FIRST** for Scott's Checkpoint B verdict (req
-  `68bca91a`) AND the still-pending architecture escalation reply (req `decbf284`
+  `68bca91a`), any reply to the tint follow-up (req `72b4e7a8`), AND the
+  still-pending architecture escalation reply (req `decbf284`
   routed, no ruling yet: ARCHITECTURE.md clarification + early persistence-(b)
   slice; gates the FULL-milestone src/sim work, NOT anything immediate).
 - **If Scott APPROVES the grounding bar:** dispatch codex-worker to build the
@@ -255,7 +288,20 @@ milestone, not CP B.
   030642Z is the same prior-run provisioning gap that was resolved + re-dispatched
   -> proposal 7368784 landed) - both stale, NOT live, no action.
 
-**Last updated:** 2026-07-19 (Checkpoint B BUILT + peer-reviewed + integrated +
+**Last updated:** 2026-07-19 (CP B TINT QUESTION RESOLVED. A cross-workspace tech
+review on the 68bca91a thread asked whether the age-1-vs-age-40 global warm/cool
+tint is an intentional age/season parameter or an unpinned variable. Answered
+factually from the render code + a pixel diff of the two capture states: there is
+NO global grade - base ground is a pure function of (seed, coord) with no
+age/traffic/disturbance term, PROVEN by two pure-yard control patches [23,340 px]
+being byte-identical young-vs-mature. The 51,310-px diff is 56% full-width
+lane-wear band + 30% field crop growth + 12% building apron + 6% wild edges, all
+intended localized state responses; the thumbnail's "global tint" read is the
+full-width lane plus deliberate cool/warm legend header tags. NO defect, NO code
+change, captures NOT regenerated. Filed proof + heatmap follow-up to Scott [req
+72b4e7a8]. Did NOT proceed past Checkpoint B. STILL HOLDING for Scott's
+grounding verdict. Nothing in flight. -- prior run:  Checkpoint B BUILT +
+peer-reviewed + integrated +
 surfaced to Scott. Dispatched claude-worker [owner] -> commit 58aabce; codex peer
 review returned changes-requested on a real determinism defect [flora conflict
 resolution claimed but not implemented + exact-position dup + order-invariance
