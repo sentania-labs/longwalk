@@ -119,7 +119,8 @@ escalations to Scott" if it went up to Scott. This directory holds the detail;
 `TEAM-STATE.md` holds the pointer.
 
 The critic cannot write here. It runs read-only under `cursor-agent --mode ask`
-by design (see `roles/critic.md`), so a blocked critic says BLOCKED in its
+by design (see `$TEAM_FRAMEWORK_DIR/roles/critic.md`), so a blocked critic says
+BLOCKED in its
 output with the same contents, and the orchestrator writes the marker on its
 behalf.
 

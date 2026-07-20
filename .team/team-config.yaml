@@ -1,0 +1,24 @@
+# Team configuration for longwalk.
+# Read by bin/team-run as a "has this project actually been set up" guard,
+# and by the orchestrator role brief for the seated roster and roadmap
+# pointer.
+#
+# longwalk is the pilot the shared team-framework was extracted from. It
+# adopted the framework's thin footprint in decision 020; before that, the
+# roster below was expressed only in this repo's own roles/ briefs.
+
+doers:
+  - claude
+  - codex
+  - agy
+
+critic:
+  seat: cursor
+  active: true
+  role: tiebreaker-only  # summoned only on a 2-2 four-ballot split, no standing synthesis vote
+
+roadmap: ROADMAP.md
+
+protected_paths: .github/protected-paths.txt
+
+mailbox: .pka/inbound/

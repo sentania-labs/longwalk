@@ -14,12 +14,36 @@ not edit `AGENTS.md` by hand: edit this file and re-run the generator.
 This constitution is role-neutral on purpose. It says what is true for
 everyone. It does not say what an orchestrator does, or what a worker does.
 
-Role briefs live in `roles/` (`roles/orchestrator.md`,
-`roles/claude-worker.md`, `roles/codex-worker.md`). They are tracked in git so
-their changes are reviewable diffs, but they are never auto-loaded by any
-harness. The dispatcher injects the relevant brief at dispatch time
-(`claude -p --append-system-prompt "$(cat roles/claude-worker.md)"`, or the
-equivalent instruction prepend for `codex exec`).
+Role briefs are no longer carried in this repo. longwalk was the pilot the
+shared team-framework was extracted from, and as of decision 020 it adopts
+that framework's thin footprint: the briefs (`orchestrator.md`,
+`claude-worker.md`, `codex-worker.md`, `agy-worker.md`, `critic.md`, and the
+`phases/` templates) live in the framework install and are read from
+`$TEAM_FRAMEWORK_DIR/roles/`.
+
+`TEAM_FRAMEWORK_DIR` is exported by the framework's `bin/team-run` when it
+spawns an orchestrator or a solo worker, so prefer the variable over a
+hardcoded path. On this box the install is `~/foundry/tools/team-framework`.
+The briefs are still never auto-loaded by any harness: the dispatcher injects
+the relevant one at dispatch time, which `bin/team-run` handles (it passes
+`--role-brief` through to `dispatch/dispatch.sh`, which appends it to the
+harness system prompt).
+
+This repo has no `roles/` directory today. If longwalk ever needs protocol
+behavior that genuinely differs from the framework's (not just different
+constitution content), the framework's "Forking a role brief" procedure
+applies: copy that one brief into a local `roles/`, point the dispatch at the
+local copy, and accept that it stops receiving framework fixes. `roles/`
+remains listed in `.github/protected-paths.txt` precisely so a fork is
+protected the day it lands rather than the day someone remembers to add it.
+
+Two project facts the generalized framework briefs deliberately do not
+hardcode, which apply here:
+
+- Commit trailers use this project's domain, for example
+  `Co-authored-by: Claude <claude@sentania.net>`, not the framework's
+  placeholder `@team.local`.
+- The repo slug for `gh` invocations is `sentania-labs/longwalk`.
 
 If you are reading this file and no role brief was injected into your session,
 you are a plain interactive session. Assume neither role. Do not act as the
@@ -158,6 +182,16 @@ hard rule across the whole repo.
 - Escalate to Scott rather than deciding as a team: engine changes,
   architecture changes, new dependencies, and edits to this constitution.
   Style, implementation detail, and refactors are the team's call.
+- Escalations and steer messages route through `.pka/inbound/`, this
+  project's mailbox. The framework's orchestrator brief says to route
+  escalations through "whatever channel the human principal actually reads"
+  without naming one; for longwalk that channel is `.pka/inbound/`. It
+  predates the framework adoption and is the only inbound mailbox: do not
+  create a second one. A steer message arriving there is authoritative
+  mid-run.
+- The seated roster, critic configuration, and pointers to the roadmap,
+  protected-paths list, and mailbox live in `.team/team-config.yaml`, which
+  the framework's `bin/team-run` checks before dispatching.
 - CI is fork-gated per the sentania-labs standard: PR jobs run only for branches
   in this repo, never for forks. See `.github/workflows/ci.yml`.
 - The Godot engine version is pinned in `tools/godot/VERSION`. Use
