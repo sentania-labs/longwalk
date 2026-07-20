@@ -205,6 +205,35 @@ collision, per assignment.
 - Sweep this run: clean. No leaked doer branches on origin, no advisory branch on
   origin, no open team PRs, nothing in flight.
 
+### MIGRATION NOTE (2026-07-20, solo infra session, not an orchestrator run)
+
+Authority: `scott/reports/2026-07-20-longwalk-migration-authorization.md` in the
+vault (vault commit `bc2477a`). Nothing above this note was altered; no decision
+record was touched, renumbered, or reinterpreted.
+
+- **The repo moved** from `~/claude/longwalk` to `~/foundry/projects/longwalk`.
+  All 15 worktrees were relinked with `git worktree repair` and verified working
+  from their own directories. The worktrees themselves did NOT move and are
+  still at `~/claude/lw-*`.
+- **Worktree cleanup removed NOTHING.** All 15 were audited and all 15 kept. 14
+  hold uncommitted work, and every branch is genuinely unlanded: the last merged
+  PR is #21 (round 005), `refs/archive/` stops at `006`, and there is no
+  `refs/archive/007*` namespace at all. `round/007-village` alone is 91 commits
+  and about 12,600 insertions ahead of `main` with no PR. **Read this before
+  assuming round 007 or the CP B / advisory work is safely landed. It is not.
+  It exists only in these worktrees and in local branches.**
+- The 2026-07-19 05:19 hard-killed run corresponds to `lw-cpb-claude`
+  (`claude/018-cpb`), which carries an unmatched `cpb-retry-20260719-052522-start`
+  marker with no end marker. That worktree is intact and was not touched.
+- `~/claude/longwalk-build-round007/` (135MB, the round-007 WIP .exe plus
+  screenshots) and the empty `~/claude/longwalk-worktrees/` are outside the
+  authorized scope and were left alone. Both await a separate Scott call.
+- **The team machinery moved out of this repo** into the shared framework at
+  `~/foundry/tools/team-framework` (decision 020). `roles/` is gone; briefs now
+  resolve from `$TEAM_FRAMEWORK_DIR/roles/`. New file: `.team/team-config.yaml`.
+  The next orchestrator run should be launched via the framework's
+  `bin/team-run`, not by hand-injecting a brief from this repo.
+
 **Last updated:** 2026-07-19 (ADVISORY ROUND engine/stack DONE. Re-dispatched the
 3 dead phase-1 dispatches [claude/codex/cursor - verified dead from branch heads
 at base + no live procs, not narration], all 4 proposals landed + verified;

@@ -54,7 +54,8 @@ proposal SHA signs.
 One record shape has no worker round behind it: a change Scott directed
 outright, rather than one the team proposed, critiqued, and converged on.
 Roster changes and constitution-adjacent changes are exactly this, because
-`roles/orchestrator.md` puts them outside what the team decides for itself.
+`$TEAM_FRAMEWORK_DIR/roles/orchestrator.md` puts them outside what the team
+decides for itself.
 Such a change can still touch a protected path, so it still needs a record, but
 requiring worker sign-off on it would be asking workers to ratify something no
 worker proposed.

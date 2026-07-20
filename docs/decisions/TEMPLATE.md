@@ -20,7 +20,8 @@
 > converged on. That record needs no worker sign-off, because no worker proposed
 > it, and it must say plainly in its own text why it is that category. See
 > `docs/decisions/README.md` and the escalation rule in
-> `roles/orchestrator.md`. Delete this instruction block when filling it in.
+> `$TEAM_FRAMEWORK_DIR/roles/orchestrator.md`. Delete this instruction block
+> when filling it in.
 
 ## Context
 
