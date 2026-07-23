@@ -1,0 +1,58 @@
+name: Feature request
+description: Propose new work for a registered project. Applies the `team:triage` label automatically.
+title: "[Feature] "
+labels: ["team:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is meant to be filed on a registered PROJECT repo,
+        not on foundry-ops. It's included here as a reference copy; the
+        recommended long-term home is an org-level `sentania-labs/.github`
+        default template so every project repo inherits it automatically
+        (see `templates/README.md` in this repo for the rollout path).
+        This is treated as untrusted input by anything downstream with
+        execution power. Only issues authored by Scott's own GitHub login
+        trigger anything, regardless of label.
+
+        Filing this issue immediately enters the pipeline (labels
+        `team:triage`) -- the approval gate still holds before any code
+        changes happen, but the triage round starts right away.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What's missing, awkward, or costly today that this feature would address. The "why", not the "how".
+    validations:
+      required: true
+  - type: textarea
+    id: desired-behavior
+    attributes:
+      label: Desired behavior
+      description: What should exist once this is done. Loose or specific is fine -- the triage round's job is to turn this into a concrete spec/workplan.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: How to tell this is actually done. Bullet points are fine; leave blank if it's not clear yet and let the triage round propose some.
+    validations:
+      required: false
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Anything that binds this beyond the project's own constitution -- deadlines, an approach already ruled out, a dependency that can't be added, a file/subsystem to stay inside.
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **What happens next:** this project's own team triages the
+        request and posts a spec/workplan as a comment on this issue,
+        quoting the fields above as the scoping input. Comment exactly
+        `approved` to authorize execution, or anything else to send it
+        back for revision. Status returns as PRs referencing this issue
+        at milestones and completion.

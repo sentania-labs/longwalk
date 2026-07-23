@@ -1,0 +1,58 @@
+name: Bug report
+description: Report something broken in a registered project. Applies the `team:triage` label automatically.
+title: "[Bug] "
+labels: ["team:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is meant to be filed on a registered PROJECT repo,
+        not on foundry-ops. It's included here as a reference copy; the
+        recommended long-term home is an org-level `sentania-labs/.github`
+        default template so every project repo inherits it automatically
+        (see `templates/README.md` in this repo for the rollout path).
+        This is treated as untrusted input by anything downstream with
+        execution power. Only issues authored by Scott's own GitHub login
+        trigger anything, regardless of label.
+
+        Filing this issue immediately enters the pipeline (labels
+        `team:triage`) -- the approval gate still holds before any code
+        changes happen, but the triage round starts right away.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug as observed. Include error messages, log excerpts, or screenshots verbatim where possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+      description: The behavior you expected, or the absence of the failure.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Whatever's known -- exact steps, a failing command, a specific input, or "happens every time X runs" if the precise trigger isn't clear yet. The triage round's job is to narrow this down further if needed.
+    validations:
+      required: false
+  - type: input
+    id: component
+    attributes:
+      label: Affected component
+      description: The part of the project this touches, if known (a service name, a file/directory, a subsystem). Leave blank if unclear -- the triage round will scope it.
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **What happens next:** this project's own team triages the bug
+        and posts a spec/workplan as a comment on this issue, quoting the
+        fields above as the scoping input. Comment exactly `approved` to
+        authorize the fix, or anything else to send it back for revision.
+        Status returns as PRs referencing this issue at milestones and
+        completion.
