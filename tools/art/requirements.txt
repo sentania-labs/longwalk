@@ -6,4 +6,4 @@
 # Install with:
 #   python3 -m pip install -r tools/art/requirements.txt
 numpy==2.4.3
-Pillow==12.1.1
+Pillow==12.3.0
