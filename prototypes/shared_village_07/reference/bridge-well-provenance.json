@@ -1,0 +1,10 @@
+{
+  "generator": "Built-in imagegen references; Meshy image-to-3D",
+  "assets": [
+    {"name": "bridge", "task_id": "01a089a3-07bc-776c-9dcd-f58c3e8cbd41", "reference": "bridge.png", "credits": 30},
+    {"name": "well", "task_id": "01a089a4-52df-74c5-96d3-7c67e5d67d29", "reference": "well.png", "credits": 30}
+  ],
+  "credits_this_file": 60,
+  "village_assets_manifest": "art-generation/generation.json",
+  "combined_village_generation_credits": 240
+}

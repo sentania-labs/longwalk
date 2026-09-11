@@ -1,0 +1,67 @@
+# Packaging only. No cluster deployment is performed by this prototype.
+# Load the bundled image into your development cluster before applying.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: longwalk-world-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longwalk-world
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: longwalk-world
+  template:
+    metadata:
+      labels:
+        app: longwalk-world
+    spec:
+      containers:
+        - name: world
+          image: longwalk-shared-village:05
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: game
+              containerPort: 7777
+              protocol: UDP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            exec:
+              command: [sh, -c, 'test -f /tmp/world-ready && test $(( $(date +%s) - $(stat -c %Y /tmp/world-ready) )) -lt 15']
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: [sh, -c, 'test -f /tmp/world-ready && test $(( $(date +%s) - $(stat -c %Y /tmp/world-ready) )) -lt 15']
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: longwalk-world-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: longwalk-world
+spec:
+  selector:
+    app: longwalk-world
+  ports:
+    - name: game
+      protocol: UDP
+      port: 7777
+      targetPort: game
+  type: ClusterIP

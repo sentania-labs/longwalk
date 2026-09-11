@@ -1,0 +1,339 @@
+{
+  "target": "player",
+  "mode": "walk",
+  "prompt": "",
+  "role": "",
+  "input": "prototypes/character_comparison/reference/walk-raw.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 200,
+  "rows": 2,
+  "cols": 2,
+  "cell_size": 96,
+  "fit_scale": 0.8,
+  "trim_border": 4,
+  "edge_clean_depth": 3,
+  "align": "feet",
+  "shared_scale": true,
+  "scale_strategy": "fit",
+  "component_mode": "largest",
+  "component_padding": 0,
+  "min_component_area": 1,
+  "edge_touch_margin": 0,
+  "frame_labels": [
+    "walk-1",
+    "walk-2",
+    "walk-3",
+    "walk-4"
+  ],
+  "frames": [
+    {
+      "grid": [
+        0,
+        0
+      ],
+      "source_box": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 39414,
+      "selected_component_bbox": [
+        208,
+        98,
+        405,
+        498
+      ],
+      "crop_bbox": [
+        208,
+        98,
+        405,
+        498
+      ],
+      "source_frame_size": [
+        619,
+        619
+      ],
+      "is_empty": false,
+      "subject_area": 39414,
+      "body_core_area": 39414,
+      "body_area_fraction": 0.10286537512951474,
+      "anchor_source": [
+        288.0,
+        483.0
+      ],
+      "source_edge_touch": false,
+      "output_edge_touch": false,
+      "edge_touch": false,
+      "output_size": [
+        37,
+        75
+      ],
+      "paste_position": [
+        29,
+        12
+      ],
+      "paste_clamped": false,
+      "aligned_bbox": [
+        29,
+        12,
+        66,
+        87
+      ],
+      "source_to_output_scale": 0.18823529411764706,
+      "bbox_scale_applied": true,
+      "scale_strategy": "fit",
+      "scale_changed": true
+    },
+    {
+      "grid": [
+        0,
+        1
+      ],
+      "source_box": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 38393,
+      "selected_component_bbox": [
+        221,
+        98,
+        384,
+        506
+      ],
+      "crop_bbox": [
+        221,
+        98,
+        384,
+        506
+      ],
+      "source_frame_size": [
+        619,
+        619
+      ],
+      "is_empty": false,
+      "subject_area": 38393,
+      "body_core_area": 38393,
+      "body_area_fraction": 0.10020069892290707,
+      "anchor_source": [
+        315.0,
+        486.0
+      ],
+      "source_edge_touch": false,
+      "output_edge_touch": false,
+      "edge_touch": false,
+      "output_size": [
+        30,
+        76
+      ],
+      "paste_position": [
+        33,
+        11
+      ],
+      "paste_clamped": false,
+      "aligned_bbox": [
+        33,
+        11,
+        63,
+        87
+      ],
+      "source_to_output_scale": 0.18823529411764706,
+      "bbox_scale_applied": true,
+      "scale_strategy": "fit",
+      "scale_changed": true
+    },
+    {
+      "grid": [
+        1,
+        0
+      ],
+      "source_box": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 38267,
+      "selected_component_bbox": [
+        217,
+        97,
+        399,
+        501
+      ],
+      "crop_bbox": [
+        217,
+        97,
+        399,
+        501
+      ],
+      "source_frame_size": [
+        619,
+        619
+      ],
+      "is_empty": false,
+      "subject_area": 38267,
+      "body_core_area": 38267,
+      "body_area_fraction": 0.09987185543413865,
+      "anchor_source": [
+        288.0,
+        485.0
+      ],
+      "source_edge_touch": false,
+      "output_edge_touch": false,
+      "edge_touch": false,
+      "output_size": [
+        34,
+        76
+      ],
+      "paste_position": [
+        31,
+        11
+      ],
+      "paste_clamped": false,
+      "aligned_bbox": [
+        31,
+        11,
+        65,
+        87
+      ],
+      "source_to_output_scale": 0.18823529411764706,
+      "bbox_scale_applied": true,
+      "scale_strategy": "fit",
+      "scale_changed": true
+    },
+    {
+      "grid": [
+        1,
+        1
+      ],
+      "source_box": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 36200,
+      "selected_component_bbox": [
+        217,
+        97,
+        390,
+        493
+      ],
+      "crop_bbox": [
+        217,
+        97,
+        390,
+        493
+      ],
+      "source_frame_size": [
+        619,
+        619
+      ],
+      "is_empty": false,
+      "subject_area": 36200,
+      "body_core_area": 36200,
+      "body_area_fraction": 0.09447725629696133,
+      "anchor_source": [
+        306.0,
+        475.0
+      ],
+      "source_edge_touch": false,
+      "output_edge_touch": false,
+      "edge_touch": false,
+      "output_size": [
+        32,
+        74
+      ],
+      "paste_position": [
+        32,
+        13
+      ],
+      "paste_clamped": false,
+      "aligned_bbox": [
+        32,
+        13,
+        64,
+        87
+      ],
+      "source_to_output_scale": 0.18823529411764706,
+      "bbox_scale_applied": true,
+      "scale_strategy": "fit",
+      "scale_changed": true
+    }
+  ],
+  "edge_touch_frames": [],
+  "source_edge_touch_frames": [],
+  "output_edge_touch_frames": [],
+  "empty_frames": [],
+  "paste_clamped_frames": [],
+  "qc_summary": {
+    "frame_count": 4,
+    "valid_frame_count": 4,
+    "empty_count": 0,
+    "edge_touch_count": 0,
+    "paste_clamped_count": 0,
+    "body_scale_mean": 0.31516696974916963,
+    "output_subject_height_mean": 75.25,
+    "body_scale_cv": 0.015406689567087626,
+    "anchor_x_std": 0.018887468418562068,
+    "anchor_y_std": 0.006983690010416207,
+    "anchor_y_mean": 0.7790791599353797,
+    "profile_body_scale_drift": 0.21169540764930406
+  },
+  "scale_profile": {
+    "path": "prototypes/character_comparison/reference/character-scale-profile.json",
+    "version": 1,
+    "name": "player-idle",
+    "reference_mode": "idle",
+    "processing_contract_applied": true
+  },
+  "godot_sprite3d": {
+    "schema": "generate2dsprite.godot_sprite3d.v1",
+    "frame_size": [
+      96,
+      96
+    ],
+    "output_origin": [
+      48.0,
+      87.0
+    ],
+    "sprite3d_offset": [
+      0.0,
+      39.0
+    ],
+    "reference_subject_height_px": 75.25,
+    "world_height": 1.75,
+    "recommended_pixel_size": 0.023255813953488372,
+    "rendered_subject_height_world": 1.75,
+    "scale_source": "scale_profile",
+    "billboard": "enabled",
+    "duration_ms": 200,
+    "fps": 5.0,
+    "frames": [
+      "walk-1.png",
+      "walk-2.png",
+      "walk-3.png",
+      "walk-4.png"
+    ]
+  },
+  "godot_sprite3d_output": "prototypes/character_comparison/art/walk/godot-sprite3d.json",
+  "qc_config": {
+    "strict_qc": true,
+    "reject_edge_touch": false,
+    "allow_source_edge_touch": false,
+    "max_body_scale_cv": 0.08,
+    "max_anchor_y_std": 0.05,
+    "max_profile_scale_drift": 0.1
+  }
+}

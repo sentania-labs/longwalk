@@ -1,0 +1,82 @@
+# Private development packaging. No lab deployment or public DNS is performed.
+# Import the bundled image into the development cluster before applying.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: longwalk-world-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longwalk-world
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: longwalk-world
+  template:
+    metadata:
+      labels:
+        app: longwalk-world
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: world
+          image: longwalk-shared-village:06
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: game
+              containerPort: 7777
+              protocol: UDP
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          startupProbe:
+            exec:
+              command: [sh, -c, 'test -f /tmp/world-ready']
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            exec:
+              command: [sh, -c, 'test -f /tmp/world-ready && test $(( $(date +%s) - $(stat -c %Y /tmp/world-ready) )) -lt 15']
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: [sh, -c, 'test -f /tmp/world-ready && test $(( $(date +%s) - $(stat -c %Y /tmp/world-ready) )) -lt 15']
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: longwalk-world-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: longwalk-world
+spec:
+  selector:
+    app: longwalk-world
+  ports:
+    - name: game
+      protocol: UDP
+      port: 7777
+      targetPort: game
+  type: ClusterIP

@@ -1,0 +1,103 @@
+{
+  "provider": "Meshy",
+  "ai_model": "meshy-7",
+  "starting_balance": 3000,
+  "ending_balance": 2820,
+  "parameters": {
+    "target_formats": [
+      "glb"
+    ],
+    "should_texture": true,
+    "should_remesh": true,
+    "texture_resolution": "2k",
+    "enable_pbr": false,
+    "remove_lighting": true,
+    "origin_at": "bottom"
+  },
+  "assets": [
+    {
+      "asset": "cottage",
+      "task_id": "01a0893e-b43f-72a0-a969-8435ea3fb95c",
+      "status": "SUCCEEDED",
+      "texture_prompt": "Weathered timber cottage, pale warm plaster, charcoal slate shingles with restrained moss, aged oak door, grey fieldstone foundation. Preserve all materials and colors in the input reference. Matte hand-painted game asset, no baked illumination.",
+      "consumed_credits": 30,
+      "reference": "reference/cottage.png",
+      "model": "assets/cottage.glb",
+      "target_polycount": 35000
+    },
+    {
+      "asset": "tree",
+      "task_id": "01a0893f-0f73-7647-a9c3-99bee5d71587",
+      "status": "SUCCEEDED",
+      "texture_prompt": "Mature oak tree with irregular open branch structure, small olive green leaves with muted warm highlights and dark fissured bark. Preserve the input tree silhouette and palette. Matte hand-painted medieval game asset, no flat backdrop or pedestal.",
+      "consumed_credits": 30,
+      "reference": "reference/tree.png",
+      "model": "assets/tree.glb",
+      "target_polycount": 18000
+    },
+    {
+      "asset": "fence",
+      "task_id": "01a0893f-1ec3-77b0-ad5f-120a838b82c1",
+      "status": "SUCCEEDED",
+      "texture_prompt": "Weathered dark brown oak fence, two rough posts and two horizontal rails. Split wood grain with a little olive moss. Preserve the input proportions. Matte rustic hand-painted game prop. Empty space between rails, no backdrop or base.",
+      "consumed_credits": 30,
+      "reference": "reference/fence.png",
+      "model": "assets/fence.glb",
+      "target_polycount": 6000
+    },
+    {
+      "asset": "shrub",
+      "task_id": "01a0893f-2c39-7118-98c0-edc37eaa02e0",
+      "status": "SUCCEEDED",
+      "texture_prompt": "Low irregular dense berry bush, olive green leaves, a few tiny red berries and tiny white flowers. Match the input reference. Matte hand-painted medieval village vegetation. Full three dimensional volume, no ground plane or planter.",
+      "consumed_credits": 30,
+      "reference": "reference/shrub.png",
+      "model": "assets/shrub.glb",
+      "target_polycount": 6000
+    },
+    {
+      "asset": "firewood",
+      "task_id": "01a08940-5819-7700-91be-c485eaf72f1b",
+      "status": "SUCCEEDED",
+      "texture_prompt": "Compact rustic split oak firewood stack. Muted weathered brown bark, tan cut ends, irregular logs on two wooden bearers, sparse moss. Preserve input materials. Matte hand-painted game prop. No ground plane or pedestal.",
+      "consumed_credits": 30,
+      "reference": "reference/firewood.png",
+      "model": "assets/firewood.glb",
+      "target_polycount": 6000
+    }
+  ],
+  "total_credits": 180,
+  "revision": {
+    "asset": "tree",
+    "task_id": "01a08948-34fb-7529-8b39-8e742c596b22",
+    "target_polycount": 80000,
+    "consumed_credits": 30,
+    "reason": "Initial 18000-face requested mesh produced angular triangular foliage that did not match the reference. One higher-detail revision requested.",
+    "texture_prompt": "Mature oak with thick gnarled brown trunk and rich rounded clusters of small olive leaves. Preserve the soft irregular leaf canopy silhouette from reference. Leaves are rounded organic oak leaves, never triangular spikes. Detailed bark, muted olive foliage, matte painterly village asset, no base.",
+    "save_pre_remeshed_model": true,
+    "status": "SUCCEEDED",
+    "model": "assets/tree-v2.glb",
+    "review": "Inspected rendered front and rear/side views in packaged Linux artifact. Fuller canopy accepted for this local art prototype; leaf shapes remain less refined than cottage materials."
+  },
+  "reference_sources": {
+    "cottage": "tools/art/out/iso/cottage_raw.png",
+    "tree": ".pka/round007/composition/flora-regen/tree_large_regen.png",
+    "fence": ".pka/round007/generated/fence_section.png",
+    "shrub": ".pka/round007/composition/flora-regen/bush_a_regen.png",
+    "firewood": "Built-in image_gen, prompt saved in reference/firewood.prompt.txt"
+  },
+  "sha256": {
+    "reference/cottage.png": "91a3da46ebfe6775541ac4b49432540ad858212c0e4995e37401a2230e3e9ca3",
+    "reference/fence.png": "7c6e14ac468a27e7a6f9d817e8199d2f4a7b58e1dec70e9f65023f05e4186a67",
+    "reference/firewood.png": "e7bd82f2bcb555fa4748fd4bf97ac039f86ec0337ce668d2c263d6b6b5fbb293",
+    "reference/shrub.png": "0c9c40750b92d37e94f43cb103054b9aa7b57c71ad932a3cc59ab69d7d9fc6a7",
+    "reference/tree.png": "03b693267e8bd86f0703e705d144c95e73e72088717a1163f2e8693a678ddf2e",
+    "assets/cottage.glb": "5bcbd77cde71bb92c8d14555f0af285d32f93940330594f6eff0021175e9a5f4",
+    "assets/fence.glb": "1244fe97afede97aedd2de5ca2dfee6e773550b0a9467c057f7af55a75760958",
+    "assets/firewood.glb": "6fe6c7489c9a480576e94a4daebc6b82f842563f90b4d835165882e94c604c1e",
+    "assets/player_walk.glb": "cb6198812bcba697740930be25a93ef01f265c4656d9a4f6602b87a96218f7e8",
+    "assets/shrub.glb": "ce787dee41f0a2888fa91bfb989ae2e80a9140278e3725971aa4343592945368",
+    "assets/tree-v2.glb": "aa7bc37776a1082a6b6352f758e86df628de322f7a5f526f46b18ad88892860e",
+    "assets/tree.glb": "3dc452c539a1f76c5ec66af1682afd607233873752bc827037edb575d785e3bd"
+  }
+}

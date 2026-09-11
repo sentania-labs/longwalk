@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "name": "player-idle",
+  "processing": {
+    "cell_size": 96,
+    "fit_scale": 0.8,
+    "trim_border": 4,
+    "edge_clean_depth": 3,
+    "align": "feet",
+    "shared_scale": true,
+    "scale_strategy": "fit",
+    "component_mode": "largest",
+    "component_padding": 0,
+    "min_component_area": 1,
+    "edge_touch_margin": 0
+  },
+  "output_origin": [
+    48.0,
+    87
+  ],
+  "reference": {
+    "target": "player",
+    "mode": "idle",
+    "rows": 2,
+    "cols": 2,
+    "body_scale_mean": 0.3998035439694104,
+    "body_scale_cv": 0.018153121262939,
+    "anchor_y_mean": 0.8325825825825827
+  },
+  "qc": {
+    "max_body_scale_drift": 0.1
+  },
+  "godot_sprite3d": {
+    "world_height": 1.75,
+    "pixel_size": 0.023255813953488372
+  }
+}

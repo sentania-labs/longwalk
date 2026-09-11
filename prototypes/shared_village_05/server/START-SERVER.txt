@@ -1,0 +1,23 @@
+LONGWALK SHARED VILLAGE 05 SERVER
+
+From this extracted directory:
+  docker load -i longwalk-shared-village-05.tar
+  docker compose up -d
+
+Connect the Windows client to this host's address on UDP 7777.
+The first traveler to register becomes the world owner. Use a private LAN.
+Server settings, backups and restore are exposed in the owner's client GUI.
+
+To stop while preserving the world:
+  docker compose stop
+To start again:
+  docker compose start
+
+Data lives in the Compose named volume world-data. Do not remove that volume
+unless you intend to discard this world. Backups are stored on the same volume;
+copy them elsewhere to protect against loss of that volume.
+
+The bundled Kubernetes YAML is an undeployed starting package: one writer,
+one PVC, Recreate strategy and a private ClusterIP UDP service. Load the image
+into your development cluster first. Lab storage and client access are separate
+deployment work; no public DNS or infrastructure changes are made here.

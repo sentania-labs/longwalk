@@ -1,0 +1,4 @@
+797a2cbc30ba788df48dacb6ab413ed09f82e139d63cfb836c8ff69af8972cba  Longwalk-Shared-Village-06-Client-Update.zip
+c5820b85b09d1a10cc5aa1455f506546a3d6e39c178dc2c106fde2b712c06231  Longwalk-Shared-Village-06-Server.zip
+6f10d5f9669958b618da9666c9ee33aef5e974b6822a8519b938679e253d389f  Longwalk-Shared-Village-06-Windows.zip
+ec326bea89e410ce3ef51f1a20bb8f4c7c610e27fc1352643bc476abdd7e24a3  longwalk-shared-village-06.tar

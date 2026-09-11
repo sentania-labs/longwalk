@@ -1,0 +1,11 @@
+services:
+  world:
+    image: longwalk-shared-village:03
+    ports:
+      - "7777:7777/udp"
+    volumes:
+      - world-data:/data
+    restart: unless-stopped
+    stop_grace_period: 10s
+volumes:
+  world-data:

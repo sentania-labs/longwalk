@@ -1,0 +1,2 @@
+# Philosopher
+Protect the Manifesto.

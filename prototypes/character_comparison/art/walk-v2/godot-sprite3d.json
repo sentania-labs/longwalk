@@ -1,0 +1,29 @@
+{
+  "schema": "generate2dsprite.godot_sprite3d.v1",
+  "frame_size": [
+    96,
+    96
+  ],
+  "output_origin": [
+    48.0,
+    87.0
+  ],
+  "sprite3d_offset": [
+    0.0,
+    39.0
+  ],
+  "reference_subject_height_px": 74.5,
+  "world_height": 1.75,
+  "recommended_pixel_size": 0.023255813953488372,
+  "rendered_subject_height_world": 1.7325581395348837,
+  "scale_source": "scale_profile",
+  "billboard": "enabled",
+  "duration_ms": 200,
+  "fps": 5.0,
+  "frames": [
+    "walk-1.png",
+    "walk-2.png",
+    "walk-3.png",
+    "walk-4.png"
+  ]
+}

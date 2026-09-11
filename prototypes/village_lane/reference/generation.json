@@ -1,0 +1,50 @@
+{
+  "created": "2026-09-09",
+  "budget_credits": 71,
+  "initial_balance": 2820,
+  "task_ids": {
+    "lane_house": "01a08961-5844-76b4-b456-3ccbc6baad87",
+    "lane_actor": "01a08962-71a7-7688-8e27-0ff59dac8177",
+    "lane_rig": "01a08966-3804-7093-8934-389e52464079",
+    "lane_idle": "01a08967-0662-757d-92a5-2f9ac64d2476",
+    "lane_walk": "01a08967-08f6-7661-a2be-b47e1894facf",
+    "lane_idle_final": "01a0896a-f078-70e1-914b-6761eb030d4e"
+  },
+  "models": {
+    "house": {
+      "model": "meshy-7",
+      "target_faces": 60000,
+      "texture_resolution": "2k",
+      "credits": 30
+    },
+    "actor": {
+      "model": "meshy-7",
+      "pose": "t-pose",
+      "target_faces": 40000,
+      "texture_resolution": "2k",
+      "credits": 30
+    },
+    "rig": {
+      "height_meters": 1.75,
+      "credits": 5
+    },
+    "idle": {
+      "action_id": 0,
+      "credits": 3
+    },
+    "walk": {
+      "action_id": 30,
+      "credits": 3
+    },
+    "idle_final": {
+      "action_id": 244,
+      "credits": 3
+    }
+  },
+  "source_notes": "Original rig task expired. Character regenerated, then rigged once for both motion clips. Built-in image generation supplied cottage variant, carpenter, and terrain atlas. References preserved. Existing props from hearth_corner. No signed download URLs retained here.",
+  "animation_library": "https://docs.meshy.ai/en/api/animation-library",
+  "actual_task_credits_before_idle_revision": 71,
+  "observed_balance_after_first_five_tasks": 2738,
+  "balance_note": "Observed decrease 82 differs from task-reported total 71 by 11. Cause unresolved, do not attribute other balance usage to this prototype.",
+  "actual_task_credits": 74
+}

@@ -1,0 +1,7 @@
+.godot/
+build/
+artifacts/
+assets/*_Image_*.jpg
+assets/*_Image_*.jpg.import
+assets/*_texture_*.png
+assets/*_texture_*.png.import

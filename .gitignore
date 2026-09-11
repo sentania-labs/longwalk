@@ -22,3 +22,12 @@ Thumbs.db
 # Python bytecode / caches (tools/art/ and test/art/ are Python).
 __pycache__/
 *.py[cod]
+
+# Interactive prototype source checkpoints retain source assets, not exports.
+/prototypes/**/build/
+/prototypes/**/artifacts/
+/prototypes/**/administration/
+/.lavish/**/*.zip
+/.lavish/**/*.pck
+/.lavish/**/*.tar
+*.credential

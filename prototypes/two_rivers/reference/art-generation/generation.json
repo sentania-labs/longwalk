@@ -1,0 +1,81 @@
+{
+  "generator": "Built-in imagegen references; Meshy 7 image-to-3D",
+  "settings": {
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "remove_lighting": true,
+    "origin_at": "bottom"
+  },
+  "assets": [
+    {
+      "name": "inn",
+      "prompt": "Create one isolated 3D game asset reference, three-quarter elevated front view, whole object clearly visible against plain light warm gray background, no ground tile, no scene, no people, no text. Detailed hand-painted physically modeled medieval pastoral village art inspired by supplied Two Rivers reference: warm muted ochre straw, weathered dark oak beams, pale rough fieldstone, cream plaster, muted olive moss. Soft neutral diffuse illumination, no strong cast shadows, no baked lighting. Natural believable proportions, not cartoon toy, not pixel art. Asset: A welcoming large two-story rural inn, broad asymmetrical golden thatched roof, one small dormer, two modest fieldstone chimneys, cream plaster and dark timber upper story, stone lower story, central front wooden door and short shallow porch, windows with muted blue wooden shutters. Rectangular footprint, roof ridge parallel front facade, no surrounding props.",
+      "task_id": "01a089a0-9e87-723b-9bb3-3b975df1defa",
+      "target_polycount": 30000,
+      "credits": 30,
+      "actual_faces": 30830,
+      "file_bytes": 7092988,
+      "status": "SUCCEEDED",
+      "actual_credits": 30
+    },
+    {
+      "name": "hall",
+      "prompt": "Create one isolated 3D game asset reference, three-quarter elevated front view, whole object clearly visible against plain light warm gray background, no ground tile, no scene, no people, no text. Detailed hand-painted physically modeled medieval pastoral village art inspired by supplied Two Rivers reference: warm muted ochre straw, weathered dark oak beams, pale rough fieldstone, cream plaster, muted olive moss. Soft neutral diffuse illumination, no strong cast shadows, no baked lighting. Natural believable proportions, not cartoon toy, not pixel art. Asset: A modest rural village meeting hall, one-and-half stories, long rectangular body, broad dark weathered shingle gable roof, robust dark timber frame and pale fieldstone walls, central double wooden doors with small timber gabled porch, simple small square roof bell housing with tiny pitched cap. Clearly village hall not church, no steeple or religious symbols.",
+      "task_id": "01a089a1-504e-72de-a3f2-8d3f01bd5ee4",
+      "target_polycount": 30000,
+      "credits": 30,
+      "actual_faces": 30330,
+      "file_bytes": 5968796,
+      "status": "SUCCEEDED",
+      "actual_credits": 30
+    },
+    {
+      "name": "farmhouse",
+      "prompt": "Create one isolated 3D game asset reference, three-quarter elevated front view, whole object clearly visible against plain light warm gray background, no ground tile, no scene, no people, no text. Detailed hand-painted physically modeled medieval pastoral village art inspired by supplied Two Rivers reference: warm muted ochre straw, weathered dark oak beams, pale rough fieldstone, cream plaster, muted olive moss. Soft neutral diffuse illumination, no strong cast shadows, no baked lighting. Natural believable proportions, not cartoon toy, not pixel art. Asset: A compact one-story farmer's cottage, chunky rounded golden thatch gable roof with slightly uneven eaves, single pale fieldstone chimney, cream plaster and exposed dark timber framing on low stone foundation, simple front door, two muted green shuttered windows. Small attached timber lean-to at one end. No scenery.",
+      "task_id": "01a089a1-fc9e-7678-9895-f19eaff2d32c",
+      "target_polycount": 30000,
+      "credits": 30,
+      "actual_faces": 30274,
+      "file_bytes": 6841172,
+      "status": "SUCCEEDED",
+      "actual_credits": 30
+    },
+    {
+      "name": "barn",
+      "prompt": "Create one isolated 3D game asset reference, three-quarter elevated front view, whole object clearly visible against plain light warm gray background, no ground tile, no scene, no people, no text. Detailed hand-painted physically modeled medieval pastoral village art inspired by supplied Two Rivers reference: warm muted ochre straw, weathered dark oak beams, pale rough fieldstone, cream plaster, muted olive moss. Soft neutral diffuse illumination, no strong cast shadows, no baked lighting. Natural believable proportions, not cartoon toy, not pixel art. Asset: A long rustic agricultural barn, weathered brown vertical timber boards on a low pale fieldstone foundation, thick golden straw thatched pitched roof, large central open double wooden wagon doors on the short gable end, tiny upper hayloft hatch. Closed sides. No ground or fences or surrounding equipment.",
+      "task_id": "01a089a2-9fc2-779e-879b-e561403ac2a5",
+      "target_polycount": 30000,
+      "credits": 30,
+      "actual_faces": 29016,
+      "file_bytes": 6178652,
+      "status": "SUCCEEDED",
+      "actual_credits": 30
+    },
+    {
+      "name": "market",
+      "prompt": "Create one isolated 3D game asset reference, three-quarter elevated front view, whole object clearly visible against plain light warm gray background, no ground tile, no scene, no people, no text. Detailed hand-painted physically modeled medieval pastoral village art inspired by supplied Two Rivers reference: warm muted ochre straw, weathered dark oak beams, pale rough fieldstone, cream plaster, muted olive moss. Soft neutral diffuse illumination, no strong cast shadows, no baked lighting. Natural believable proportions, not cartoon toy, not pixel art. Asset: One freestanding medieval village produce market stall, four sturdy timber poles holding a slightly sagging muted terracotta and cream striped cloth canopy, wooden counter holding shallow bins of green cabbages, yellow apples, carrots, two wicker baskets beneath counter. Open sided, no merchant, no ground tile.",
+      "task_id": "01a089a3-5f65-76c3-a1a2-becc10c21359",
+      "target_polycount": 15000,
+      "credits": 30,
+      "actual_faces": 14375,
+      "file_bytes": 5282472,
+      "status": "SUCCEEDED",
+      "actual_credits": 30
+    },
+    {
+      "name": "oak",
+      "prompt": "Create one isolated 3D game asset reference, three-quarter elevated front view, whole object clearly visible against plain light warm gray background, no ground tile, no scene, no people, no text. Detailed hand-painted physically modeled medieval pastoral village art inspired by supplied Two Rivers reference: warm muted ochre straw, weathered dark oak beams, pale rough fieldstone, cream plaster, muted olive moss. Soft neutral diffuse illumination, no strong cast shadows, no baked lighting. Natural believable proportions, not cartoon toy, not pixel art. Asset: One mature leafy oak tree with broad rounded irregular layered canopy, fine dense small leaves in muted olive green with moss green highlights, visible branching structure and solid textured gray-brown gnarled trunk. Air gaps between rounded foliage clusters, organic volume rather than flat leaf planes, no angular crystal shapes, no neon green. Full tree crown and roots visible, no ground disc.",
+      "task_id": "01a089a4-387f-7310-b136-4582c1a0b5b9",
+      "target_polycount": 20000,
+      "credits": 30,
+      "actual_faces": 16225,
+      "file_bytes": 5545880,
+      "status": "SUCCEEDED",
+      "actual_credits": 30
+    }
+  ],
+  "total_actual_credits": 180
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "generate2dsprite.godot_sprite3d.v1",
+  "frame_size": [
+    96,
+    96
+  ],
+  "output_origin": [
+    48.0,
+    87.0
+  ],
+  "sprite3d_offset": [
+    0.0,
+    39.0
+  ],
+  "reference_subject_height_px": 75.25,
+  "world_height": 1.75,
+  "recommended_pixel_size": 0.023255813953488372,
+  "rendered_subject_height_world": 1.75,
+  "scale_source": "measured_subject_height",
+  "billboard": "enabled",
+  "duration_ms": 200,
+  "fps": 5.0,
+  "frames": [
+    "idle-1.png",
+    "idle-2.png",
+    "idle-3.png",
+    "idle-4.png"
+  ]
+}
