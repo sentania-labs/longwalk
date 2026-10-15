@@ -112,6 +112,8 @@ func _handle_get(client: Dictionary, path: String) -> void:
 	_reply(client,200,control.status())
 
 func _post(client: Dictionary, path: String, data: Dictionary) -> void:
+	if control.initialization_error!="":
+		_reply(client,503,{"message":control.initialization_error+". Restore administration data and restart the server."}); return
 	if path in ["/api/setup","/api/login"]:
 		if password_job or Time.get_ticks_msec()/1000.0<next_login: _reply(client,429,{"message":"Please wait before signing in again"}); return
 		if path=="/api/setup" and (not control.account.is_empty() or control.storage_error!=""): _reply(client,403,{"message":"Admin setup is unavailable"}); return

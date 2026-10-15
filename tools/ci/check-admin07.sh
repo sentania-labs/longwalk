@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 python3 -m py_compile prototypes/shared_village_07/tools/*.py
+python3 prototypes/shared_village_07/test/test_package_permissions.py
 node --check prototypes/shared_village_07/web/app.js
 actionlint .github/workflows/admin07.yml
 helm lint charts/longwalk

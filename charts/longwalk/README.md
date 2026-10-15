@@ -41,7 +41,7 @@ not rewind. If the latest world record is corrupt, use the console to restore th
 last readable checkpoint or a known backup without connecting a traveler.
 An interrupted pending audit append is ignored at startup; corrupt committed
 administrator or audit records fail closed and require restoring the separate
-administration directory from your off-volume backup. Snapshots have no automatic pruning.
+administration directory from your off-volume backup followed by a server restart. Snapshots have no automatic pruning.
 
 Local verification: `tools/ci/check-admin07.sh`. It runs the same checks as CI,
 including a disposable kind deployment with client and HTTP operations and pod

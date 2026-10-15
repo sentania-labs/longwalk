@@ -1,0 +1,32 @@
+extends SceneTree
+func _initialize() -> void: _run.call_deferred()
+func _run() -> void:
+	var directory := OS.get_environment("LONGWALK_TEST_DATA")
+	assert(directory!="")
+	var control = load("res://src/admin/admin_control.gd").new()
+	assert(control.initialize(null,directory))
+	assert(control.create_account("fixture","a".repeat(32),"b".repeat(64)))
+	var path := directory.path_join("administration/audit-000000000002.json")
+	var original := FileAccess.get_file_as_string(path)
+	var file := FileAccess.open(path,FileAccess.WRITE)
+	file.store_string("{}")
+	file.close()
+	var broken = load("res://src/admin/admin_control.gd").new()
+	assert(not broken.initialize(null,directory))
+	if broken.audit("fixture","login",{},"accepted"):
+		push_error("A committed administration failure must block later audit writes")
+		quit(1)
+		return
+	assert(broken.login_session()=="")
+	assert(not broken.execute({"name":"fixture","role":"admin"},"restore",{"confirmed":true}).ok)
+	assert(broken.storage_error!="")
+	file = FileAccess.open(path,FileAccess.WRITE)
+	file.store_string(original)
+	file.close()
+	# Disk repair alone must not unlock an already-failed runtime.
+	assert(broken.login_session()=="")
+	var repaired = load("res://src/admin/admin_control.gd").new()
+	assert(repaired.initialize(null,directory))
+	assert(repaired.login_session()!="")
+	print("ADMIN INITIALIZATION PASSED: corrupt committed audit stays blocked until repair and reload")
+	quit()

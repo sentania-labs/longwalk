@@ -14,22 +14,24 @@ var staff := {}
 var audit_sequence := 0
 var audit_tail: Array = []
 var storage_error := ""
+var initialization_error := ""
 
 func initialize(owner_link: Node, world_directory: String) -> bool:
+	if initialization_error!="": return false
 	link = owner_link
 	directory = world_directory.path_join("administration")
-	if DirAccess.make_dir_recursive_absolute(directory)!=OK: storage_error="Cannot open administration storage"; return false
+	if DirAccess.make_dir_recursive_absolute(directory)!=OK: return _initialization_failure("Cannot open administration storage")
 	if FileAccess.file_exists(directory.path_join("account.json")):
 		account = _read("account.json")
 		if not account.get("salt") is String or not account.get("hash") is String or not account.get("name") is String:
-			storage_error="Administrator account record is invalid"; return false
+			return _initialization_failure("Administrator account record is invalid")
 		if account.salt.length()!=32 or account.hash.length()!=64 or not account.salt.is_valid_hex_number() or not account.hash.is_valid_hex_number() or account.get("iterations")!=PASSWORD.ITERATIONS:
-			storage_error="Administrator account record is invalid"; return false
+			return _initialization_failure("Administrator account record is invalid")
 	if FileAccess.file_exists(directory.path_join("release.json")):
 		configuration = _read("release.json")
 		for key in ["manifest_url","recommended_build","minimum_build","admin_origin"]:
 			if not configuration.get(key) is String:
-				storage_error="Release settings record is invalid"; return false
+				return _initialization_failure("Release settings record is invalid")
 	var configured_origin := OS.get_environment("LONGWALK_ADMIN_ORIGIN")
 	if configured_origin!="": configuration.admin_origin=configured_origin.trim_suffix("/")
 	var files := DirAccess.get_files_at(directory)
@@ -40,9 +42,14 @@ func initialize(owner_link: Node, world_directory: String) -> bool:
 	for i in range(maxi(0,files.size()-100),files.size()):
 		if files[i].begins_with("audit-") and files[i].ends_with(".json"):
 			var record := _read(files[i])
-			if record.is_empty(): storage_error="Audit record is invalid"; return false
+			if record.is_empty(): return _initialization_failure("Audit record is invalid")
 			audit_tail.append(record)
 	return true
+
+func _initialization_failure(message: String) -> bool:
+	initialization_error=message
+	storage_error=message
+	return false
 
 func _read(name: String) -> Dictionary:
 	var value = JSON.parse_string(FileAccess.get_file_as_string(directory.path_join(name)))
@@ -51,6 +58,7 @@ func _read(name: String) -> Dictionary:
 	return data if data is Dictionary else {}
 
 func _write(name: String, data: Dictionary) -> bool:
+	if initialization_error!="": return false
 	var path := directory.path_join(name)
 	var payload := JSON.stringify(data)
 	var file := FileAccess.open(path+".pending",FileAccess.WRITE)
@@ -81,11 +89,13 @@ func create_account(name: String, salt: String, digest: String) -> bool:
 	return audit(name,"create_admin",{},"completed")
 
 func login_session() -> String:
+	if initialization_error!="": return ""
 	var value := Crypto.new().generate_random_bytes(32).hex_encode()
 	sessions[value] = {"name":account.name,"role":"admin","expires":Time.get_unix_time_from_system()+28800}
 	return value
 
 func session(value: String) -> Dictionary:
+	if initialization_error!="": return {}
 	if not sessions.has(value): return {}
 	if sessions[value].expires<Time.get_unix_time_from_system(): sessions.erase(value); return {}
 	return sessions[value]
@@ -96,6 +106,7 @@ func staff_for(peer: int) -> Dictionary:
 	return staff[peer]
 
 func redeem(peer: int, code: String) -> Dictionary:
+	if initialization_error!="": return _fail(initialization_error)
 	var key := code.sha256_text()
 	if not tickets.has(key): return {"ok":false,"message":"Invalid or expired staff code"}
 	var ticket: Dictionary = tickets[key]
@@ -117,6 +128,7 @@ func status() -> Dictionary:
 	return {"build":link.build_identity,"protocol":link.PROTOCOL,"baseline":link.version,"frozen":link.frozen,"error":link.error,"admin_error":storage_error,"paused":link.world.data.paused if link.world else true,"clock":link.world.data.get("clock",900) if link.world else 0,"config":link.world.data.config if link.world else {},"players":players,"backups":link.store.records("backup-") if link.store else [],"recovery_points":(link.store.records("state-")+link.store.records("backup-")) if link.store else [],"recovery_source":link.recovery_source,"metrics":link.metrics,"audit":audit_tail.slice(maxi(0,audit_tail.size()-30)),"release":configuration}
 
 func execute(principal: Dictionary, operation: String, arguments: Dictionary, peer: int = 0) -> Dictionary:
+	if initialization_error!="": return _fail(initialization_error)
 	var role: String = principal.get("role","")
 	if peer!=0 and operation in ["ticket","revoke","release_settings"]: return _fail("Use the web console to manage staff grants and release settings")
 	if operation not in PERMISSIONS.get(role,[]): return {"ok":false,"message":"This staff role cannot perform that action"}

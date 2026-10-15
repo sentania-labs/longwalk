@@ -33,10 +33,15 @@ def run(args, name, timeout=180):
     print(name + ' passed', flush=True)
 
 
-def archive(target, files):
+def archive(target, files, executables=()):
     with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as result:
         for source, name in files:
-            result.write(source, name)
+            entry = zipfile.ZipInfo.from_file(source, arcname=name)
+            entry.create_system = 3  # Unix metadata even when packaging on Windows.
+            entry.external_attr = (0o100755 if name in executables else 0o100644) << 16
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            with result.open(entry, 'w') as destination, source.open('rb') as content:
+                shutil.copyfileobj(content, destination)
 
 
 def main():
@@ -56,7 +61,7 @@ def main():
     for platform in ['linux', 'windows']:
         (BUILD / platform).mkdir(exist_ok=True)
     run([ENGINE, '--headless', '--path', ROOT, '--editor', '--import'], 'import')
-    for test in ['workshop', 'skills', 'community', 'day_cycle', 'lantern_moths', 'character_name', 'context_picking', 'snapshot_packets', 'storage', 'workshop_storage', 'recovery_disconnect', 'move_queue', 'simulation_clock', 'travel', 'avoidance', 'admin_rules']:
+    for test in ['workshop', 'skills', 'community', 'day_cycle', 'lantern_moths', 'character_name', 'context_picking', 'snapshot_packets', 'storage', 'workshop_storage', 'recovery_disconnect', 'move_queue', 'simulation_clock', 'travel', 'avoidance', 'admin_rules', 'admin_initialization']:
         run([ENGINE, '--headless', '--path', ROOT, '--script', f'res://test/{test}.gd'], 'test-' + test, 45)
     art_inputs = sorted(p for p in (ROOT / 'assets').iterdir() if p.is_file())
     art_fingerprint = hashlib.sha256(''.join(p.name + digest(p) for p in art_inputs).encode()).hexdigest()
@@ -94,7 +99,7 @@ def package(version):
     archive(ARTIFACTS / 'Longwalk-Shared-Village-07-Windows.zip', [(windows, windows.name), (art, art.name)] + common)
     archive(ARTIFACTS / 'Longwalk-Shared-Village-07-Client-Update.zip', [(windows, windows.name)] + common)
     linux = BUILD / 'linux/Longwalk-Shared-Village-07.x86_64'
-    archive(ARTIFACTS / 'Longwalk-Shared-Village-07-Linux.zip', [(linux, linux.name), (art, art.name)] + common)
+    archive(ARTIFACTS / 'Longwalk-Shared-Village-07-Linux.zip', [(linux, linux.name), (art, art.name)] + common, executables=[linux.name])
     manifest['windows_exe_sha256'] = digest(windows)
     manifest['linux_exe_sha256'] = digest(BUILD / 'linux/Longwalk-Shared-Village-07.x86_64')
     (ARTIFACTS / 'BUILD-MANIFEST.json').write_text(json.dumps(manifest, indent=2) + '\n')

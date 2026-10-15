@@ -134,6 +134,23 @@ def main():
                 assert recovery['frozen'] and not recovery['backups'] and recovery['recovery_source'].startswith('state-')
                 action('restore',{'name':recovery['recovery_source'],'confirmed':True})
                 assert not api('status')['frozen'] and api('status')['paused']
+                (scratch/'stop').touch(); processes[0].wait(timeout=15)
+                (scratch/'stop').unlink()
+                audit_record = sorted((scratch/'world'/'administration').glob('audit-*.json'))[-1]
+                intact_audit = audit_record.read_bytes()
+                audit_record.write_text('{}')
+                processes[0] = subprocess.Popen([str(ENGINE),'--headless','--path',str(ROOT),'--','--server','--data='+str(scratch/'world')],env=env,stdout=log,stderr=log)
+                wait_for(lambda: api('session')['error'])
+                api('login',{'name':'smoke','password':password},503)
+                api('action',{'action':'restore','arguments':{'name':recovery['recovery_source'],'confirmed':True}},503)
+                audit_record.write_bytes(intact_audit)
+                api('login',{'name':'smoke','password':password},503)
+                (scratch/'stop').touch(); processes[0].wait(timeout=15)
+                (scratch/'stop').unlink()
+                processes[0] = subprocess.Popen([str(ENGINE),'--headless','--path',str(ROOT),'--','--server','--data='+str(scratch/'world')],env=env,stdout=log,stderr=log)
+                wait_for(lambda: api('session'))
+                api('login',{'name':'smoke','password':password})
+                assert not api('status')['frozen']
             api('logout',{})
             api('status',expected=401)
             print('ADMIN SMOKE PASSED: web assets, protected setup, authentication, compatibility rejection, staff grant/revoke, skill persistence, backup/restore and recovery')
