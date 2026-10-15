@@ -2,7 +2,7 @@ extends Node
 signal changed(state: Dictionary)
 signal notice(message: String)
 signal joined(ident: String, owner: bool)
-const PROTOCOL = "shared-village-06"
+const PROTOCOL = "shared-village-07"
 const WORLD = preload("res://src/sim/shared_world.gd")
 const STORE = preload("res://src/sim/world_store.gd")
 var world: RefCounted
@@ -40,16 +40,27 @@ var action_peak_ms := 0.0
 var metrics := {}
 var public_wildlife := {}
 var frozen := false
+var recovery_source := ""
+var admin: RefCounted
+var console: Node
+var handshake: Node
+var update_info := {}
+var staff_result := {}
+signal staff_answer(result: Dictionary)
 var boot_id := Crypto.new().generate_random_bytes(12).hex_encode()
 
 func _ready() -> void:
+	handshake=load("res://src/net/handshake.gd").new()
+	handshake.name="Handshake"
+	handshake.link=self
+	add_child(handshake)
 	version = FileAccess.get_sha256("res://world/baseline.json")
 	if FileAccess.file_exists("res://release_manifest.json"):
 		var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://release_manifest.json"))
-		if manifest is Dictionary: build_identity = str(manifest.get("build_id","source")).left(12)
+		if manifest is Dictionary: build_identity = str(manifest.get("build_id","source"))
 	multiplayer.connected_to_server.connect(func():
 		_set_peer_timeout(1)
-		hello.rpc_id(1,version + "|" + PROTOCOL,token)
+		handshake.negotiate.rpc_id(1,handshake.release_info())
 	)
 	multiplayer.connection_failed.connect(func(): disconnect_client.call_deferred("Connection failed. Check the address and UDP port, then Retry."))
 	multiplayer.server_disconnected.connect(func(): disconnect_client.call_deferred("Disconnected. Retry to recover this traveler."))
@@ -73,17 +84,28 @@ func start_server(path: String) -> bool:
 		candidates.append_array(store.records("backup-"))
 		for name in candidates:
 			var previous: Dictionary = store.read_record(name)
-			if not previous.is_empty() and previous.owner != "":
+			if not previous.is_empty():
 				state = previous
+				recovery_source = name
 				break
-		if state.is_empty(): return false
-		push_error("World entered owner-only recovery mode; latest save is invalid")
+		if state.is_empty():
+			state={"schema":3,"baseline":version,"revision":0,"players":{},"owner":"","cut":false,"paused":true,"config":{"save_interval":5.0,"max_players":4}}
+		push_error("World frozen for web-admin recovery; latest save is invalid")
 	cached_backups = store.records("backup-")
 	world = WORLD.new()
 	world.initialize(JSON.parse_string(FileAccess.get_file_as_string("res://world/baseline.json")),state)
 	public_wildlife = world.FAUNA.public_state(world.data)
+	admin=load("res://src/admin/admin_control.gd").new()
+	if not admin.initialize(self,path):
+		frozen=true
+		error=admin.storage_error
+	console=load("res://src/admin/http_console.gd").new()
+	add_child(console)
+	if not console.start(admin):
+		error="Cannot listen on admin TCP 8888"
+		return false
 	var peer := ENetMultiplayerPeer.new()
-	var result := peer.create_server(7777,32)
+	var result := peer.create_server(int(OS.get_environment("LONGWALK_UDP_LISTEN_PORT")) if OS.has_environment("LONGWALK_UDP_LISTEN_PORT") else 7777,32)
 	if result != OK:
 		error = "Cannot listen on UDP 7777"
 		return false
@@ -95,6 +117,7 @@ func start_server(path: String) -> bool:
 func connect_client(address: String, credential: String, port: int = 7777) -> void:
 	disconnect_client("")
 	connecting = true
+	update_info={}
 	token = credential
 	var peer := ENetMultiplayerPeer.new()
 	var result := peer.create_client(address,port)
@@ -112,6 +135,7 @@ func disconnect_client(message: String) -> void:
 	connecting = false
 	is_owner = false
 	local_id = ""
+	staff_result={}
 	latest_sequence = -1
 	snapshot = {}
 	incoming_snapshot = {}
@@ -122,6 +146,11 @@ func disconnect_client(message: String) -> void:
 
 func _left(peer: int) -> void:
 	if not serving: return
+	handshake.admitted.erase(peer)
+	if admin:
+		admin.staff.erase(peer)
+		for key in admin.tickets.keys():
+			if admin.tickets[key].peer==peer: admin.tickets.erase(key)
 	pending_moves.erase(peer)
 	move_queue.erase(peer)
 	if connections.has(peer):
@@ -151,8 +180,9 @@ func hello(baseline: String, credential: String) -> void:
 	if not serving: return
 	var peer := multiplayer.get_remote_sender_id()
 	if connections.has(peer): return
+	if not handshake.admitted.has(peer): return
 	if baseline != version + "|" + PROTOCOL:
-		answer.rpc_id(peer,{"message":"Version mismatch: this server requires Shared Village 06 with the matching world baseline."})
+		answer.rpc_id(peer,{"message":"Version mismatch: this server requires Shared Village 07 with the matching world baseline."})
 		return
 	if credential.length()!=64 or not credential.is_valid_hex_number():
 		answer.rpc_id(peer,{"message":"Invalid traveler credential"})
@@ -161,8 +191,8 @@ func hello(baseline: String, credential: String) -> void:
 		answer.rpc_id(peer,{"message":"World unavailable or connection limit reached"})
 		return
 	var ident := credential.sha256_text()
-	if frozen and ident != world.data.owner:
-		answer.rpc_id(peer,{"message":"Owner-only recovery mode"})
+	if frozen:
+		answer.rpc_id(peer,{"message":"World is unavailable while an administrator recovers storage"})
 		return
 	if ident in connections.values():
 		answer.rpc_id(peer,{"message":"This traveler is already connected. Choose a different local profile."})
@@ -173,10 +203,10 @@ func hello(baseline: String, credential: String) -> void:
 			return
 		world.data.players[ident] = {"position":[(world.data.players.size()%8)*2,0,9]}
 		world.WORK.ensure(world.data.players[ident])
-		if world.data.owner == "": world.data.owner = ident
+		world.data.players[ident].display_name="Player "+str(world.data.players.size())
 		if not _commit(): return
 	connections[peer] = ident
-	answer.rpc_id(peer,{"id":ident,"owner":world.data.owner==ident,"message":"Connected"})
+	answer.rpc_id(peer,{"id":ident,"owner":false,"message":"Connected"})
 	_push_state(peer)
 
 @rpc("any_peer","call_remote","reliable")
@@ -193,6 +223,24 @@ func request(action: String, arguments: Dictionary) -> void:
 	var request_started := Time.get_ticks_usec()
 	var ident: String = connections[peer]
 	var message := ""
+	if action=="staff_redeem":
+		var code=arguments.get("code","")
+		var result: Dictionary=admin.redeem(peer,code) if code is String and code.length()==32 else {"ok":false,"message":"Invalid staff code"}
+		staff_reply.rpc_id(peer,result)
+		_push_state()
+		return
+	if action=="staff_leave":
+		var principal: Dictionary=admin.staff_for(peer)
+		if not principal.is_empty(): admin.audit(principal.name,"staff_leave",{"player":ident},"completed")
+		admin.staff.erase(peer)
+		_push_state()
+		return
+	if action=="staff":
+		var operation=arguments.get("operation","")
+		var params=arguments.get("arguments",{})
+		var result: Dictionary=admin.execute(admin.staff_for(peer),operation,params,peer) if operation is String and params is Dictionary else {"ok":false,"message":"Invalid staff request"}
+		staff_reply.rpc_id(peer,result)
+		return
 	if frozen and action not in ["restore","backups"]:
 		answer.rpc_id(peer,{"message":"Storage error: " + error + ". World actions are stopped."})
 		return
@@ -234,9 +282,7 @@ func request(action: String, arguments: Dictionary) -> void:
 					world.apply_resource()
 					message = "Harvest not accepted: storage failure"
 		"pause", "backup", "restore", "settings", "backups", "clock":
-			if ident != world.data.owner:
-				message = "Only the world owner can administer this prototype"
-			else: message = _admin(action,arguments)
+			message = "World administration is available in the web console"
 		_: message = "Unknown action"
 	answer.rpc_id(peer,{"message":message})
 	_push_state()
@@ -274,7 +320,7 @@ func _admin(action: String, arguments: Dictionary) -> String:
 		"restore":
 			if not world.data.paused and not frozen: return "Pause the world before restoring"
 			var name = arguments.get("name","")
-			if not name is String or name not in store.records("backup-"): return "Choose an existing backup"
+			if not name is String or name not in (store.records("backup-")+store.records("state-")): return "Choose an existing checkpoint or backup"
 			var restored: Dictionary = store.read_record(name)
 			if restored.is_empty(): return store.error
 			# Preserve current identities and owner access while restoring world
@@ -305,13 +351,21 @@ func _admin(action: String, arguments: Dictionary) -> String:
 			world.apply_resource()
 			if _commit():
 				frozen = false
+				recovery_source = ""
 				error = ""
-				return "Backup restored; world remains paused"
+				return "World restored; remains paused"
 			world.data = previous
 			world.apply_resource()
 			return error
 	cached_backups = store.records("backup-")
 	return "Backup list refreshed"
+
+@rpc("authority","call_remote","reliable")
+func staff_reply(result: Dictionary) -> void:
+	if serving: return
+	staff_result=result
+	staff_answer.emit(result)
+	notice.emit(str(result.get("message","")))
 
 @rpc("authority","call_remote","reliable")
 func answer(payload: Dictionary) -> void:
@@ -376,7 +430,7 @@ func _push_state(peer: int = 0) -> void:
 		person.erase("health")
 		person.erase("stamina")
 		person.practice.erase("running")
-		var facts := {"wildlife":public_wildlife,"names":names,"person":person,"cut":world.data.cut,"gathering":world.data.gathering,"paused":world.data.paused or frozen,"error":error,"config":world.data.config,"backups":cached_backups,"metrics":metrics}
+		var facts := {"wildlife":public_wildlife,"names":names,"person":person,"cut":world.data.cut,"gathering":world.data.gathering,"paused":world.data.paused or frozen,"error":"World requires administrator recovery" if frozen else "","staff_role":admin.staff_for(id).get("role","")}
 		var signature := JSON.stringify(facts).sha256_text()
 		if sent_details.get(id,"") != signature:
 			sent_details[id] = signature
@@ -388,7 +442,7 @@ func _push_state(peer: int = 0) -> void:
 func _process(delta: float) -> void:
 	var started := Time.get_ticks_usec()
 	if serving and connected:
-		if FileAccess.file_exists("/tmp/world-stop"):
+		if FileAccess.file_exists(OS.get_environment("LONGWALK_STOP_FILE") if OS.has_environment("LONGWALK_STOP_FILE") else "/tmp/world-stop"):
 			var saved := not frozen and _commit()
 			print("WORLD STOPPED: final checkpoint saved" if saved else "WORLD STOPPED: storage failure, existing records retained")
 			get_tree().quit(0 if saved else 1)
@@ -422,7 +476,7 @@ func _process(delta: float) -> void:
 			checkpoint += delta
 			if checkpoint>=float(world.data.config.save_interval): _commit()
 		for peer in connected_at.keys():
-			if not connections.has(peer) and Time.get_ticks_msec()-int(connected_at[peer])>5000:
+			if not connections.has(peer) and Time.get_ticks_msec()-int(connected_at[peer])>15000:
 				multiplayer.multiplayer_peer.disconnect_peer(peer)
 				connected_at.erase(peer)
 		broadcast_timer += delta

@@ -1,0 +1,25 @@
+image:
+  repository: ghcr.io/sentania-labs/longwalk-server
+  tag: latest # Deployments pin an exact release tag or digest.
+  digest: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+persistence:
+  existingClaim: ""
+  storageClass: ""
+  size: 5Gi
+admin:
+  # Pre-create this Secret through your deployment system. Never commit its value.
+  setupSecret: longwalk-admin-setup
+  setupSecretKey: token
+  origin: "" # HTTPS origin of your separately managed reverse proxy.
+service:
+  type: ClusterIP
+  gamePort: 7777
+  nodePort: null
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    memory: 2Gi

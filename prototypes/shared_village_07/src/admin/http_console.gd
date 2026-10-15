@@ -9,7 +9,7 @@ var next_login := 0.0
 
 func start(admin: RefCounted) -> bool:
 	control=admin
-	return listener.listen(8888,"*")==OK
+	return listener.listen(int(OS.get_environment("LONGWALK_HTTP_LISTEN_PORT")) if OS.has_environment("LONGWALK_HTTP_LISTEN_PORT") else 8888,"*")==OK
 
 func _exit_tree() -> void:
 	if password_job and password_job.is_started(): password_job.wait_to_finish()
@@ -72,7 +72,7 @@ func _process(_delta: float) -> void:
 		if not _host_allowed(str(headers.get("host",""))): _reply(client,403,{"message":"Use the server IP or configured admin origin"}); continue
 		var method: String=request[0]
 		var path: String=request[1]
-		if method=="GET": _get(client,path); continue
+		if method=="GET": _handle_get(client,path); continue
 		if method!="POST": _reply(client,405,{"message":"Method not allowed"}); continue
 		var origin: String=headers.get("origin","")
 		var authority: String=headers.get("host","")
@@ -96,7 +96,7 @@ func _session(client: Dictionary) -> Dictionary:
 		var pair:=part.strip_edges().split("=",true,1)
 		if pair.size()==2 and pair[0]==_cookie_name(): return control.session(pair[1])
 	return {}
-func _get(client: Dictionary, path: String) -> void:
+func _handle_get(client: Dictionary, path: String) -> void:
 	if path in ["/","/app.js","/style.css"]:
 		var name: String="index.html" if path=="/" else path.trim_prefix("/")
 		var content_type: String="text/html" if path=="/" else "text/javascript" if path.ends_with(".js") else "text/css"
@@ -116,6 +116,11 @@ func _post(client: Dictionary, path: String, data: Dictionary) -> void:
 		if password_job or Time.get_ticks_msec()/1000.0<next_login: _reply(client,429,{"message":"Please wait before signing in again"}); return
 		if path=="/api/setup" and (not control.account.is_empty() or control.storage_error!=""): _reply(client,403,{"message":"Admin setup is unavailable"}); return
 		if path=="/api/login" and control.account.is_empty(): _reply(client,403,{"message":"Create the administrator first"}); return
+		if path=="/api/setup":
+			var bootstrap := OS.get_environment("LONGWALK_ADMIN_SETUP_TOKEN")
+			var offered = data.get("bootstrap","")
+			if bootstrap.length()<32 or not offered is String or not Crypto.new().constant_time_compare(bootstrap.to_utf8_buffer(),offered.to_utf8_buffer()):
+				_reply(client,403,{"message":"A valid deployment setup token is required"}); return
 		var name=data.get("name","")
 		var password=data.get("password","")
 		if not name is String or not password is String or name.length()<1 or name.length()>40 or password.length()<12 or password.length()>256:

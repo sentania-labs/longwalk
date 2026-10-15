@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
           cache: pip
@@ -41,7 +41,7 @@ jobs:
         run: echo "version=$(cat tools/godot/VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Godot binary
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: tools/godot
           key: godot-${{ steps.godot.outputs.version }}-${{ runner.os }}
@@ -50,27 +50,27 @@ jobs:
         run: ./tools/run_tests.sh
 
   windows_playtest:
-    name: windows playtest build (export)
+    name: root project Windows export validation
     # Fork-gated the same way as the determinism job: PR jobs run only for
     # branches pushed into this repo, never for forks.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Read pinned Godot version
         id: godot
         run: echo "version=$(cat tools/godot/VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Godot binary
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: tools/godot
           key: godot-${{ steps.godot.outputs.version }}-${{ runner.os }}
 
       - name: Cache Godot export templates
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.local/share/godot/export_templates
           key: godot-templates-${{ steps.godot.outputs.version }}-${{ runner.os }}
@@ -95,10 +95,3 @@ jobs:
         run: |
           test -f build/windows/longwalk.exe
           ls -lh build/windows/longwalk.exe
-
-      - name: Upload Windows playtest build
-        uses: actions/upload-artifact@v4
-        with:
-          name: longwalk-windows-playtest
-          path: build/windows/longwalk.exe
-          if-no-files-found: error

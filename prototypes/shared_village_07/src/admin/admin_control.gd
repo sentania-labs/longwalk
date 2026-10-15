@@ -21,17 +21,24 @@ func initialize(owner_link: Node, world_directory: String) -> bool:
 	if DirAccess.make_dir_recursive_absolute(directory)!=OK: storage_error="Cannot open administration storage"; return false
 	if FileAccess.file_exists(directory.path_join("account.json")):
 		account = _read("account.json")
-		if not account.has("salt") or not account.has("hash") or not account.has("name"): storage_error="Administrator account record is invalid"; return false
+		if not account.get("salt") is String or not account.get("hash") is String or not account.get("name") is String:
+			storage_error="Administrator account record is invalid"; return false
+		if account.salt.length()!=32 or account.hash.length()!=64 or not account.salt.is_valid_hex_number() or not account.hash.is_valid_hex_number() or account.get("iterations")!=PASSWORD.ITERATIONS:
+			storage_error="Administrator account record is invalid"; return false
 	if FileAccess.file_exists(directory.path_join("release.json")):
 		configuration = _read("release.json")
-		if not configuration.has("manifest_url"): storage_error="Release settings record is invalid"; return false
+		for key in ["manifest_url","recommended_build","minimum_build","admin_origin"]:
+			if not configuration.get(key) is String:
+				storage_error="Release settings record is invalid"; return false
+	var configured_origin := OS.get_environment("LONGWALK_ADMIN_ORIGIN")
+	if configured_origin!="": configuration.admin_origin=configured_origin.trim_suffix("/")
 	var files := DirAccess.get_files_at(directory)
 	files.sort()
 	for file in files:
 		if file.begins_with("audit-") and file.ends_with(".json"):
 			audit_sequence = maxi(audit_sequence,file.trim_prefix("audit-").trim_suffix(".json").to_int())
 	for i in range(maxi(0,files.size()-100),files.size()):
-		if files[i].begins_with("audit-"):
+		if files[i].begins_with("audit-") and files[i].ends_with(".json"):
 			var record := _read(files[i])
 			if record.is_empty(): storage_error="Audit record is invalid"; return false
 			audit_tail.append(record)
@@ -52,7 +59,7 @@ func _write(name: String, data: Dictionary) -> bool:
 	file.flush()
 	var result := file.get_error()
 	file.close()
-	if result!=OK or _read(name+".pending")!=data: storage_error="Administration record failed verification"; return false
+	if result!=OK or _read(name+".pending")!=JSON.parse_string(payload): storage_error="Administration record failed verification"; return false
 	if DirAccess.rename_absolute(path+".pending",path)!=OK: storage_error="Administration record could not be published"; return false
 	storage_error=""
 	return true
@@ -95,7 +102,7 @@ func redeem(peer: int, code: String) -> Dictionary:
 	tickets.erase(key)
 	if ticket.expires<Time.get_unix_time_from_system() or ticket.peer!=peer or not link.connections.has(peer): return {"ok":false,"message":"Staff code does not match this connection"}
 	if not audit(ticket.name,"staff_redeem",{"player":link.connections[peer],"role":ticket.role},"completed"): return {"ok":false,"message":storage_error}
-	staff[peer] = {"name":ticket.name,"role":ticket.role,"expires":Time.get_unix_time_from_system()+3600}
+	staff[peer] = {"name":"traveler:"+str(link.connections[peer]),"granted_by":ticket.name,"role":ticket.role,"expires":Time.get_unix_time_from_system()+3600}
 	return {"ok":true,"message":"Staff mode enabled for this connection: "+ticket.role,"role":ticket.role}
 
 func status() -> Dictionary:
@@ -106,11 +113,12 @@ func status() -> Dictionary:
 			var peer := 0
 			for connected_peer in link.connections:
 				if link.connections[connected_peer]==ident: peer=connected_peer
-			players.append({"id":ident,"name":person.get("name","Player"),"online":peer!=0,"area":person.get("area","outside"),"position":person.position,"role":staff_for(peer).get("role","")})
-	return {"build":link.build_identity,"protocol":link.PROTOCOL,"baseline":link.version,"frozen":link.frozen,"error":link.error,"admin_error":storage_error,"paused":link.world.data.paused if link.world else true,"clock":link.world.data.get("clock",900) if link.world else 0,"config":link.world.data.config if link.world else {},"players":players,"backups":link.store.records("backup-") if link.store else [],"metrics":link.metrics,"audit":audit_tail.slice(maxi(0,audit_tail.size()-30)),"release":configuration}
+			players.append({"id":ident,"name":person.get("display_name","Player"),"online":peer!=0,"area":person.get("area","outside"),"position":person.position,"role":staff_for(peer).get("role","")})
+	return {"build":link.build_identity,"protocol":link.PROTOCOL,"baseline":link.version,"frozen":link.frozen,"error":link.error,"admin_error":storage_error,"paused":link.world.data.paused if link.world else true,"clock":link.world.data.get("clock",900) if link.world else 0,"config":link.world.data.config if link.world else {},"players":players,"backups":link.store.records("backup-") if link.store else [],"recovery_points":(link.store.records("state-")+link.store.records("backup-")) if link.store else [],"recovery_source":link.recovery_source,"metrics":link.metrics,"audit":audit_tail.slice(maxi(0,audit_tail.size()-30)),"release":configuration}
 
 func execute(principal: Dictionary, operation: String, arguments: Dictionary, peer: int = 0) -> Dictionary:
 	var role: String = principal.get("role","")
+	if peer!=0 and operation in ["ticket","revoke","release_settings"]: return _fail("Use the web console to manage staff grants and release settings")
 	if operation not in PERMISSIONS.get(role,[]): return {"ok":false,"message":"This staff role cannot perform that action"}
 	if operation in ["restore","skill","teleport","teleport_self","revoke","release_settings"] and arguments.get("confirmed")!=true: return {"ok":false,"message":"Confirm this action first"}
 	if link.frozen and operation not in ["restore","inspect","ticket","revoke","release_settings"]: return {"ok":false,"message":"World storage is frozen. Recover it through the portal first."}
@@ -120,8 +128,15 @@ func execute(principal: Dictionary, operation: String, arguments: Dictionary, pe
 		ident=link.connections[peer]
 	if operation in ["inspect","skill","teleport","teleport_self","ticket","revoke"] and not link.world.data.players.has(ident): return {"ok":false,"message":"Choose an existing player"}
 	var details := {"player":ident}
+	if peer!=0:
+		details["actor_player"]=link.connections.get(peer,"")
+		details["granted_by"]=principal.get("granted_by","")
 	for key in ["skill","level","x","z","area","paused","minutes","role","reason"]:
-		if arguments.has(key): details[key]=arguments[key]
+		if arguments.has(key):
+			var value = arguments[key]
+			if value is float and not is_finite(value): return _fail("Invalid numeric argument")
+			if not (value is String or value is int or value is float or value is bool): return _fail("Invalid action argument")
+			details[key]=value
 	if not audit(principal.name,operation,details,"intent"): return {"ok":false,"message":storage_error}
 	var previous: Dictionary = link.world.data.duplicate(true)
 	var result := _apply(principal,operation,arguments,ident)
@@ -161,6 +176,8 @@ func _apply(principal: Dictionary, operation: String, args: Dictionary, ident: S
 			if key.ends_with("url") and value!="" and not value.begins_with("https://"): return _fail("Release manifest must use HTTPS")
 			if key=="admin_origin" and value!="" and (not value.begins_with("https://") or value.trim_suffix("/").count("/")!=2): return _fail("Admin origin must be an HTTPS origin without a path")
 			values[key]=value.trim_suffix("/") if key=="admin_origin" else value
+		var managed_origin := OS.get_environment("LONGWALK_ADMIN_ORIGIN").trim_suffix("/")
+		if managed_origin!="" and values.admin_origin!=managed_origin: return _fail("Admin origin is managed by deployment configuration")
 		if not _write("release.json",values): return _fail(storage_error)
 		configuration=values
 		return {"ok":true,"message":"Release settings saved"}
@@ -193,7 +210,7 @@ func _apply(principal: Dictionary, operation: String, args: Dictionary, ident: S
 		if not args.get("paused") is bool: return _fail("Choose paused or running")
 		if link.world.data.paused==args.paused: return {"ok":true,"message":"World already in requested state"}
 	var message: String=link._admin(operation,args)
-	var success := message in ["World pause updated","World time updated","Settings saved","Backup restored; world remains paused"] or message.begins_with("Backup saved:")
+	var success := message in ["World pause updated","World time updated","Settings saved","World restored; remains paused"] or message.begins_with("Backup saved:")
 	return {"ok":success,"message":message}
 
 func _saved(message: String) -> Dictionary:

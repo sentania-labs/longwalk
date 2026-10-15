@@ -1,6 +1,8 @@
 extends SceneTree
 
-func _initialize() -> void:
+func _initialize() -> void: _run.call_deferred()
+
+func _run() -> void:
 	var link = load("res://src/net/world_link.gd").new()
 	root.add_child(link)
 	link.serving = true

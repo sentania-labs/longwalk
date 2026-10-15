@@ -12,6 +12,6 @@ for name in ['boot.gd', 'boot.tscn', 'project.godot', 'release_manifest.json']:
     shutil.copy2(root / name, app / name)
 project = app / 'project.godot'
 project.write_text('\n'.join(line for line in project.read_text().splitlines() if not line.startswith('config/icon='))+'\n')
-for name in ['src', 'world']:
+for name in ['src', 'world', 'web']:
     shutil.copytree(root / name, app / name, dirs_exist_ok=True)
 print(context)
