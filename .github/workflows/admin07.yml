@@ -81,10 +81,19 @@ jobs:
         shell: pwsh
         run: |
           $exe = Join-Path $PWD 'prototypes/shared_village_07/build/windows/Longwalk-Shared-Village-07.exe'
-          $process = Start-Process -FilePath $exe -ArgumentList '--headless','--quit-after','30' -WorkingDirectory (Split-Path $exe) -PassThru -RedirectStandardOutput windows-smoke.log -RedirectStandardError windows-error.log
+          $process = Start-Process -FilePath $exe -ArgumentList '--headless','--script','res://test/exported_client.gd' -WorkingDirectory (Split-Path $exe) -PassThru -RedirectStandardOutput windows-smoke.log -RedirectStandardError windows-error.log
           if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Signed client timed out' }
+          Get-Content windows-smoke.log,windows-error.log
           if ($process.ExitCode -ne 0) { throw 'Signed client failed' }
           if (Select-String -Path windows-smoke.log,windows-error.log -Pattern 'SCRIPT ERROR:|^ERROR:') { throw 'Signed client reported errors' }
+          if (-not (Select-String -Path windows-smoke.log -SimpleMatch 'EXPORTED CLIENT CHECK PASSED:')) { throw 'Signed client check did not finish' }
+      - name: Preserve signed client smoke evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-smoke-evidence
+          path: windows-*.log
+          retention-days: 7
       - name: Package signed client
         env:
           RELEASE_VERSION: ${{ github.ref_name }}
