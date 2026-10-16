@@ -1,0 +1,144 @@
+name: Admin 07 delivery
+on:
+  pull_request:
+    branches: [main]
+  push:
+    tags: ['v*.*.*']
+permissions:
+  contents: read
+concurrency:
+  group: admin07-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Validate release tag
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          test "$(git cat-file -t "$TAG")" = tag
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned engine and tooling
+        run: |
+          tools/fetch_godot.sh
+          tools/fetch_export_templates.sh
+          tools/ci/install-tools.sh
+      - name: Local-equivalent lint, build and smoke gates
+        env:
+          RELEASE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || 'development' }}
+        run: tools/ci/check-admin07.sh
+      - name: Preserve tested build for signing and publication
+        run: |
+          docker save -o prototypes/shared_village_07/build/server-image.tar longwalk-admin07:smoke
+          tar -cf handoff.tar prototypes/shared_village_07/build/windows prototypes/shared_village_07/build/linux prototypes/shared_village_07/build/Longwalk-Art-01.pck prototypes/shared_village_07/build/server-image.tar prototypes/shared_village_07/release_manifest.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tested-build
+          path: handoff.tar
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: smoke-evidence
+          path: |
+            prototypes/shared_village_07/build/*.log
+            prototypes/shared_village_07/artifacts/evidence/
+          retention-days: 7
+  sign:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: tested-build
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - run: tar -xf handoff.tar
+      - name: Sign Windows client with the central action
+        uses: sentania-labs/.github/.github/actions/windows-sign@a37e4e029c8ebb8f1810c3dd50aa035acecbe1fc
+        with:
+          files: ${{ github.workspace }}\prototypes\shared_village_07\build\windows\Longwalk-Shared-Village-07.exe
+          endpoint: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.ARTIFACT_SIGNING_PROFILE }}
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Run signed Windows client
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD 'prototypes/shared_village_07/build/windows/Longwalk-Shared-Village-07.exe'
+          $process = Start-Process -FilePath $exe -ArgumentList '--headless','--quit-after','30' -WorkingDirectory (Split-Path $exe) -PassThru -RedirectStandardOutput windows-smoke.log -RedirectStandardError windows-error.log
+          if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Signed client timed out' }
+          if ($process.ExitCode -ne 0) { throw 'Signed client failed' }
+          if (Select-String -Path windows-smoke.log,windows-error.log -Pattern 'SCRIPT ERROR:|^ERROR:') { throw 'Signed client reported errors' }
+      - name: Package signed client
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        shell: bash
+        run: python prototypes/shared_village_07/tools/build_playtest.py --package-only --version "$RELEASE_VERSION"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-clients
+          path: prototypes/shared_village_07/artifacts/*
+          retention-days: 3
+  publish:
+    if: github.ref_type == 'tag'
+    needs: [build, sign]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: tested-build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: signed-clients
+          path: release
+      - run: |
+          tar -xf handoff.tar
+          tools/ci/install-tools.sh
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish immutable server image and chart
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: tools/ci/publish-admin07.sh
+      - name: Attest final release files
+        uses: sentania-labs/.github/.github/actions/attest-provenance@a37e4e029c8ebb8f1810c3dd50aa035acecbe1fc
+        with:
+          subject-path: release/*
+      - name: Create release after every gate passes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_VERSION" >/dev/null 2>&1; then
+            gh release create "$RELEASE_VERSION" release/* --verify-tag --title "Longwalk $RELEASE_VERSION: Admin 07" --notes-file prototypes/shared_village_07/RELEASE-NOTES.md
+          fi

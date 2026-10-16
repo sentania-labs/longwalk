@@ -1,0 +1,6 @@
+apiVersion: v2
+name: longwalk
+description: Single-writer Longwalk playtest world and administration console
+type: application
+version: 0.1.0
+appVersion: latest

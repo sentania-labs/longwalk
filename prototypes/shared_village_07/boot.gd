@@ -8,12 +8,6 @@ var status: Label
 var address: LineEdit
 var port: SpinBox
 var profile: OptionButton
-var admin_box: VBoxContainer
-var backup_list: OptionButton
-var save_interval: SpinBox
-var max_players: SpinBox
-var day_length: SpinBox
-var clock_hour: SpinBox
 var diagnostics: Label
 var credentials := {}
 var client_settings := ConfigFile.new()
@@ -25,7 +19,6 @@ var capture_offline := false
 var capture_menu := false
 var capture_workshop := false
 var menu_opened := false
-var last_config := {}
 var repair_panel: PanelContainer
 var art_message: Label
 var launch_panel: PanelContainer
@@ -78,7 +71,7 @@ func _start_client() -> void:
 	add_child(scene)
 	link.notice.connect(_notice)
 	link.changed.connect(_state)
-	link.joined.connect(func(_id,_owner): _notice("Connected. The first registered traveler owns this private prototype."))
+	link.joined.connect(func(_id,_owner): _notice("Connected. Administration is managed separately through the web console."))
 	_build_panel()
 	hud = load("res://game_hud.gd").new()
 	hud.link = link
@@ -107,7 +100,7 @@ func _build_launcher() -> void:
 	launch_panel.add_child(column)
 	var heading: Label = hud._label("Two Rivers",30)
 	column.add_child(heading)
-	column.add_child(hud._label("Working Day 06 · "+_build_identity(),14))
+	column.add_child(hud._label("Admin 07 · "+_build_identity(),14))
 	launch_status = hud._label("",16)
 	launch_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	launch_status.custom_minimum_size.x = 400
@@ -155,7 +148,7 @@ func _build_panel() -> void:
 	var head := HBoxContainer.new()
 	column.add_child(head)
 	var title := Label.new()
-	title.text = "Connection / world · 06"
+	title.text = "Connection / world · 07"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
 	_button("×",func(): panel.hide(),head).tooltip_text = "Close"
@@ -202,61 +195,21 @@ func _build_panel() -> void:
 	_button("Harvest square oak (must be nearby)",func(): link.command("harvest"),box)
 	var note := Label.new()
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.text = "Private LAN prototype. First registered traveler becomes world owner. Credentials are local to each profile; transport is not encrypted."
+	note.text = "Traveler profiles do not grant administration rights. Staff access is granted from the web console for this connection only."
 	box.add_child(note)
-	admin_box = VBoxContainer.new()
-	box.add_child(admin_box)
-	var heading := Label.new()
-	heading.text = "World owner controls"
-	admin_box.add_child(heading)
-	_button("Pause / Resume world",func(): link.command("pause"),admin_box)
-	var interval_label := Label.new()
-	interval_label.text = "Position checkpoint interval (seconds)"
-	admin_box.add_child(interval_label)
-	save_interval = SpinBox.new()
-	save_interval.min_value = 1
-	save_interval.max_value = 60
-	save_interval.value = 5
-	admin_box.add_child(save_interval)
-	var limit_label := Label.new()
-	limit_label.text = "Concurrent player limit"
-	admin_box.add_child(limit_label)
-	max_players = SpinBox.new()
-	max_players.min_value = 2
-	max_players.max_value = 16
-	max_players.value = 4
-	admin_box.add_child(max_players)
-	var day_label := Label.new()
-	day_label.text = "Full day length (real minutes)"
-	admin_box.add_child(day_label)
-	day_length = SpinBox.new()
-	day_length.min_value = 12
-	day_length.max_value = 1440
-	day_length.value = 144
-	admin_box.add_child(day_length)
-	var clock_label := Label.new()
-	clock_label.text = "Set world hour (0 to 23)"
-	admin_box.add_child(clock_label)
-	clock_hour = SpinBox.new()
-	clock_hour.min_value = 0
-	clock_hour.max_value = 23
-	clock_hour.value = 15
-	admin_box.add_child(clock_hour)
-	_button("Set world time",func(): link.command("clock",{"minutes":clock_hour.value*60}),admin_box)
-	_button("Save world settings",func(): link.command("settings",{"save_interval":save_interval.value,"max_players":int(max_players.value),"day_minutes":day_length.value}),admin_box)
-	_button("Create backup",func(): link.command("backup"),admin_box)
-	backup_list = OptionButton.new()
-	admin_box.add_child(backup_list)
-	_button("Restore selected backup (world must be paused)",func():
-		if backup_list.selected>=0: link.command("restore",{"name":backup_list.get_item_text(backup_list.selected)})
-	,admin_box)
+	var staff_panel = load("res://staff_panel.gd").new()
+	staff_panel.link = link
+	box.add_child(staff_panel)
+	_button("Open client release page",func():
+		var url: String = link.update_info.get("manifest_url", "")
+		if url.begins_with("https://"): OS.shell_open(url)
+		else: _notice("This server has not provided an HTTPS release page.")
+	,box)
 	diagnostics = Label.new()
 	diagnostics.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(diagnostics)
-	admin_box.hide()
 
 func _connect() -> void:
-	last_config = {}
 	client_settings.set_value("connection","address",address.text.strip_edges())
 	client_settings.set_value("connection","profile",profile.selected)
 	client_settings.set_value("connection","port",int(port.value))
@@ -271,12 +224,6 @@ func _notice(message: String) -> void:
 	if launch_status: launch_status.text = message
 
 func _state(state: Dictionary) -> void:
-	admin_box.visible = link.is_owner
-	if last_config != state.config:
-		save_interval.value = state.config.save_interval
-		max_players.value = state.config.max_players
-		day_length.value = state.config.get("day_minutes",144)
-		last_config = state.config.duplicate()
 	diagnostics.text = "Players: %d | Revision: %d | Saved generation: %d\n%s%s" % [state.actors.size(),state.revision,state.saved_generation,"PAUSED" if state.paused else "World running",(" | STORAGE ERROR: "+state.error) if state.error!="" else ""]
 	var metrics: Dictionary = state.get("metrics",{})
 	if not metrics.is_empty(): diagnostics.text += "\nTick peak: %.2f ms | Motion: %d bytes\nLast save: %.1f sec | Citizen: %d\nProtocol: %s" % [metrics.get("tick_peak_ms",0),metrics.get("motion_bytes",0),metrics.get("save_age",0),metrics.get("citizens",0),metrics.get("protocol","")]
@@ -284,14 +231,6 @@ func _state(state: Dictionary) -> void:
 	if metrics.has("action_peak_ms"): diagnostics.text += "\nAction peak: %.2f ms" % metrics.action_peak_ms
 	if metrics.has("build"): diagnostics.text += "\nServer build: "+str(metrics.build)
 	if metrics.has("fauna"): diagnostics.text += "\nMeadow fauna: %d | Births: %d" % [metrics.fauna,metrics.births]
-	var old_selection := backup_list.get_item_text(backup_list.selected) if backup_list.selected>=0 else ""
-	var items := []
-	for i in range(backup_list.item_count): items.append(backup_list.get_item_text(i))
-	if items != state.backups:
-		backup_list.clear()
-		for name in state.backups: backup_list.add_item(name)
-		for i in range(backup_list.item_count):
-			if backup_list.get_item_text(i)==old_selection: backup_list.select(i)
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(scene): return

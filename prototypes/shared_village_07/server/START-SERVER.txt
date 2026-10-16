@@ -1,22 +1,10 @@
-LONGWALK WORKING DAY 06 SERVER
+LONGWALK ADMIN 07 SERVER
 
-Load the bundled image, then start Compose from this directory:
-  docker load -i longwalk-shared-village-06.tar
-  docker compose up -d
+Use the OCI image and Helm chart attached to a tagged CI release.
+Deployment and recovery instructions: charts/longwalk/README.md at repository root.
+Pin the chart version and image digest in your Argo configuration.
+Scott owns cluster deployment. No public DNS records are provisioned here.
 
-Connect client 06 to this host on UDP 7777. Use a private LAN.
-World settings and backup/restore are available in the owner's game interface.
-
-Stop safely with docker compose stop; start again with docker compose start.
-Normal stop saves a final checkpoint. A forced kill can lose unsaved movement.
-The named volume contains the world. Retain it and copy backups elsewhere.
-
-For an upgrade, keep the existing Compose project name and named volume.
-Back up the stopped world first. Older server rollback needs that older backup.
-Do not point two worlds at the same volume; a writer lock rejects the second.
-
-Kubernetes: import the image into a private development cluster and apply
-kubernetes.yaml. It provides one writer, a PVC and a ClusterIP UDP service.
-Storage class and external private client access depend on your deployment.
-The included test/kind fixture exercises local UDP access without public DNS.
-No lab deployment is performed by this package.
+For disposable local testing only, compose.yaml exposes loopback UDP 17787
+and TCP 18887 and requires LONGWALK_ADMIN_SETUP_TOKEN. Choose a distinct
+Compose project name. Never point 07 and an older server at the same volume.

@@ -1,15 +1,14 @@
+# Optional isolated local test. Scott deploys release images through Helm/Argo.
 services:
   world:
-    image: longwalk-shared-village:06
+    image: ghcr.io/sentania-labs/longwalk-server:latest # Pin an exact release for deployment.
     ports:
-      - "7777:7777/udp"
+      - "127.0.0.1:17787:7777/udp"
+      - "127.0.0.1:18887:8888"
+    environment:
+      LONGWALK_ADMIN_SETUP_TOKEN: ${LONGWALK_ADMIN_SETUP_TOKEN:?Provide a random setup token of at least 32 characters}
     volumes:
-      - world-data:/data
-    restart: unless-stopped
+      - admin07-local-data:/data
     stop_grace_period: 30s
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
 volumes:
-  world-data:
+  admin07-local-data: {}

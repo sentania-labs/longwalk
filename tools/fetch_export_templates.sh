@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fetch the pinned Godot export templates reproducibly and install the Windows
+# Fetch the pinned Godot export templates reproducibly and install the Windows and Linux
 # templates where the engine looks for them, so
 # `godot --export-release "Windows Desktop"` can produce a Windows build. The
 # templates archive is not committed; this script re-downloads the exact pinned
@@ -7,8 +7,8 @@
 #
 # The full templates archive carries every platform (Android, iOS, web, macOS,
 # Linux, Windows) and is multiple gigabytes unpacked. M2 only exports Windows
-# x86_64, so this installs just the Windows templates (release plus its console
-# wrapper) and the version marker. That keeps the install and the CI cache
+# x86_64; Admin 07 also exports Linux for packaged smoke tests. Install those
+# templates (including the Windows console wrapper) and the version marker. That keeps the install and the CI cache
 # small. Add more members here if a future milestone exports other platforms.
 #
 # Godot release asset naming for the templates is
@@ -22,8 +22,9 @@ GODOT_VERSION="4.3-stable"
 TPZ="Godot_v${GODOT_VERSION}_export_templates.tpz"
 URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/${TPZ}"
 
-# Only the members needed for a Windows x86_64 export.
+# Only the members needed for Windows and Linux x86_64 exports.
 MEMBERS=(
+  "templates/linux_release.x86_64"
   "templates/version.txt"
   "templates/windows_release_x86_64.exe"
   "templates/windows_release_x86_64_console.exe"
@@ -33,9 +34,9 @@ MEMBERS=(
 # path; default to the standard per-user Godot data directory.
 TEMPLATES_ROOT="${GODOT_TEMPLATES_ROOT:-${HOME}/.local/share/godot/export_templates}"
 
-# If the Windows release template is already installed for this version, skip.
-if [ -f "${TEMPLATES_ROOT}/${GODOT_VERSION%-*}.stable/windows_release_x86_64.exe" ]; then
-  echo "Windows export templates already present under ${TEMPLATES_ROOT}"
+# Skip only when both platform templates are installed.
+if [ -f "${TEMPLATES_ROOT}/${GODOT_VERSION%-*}.stable/windows_release_x86_64.exe" ] && [ -f "${TEMPLATES_ROOT}/${GODOT_VERSION%-*}.stable/linux_release.x86_64" ]; then
+  echo "Windows and Linux export templates already present under ${TEMPLATES_ROOT}"
   exit 0
 fi
 
@@ -55,5 +56,5 @@ for member in "${MEMBERS[@]}"; do
   cp -f "${TMP}/${member}" "${DEST}/"
 done
 
-echo "Installed Windows export templates ${VERSION_NAME} into ${DEST}"
+echo "Installed Windows and Linux export templates ${VERSION_NAME} into ${DEST}"
 ls "${DEST}" | sed 's/^/  /'
